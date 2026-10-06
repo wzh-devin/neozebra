@@ -1,0 +1,195 @@
+import {
+  BriefcaseBusiness,
+  CircleDot,
+  Globe2,
+  Lightbulb,
+  LockKeyhole,
+  MessageSquareText,
+  Smartphone,
+  Sparkles,
+  Target,
+  WandSparkles,
+  Workflow,
+} from 'lucide-react'
+
+import type { InitiativeRow } from '@/features/initiatives/types'
+
+/**
+ * 本地 synthetic initiative 数据，用于首屏视觉和交互演示。
+ *
+ * @param 无参数
+ * @returns synthetic initiative 列表
+ */
+const getInitiativeMockList = (): InitiativeRow[] => [
+  {
+    id: 'core-product',
+    name: 'Core product',
+    target: '2026',
+    status: 'active',
+    health: 'onTrack',
+    projects: '23 / 102',
+    activeProjects: [
+      { value: '28', tone: 'green' },
+      { value: '8', tone: 'yellow' },
+      { value: '4', tone: 'muted' },
+    ],
+    activity: 'up',
+    icon: CircleDot,
+    iconTone: 'cyan',
+    children: [
+      {
+        id: 'infra-stability',
+        name: 'Infra stability',
+        target: '2026',
+        status: 'active',
+        health: 'onTrack',
+        projects: '41 / 193',
+        activeProjects: [
+          { value: '83', tone: 'green' },
+          { value: '12', tone: 'yellow' },
+        ],
+        activity: 'up',
+        icon: BriefcaseBusiness,
+        iconTone: 'cyan',
+      },
+      {
+        id: 'autonomous-systems',
+        name: 'Autonomous systems',
+        target: '2026',
+        status: 'active',
+        health: 'atRisk',
+        projects: '51 / 205',
+        activeProjects: [
+          { value: '98', tone: 'green' },
+          { value: '10', tone: 'yellow' },
+          { value: '24', tone: 'muted' },
+        ],
+        activity: 'up',
+        icon: Sparkles,
+        iconTone: 'cyan',
+        children: [
+          {
+            id: 'vehicle-intelligence',
+            name: 'Vehicle intelligence',
+            description: 'Prediction and decision-making systems',
+            target: 'Q3 2026',
+            status: 'active',
+            health: 'offTrack',
+            projects: '12 / 85',
+            activeProjects: [
+              { value: '12', tone: 'green' },
+              { value: '35', tone: 'yellow' },
+            ],
+            activity: 'flat',
+            icon: Lightbulb,
+            iconTone: 'cyan',
+          },
+          {
+            id: 'safety-reliability',
+            name: 'Safety & reliability',
+            description: 'Validation, monitoring, and failure handling',
+            target: 'H1 2026',
+            status: 'active',
+            health: 'onTrack',
+            projects: '22 / 65',
+            activeProjects: [
+              { value: '24', tone: 'green' },
+              { value: '24', tone: 'yellow' },
+            ],
+            activity: 'up',
+            icon: LockKeyhole,
+            iconTone: 'cyan',
+          },
+        ],
+      },
+      {
+        id: 'mobile-apps',
+        name: 'Mobile apps',
+        target: 'Q1 2026',
+        status: 'active',
+        health: 'onTrack',
+        projects: '8 / 127',
+        activeProjects: [{ value: '79', tone: 'green' }],
+        activity: 'flat',
+        icon: Smartphone,
+        iconTone: 'cyan',
+      },
+    ],
+  },
+  {
+    id: 'apac-expansion',
+    name: 'APAC Expansion',
+    target: '2026',
+    status: 'active',
+    health: 'onTrack',
+    projects: '14 / 32',
+    activeProjects: [
+      { value: '22', tone: 'green' },
+      { value: '2', tone: 'yellow' },
+    ],
+    activity: 'up',
+    icon: Target,
+    iconTone: 'red',
+    children: [
+      {
+        id: 'japan-launch',
+        name: 'Japan Launch',
+        target: 'Q2 2026',
+        status: 'active',
+        health: 'onTrack',
+        projects: '2 / 15',
+        activeProjects: [
+          { value: '9', tone: 'green' },
+          { value: '2', tone: 'yellow' },
+        ],
+        activity: 'up',
+        icon: Globe2,
+        iconTone: 'red',
+      },
+      {
+        id: 'localization-efforts',
+        name: 'Localization efforts',
+        target: 'H2 2026',
+        status: 'active',
+        health: 'atRisk',
+        projects: '4 / 18',
+        activeProjects: [
+          { value: '6', tone: 'green' },
+          { value: '1', tone: 'yellow' },
+          { value: '2', tone: 'muted' },
+        ],
+        activity: 'up',
+        icon: MessageSquareText,
+        iconTone: 'red',
+      },
+    ],
+  },
+  {
+    id: 'platform-modernization',
+    name: 'Platform modernization',
+    target: '2027',
+    status: 'planned',
+    health: 'onTrack',
+    projects: '0 / 0',
+    activeProjects: [],
+    activity: 'flat',
+    icon: Workflow,
+    iconTone: 'purple',
+    children: [
+      {
+        id: 'design-system-refresh',
+        name: 'Design system refresh',
+        target: 'Q1 2027',
+        status: 'planned',
+        health: 'onTrack',
+        projects: '0 / 0',
+        activeProjects: [],
+        activity: 'flat',
+        icon: WandSparkles,
+        iconTone: 'purple',
+      },
+    ],
+  },
+]
+
+export { getInitiativeMockList }

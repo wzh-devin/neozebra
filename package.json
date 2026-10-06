@@ -1,0 +1,17 @@
+{
+  "name": "neozebra",
+  "private": true,
+  "packageManager": "pnpm@11.1.2",
+  "scripts": {
+    "dev": "pnpm --filter @neozebra/web dev",
+    "build": "pnpm --filter @neozebra/web build",
+    "lint": "pnpm --filter @neozebra/web lint",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
+  "devDependencies": {
+    "oxlint": "latest",
+    "prettier": "latest",
+    "prettier-plugin-tailwindcss": "latest"
+  }
+}
