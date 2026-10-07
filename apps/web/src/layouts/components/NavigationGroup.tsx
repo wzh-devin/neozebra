@@ -8,6 +8,8 @@ import {
 } from '@/components/ui/sidebar'
 import type { NavigationItem } from '@/layouts/workbenchNavigation'
 
+import styles from '@/layouts/components/NavigationGroup.module.css'
+
 const favoriteToneClassMap: Record<string, string> = {
   yellow: 'nav-icon-yellow',
   blue: 'nav-icon-blue',
@@ -34,7 +36,7 @@ const NavigationGroup = ({
   selected,
   onSelect,
 }: NavigationGroupProps) => (
-  <SidebarGroup className="sidebar-group">
+  <SidebarGroup className={styles['sidebar-group']}>
     <SidebarGroupLabel>{label}</SidebarGroupLabel>
     <SidebarGroupContent>
       <SidebarMenu>
@@ -48,11 +50,13 @@ const NavigationGroup = ({
                 isActive={isSelected}
                 onClick={() => onSelect(item.id)}
                 tooltip={item.label}
-                className="sidebar-nav-button"
+                className={styles['sidebar-nav-button']}
               >
                 <Icon
                   className={
-                    item.tone ? favoriteToneClassMap[item.tone] : undefined
+                    item.tone
+                      ? styles[favoriteToneClassMap[item.tone]]
+                      : undefined
                   }
                 />
                 <span>{item.label}</span>

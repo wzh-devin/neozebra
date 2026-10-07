@@ -2,6 +2,7 @@ import { Command, LayoutGrid, PanelLeft, Plus } from 'lucide-react'
 import { toast } from 'sonner'
 
 import { Button } from '@/components/ui/button'
+import { SidebarTrigger, useSidebar } from '@/components/ui/sidebar'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import {
   Tooltip,
@@ -13,6 +14,8 @@ import type {
   InitiativeTab,
   InitiativesView,
 } from '@/features/initiatives/hooks/useInitiativesView'
+
+import styles from '@/features/initiatives/components/InitiativesPageContent.module.css'
 
 type InitiativesPageContentProps = Pick<
   InitiativesView,
@@ -36,6 +39,8 @@ const InitiativesPageContent = ({
   setActiveTab,
   setExpanded,
 }: InitiativesPageContentProps) => {
+  const { state, isMobile } = useSidebar()
+
   /**
    * 显示创建 initiative 的本地反馈。
    *
@@ -57,19 +62,27 @@ const InitiativesPageContent = ({
   }
 
   return (
-    <main className="content-panel">
-      <header className="content-header">
-        <div className="content-title-row">
-          <div>
-            <p className="content-kicker">Workspace</p>
-            <h1>Initiatives</h1>
+    <main className={styles['content-panel']}>
+      <header className={styles['content-header']}>
+        <div className={styles['content-title-row']}>
+          <div className={styles['content-title-cluster']}>
+            {isMobile || state === 'collapsed' ? (
+              <SidebarTrigger
+                aria-label="Expand sidebar"
+                className={styles['sidebar-expand-trigger']}
+              />
+            ) : null}
+            <div>
+              <p className={styles['content-kicker']}>Workspace</p>
+              <h1>Initiatives</h1>
+            </div>
           </div>
-          <div className="header-actions">
+          <div className={styles['header-actions']}>
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
                   aria-label="Command menu"
-                  className="header-icon-button"
+                  className={styles['header-icon-button']}
                   size="icon-sm"
                   variant="ghost"
                 >
@@ -82,7 +95,7 @@ const InitiativesPageContent = ({
               <TooltipTrigger asChild>
                 <Button
                   aria-label="Add initiative"
-                  className="header-add-button"
+                  className={styles['header-add-button']}
                   size="icon-sm"
                   variant="ghost"
                   onClick={createInitiativeHandler}
@@ -97,7 +110,7 @@ const InitiativesPageContent = ({
         <Tabs
           value={activeTab}
           onValueChange={changeInitiativeTabHandler}
-          className="initiative-tabs"
+          className={styles['initiative-tabs']}
         >
           <TabsList>
             <TabsTrigger value="active">Active</TabsTrigger>
@@ -113,7 +126,7 @@ const InitiativesPageContent = ({
         onExpandedChange={setExpanded}
       />
 
-      <footer className="content-footer">
+      <footer className={styles['content-footer']}>
         <span>
           <LayoutGrid aria-hidden="true" /> Showing synthetic workspace data
         </span>

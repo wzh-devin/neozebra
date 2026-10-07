@@ -1,0 +1,101 @@
+.table-scroll-shell {
+  min-width: 0;
+  flex: 1 1 auto;
+  overflow: auto;
+}
+
+.initiative-table {
+  min-width: 930px;
+  table-layout: fixed;
+}
+
+.initiative-table thead tr {
+  height: 51px;
+  border-bottom-color: rgba(255, 255, 255, 0.06);
+}
+
+.initiative-table th {
+  color: #606872;
+  font-size: 11px;
+  font-weight: 400;
+  white-space: nowrap;
+}
+
+.initiative-table td {
+  border-bottom-color: rgba(255, 255, 255, 0.045);
+}
+
+.name-head,
+.name-cell {
+  width: 42%;
+}
+
+.target-head,
+.target-cell {
+  width: 10%;
+}
+
+.health-head,
+.health-cell {
+  width: 15%;
+}
+
+.projects-head,
+.projects-cell {
+  width: 12%;
+}
+
+.active-head,
+.active-projects-cell {
+  width: 15%;
+}
+
+.activity-head,
+.activity-cell {
+  width: 6%;
+}
+
+.name-head {
+  padding-left: 42px;
+}
+
+.target-head,
+.health-head,
+.projects-head,
+.active-head {
+  padding-left: 0;
+}
+
+.activity-head {
+  text-align: center;
+}
+
+.empty-cell {
+  height: 240px;
+  color: #737b83;
+  text-align: center;
+}
+
+.empty-cell svg {
+  width: 22px;
+  height: 22px;
+  margin: 0 auto 8px;
+  color: #66717a;
+}
+
+@media (max-width: 1100px) {
+  .name-head,
+  .name-cell {
+    width: 38%;
+  }
+
+  .initiative-table {
+    min-width: 860px;
+  }
+}
+
+@media (max-width: 760px) {
+  .initiative-table {
+    min-width: 780px;
+  }
+}

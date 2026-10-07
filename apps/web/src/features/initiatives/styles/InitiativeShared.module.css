@@ -1,0 +1,77 @@
+.health-badge {
+  gap: 6px;
+  border: 0;
+  padding: 0;
+  font-size: 12px;
+  font-weight: 400;
+}
+
+.health-badge svg {
+  width: 17px;
+  height: 17px;
+  padding: 3px;
+  border-radius: 50%;
+  stroke-width: 2.4;
+}
+
+.health-on-track {
+  color: #35c46d;
+}
+
+.health-on-track svg {
+  background: rgba(42, 166, 85, 0.22);
+}
+
+.health-at-risk {
+  color: #dfbf28;
+}
+
+.health-at-risk svg {
+  background: rgba(198, 160, 19, 0.25);
+}
+
+.health-off-track {
+  color: #f05a5d;
+}
+
+.health-off-track svg {
+  background: rgba(191, 52, 58, 0.27);
+}
+
+.project-stats {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.project-stat {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: #9ba2aa;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.project-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.project-dot-green {
+  background: #37c86d;
+}
+
+.project-dot-yellow {
+  background: #e4c51b;
+}
+
+.project-dot-muted {
+  background: #7f8790;
+}
+
+.muted-dash {
+  color: #646c74;
+}

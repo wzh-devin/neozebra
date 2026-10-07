@@ -1,5 +1,7 @@
 import type { ActiveProjectStat } from '@/features/initiatives/types'
 
+import styles from '@/features/initiatives/styles/InitiativeShared.module.css'
+
 type ActiveProjectStatsProps = {
   stats: ActiveProjectStat[]
 }
@@ -12,16 +14,19 @@ type ActiveProjectStatsProps = {
  */
 const ActiveProjectStats = ({ stats }: ActiveProjectStatsProps) => {
   if (stats.length === 0) {
-    return <span className="muted-dash">—</span>
+    return <span className={styles['muted-dash']}>—</span>
   }
 
   return (
-    <div className="project-stats" aria-label="Active project counts">
+    <div className={styles['project-stats']} aria-label="Active project counts">
       {stats.map((stat) => (
-        <span className="project-stat" key={`${stat.tone}-${stat.value}`}>
+        <span
+          className={styles['project-stat']}
+          key={`${stat.tone}-${stat.value}`}
+        >
           <span
             aria-hidden="true"
-            className={`project-dot project-dot-${stat.tone}`}
+            className={`${styles['project-dot']} ${styles[`project-dot-${stat.tone}`]}`}
           />
           {stat.value}
         </span>

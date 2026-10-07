@@ -1,45 +1,31 @@
-import { useState, type CSSProperties, type ReactNode } from 'react'
+import {
+  useRef,
+  useState,
+  type CSSProperties,
+  type MouseEvent,
+  type PointerEvent,
+  type ReactNode,
+} from 'react'
 import { toast } from 'sonner'
-import {
-  Bell,
-  ChevronDown,
-  Plus,
-  Search,
-  Settings2,
-  Sparkles,
-} from 'lucide-react'
+import { Sparkles } from 'lucide-react'
 
-import { BrandMark } from '@/components/shared/BrandMark'
-import { Button } from '@/components/ui/button'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import {
   Sidebar,
   SidebarContent,
   SidebarHeader,
   SidebarInset,
-  SidebarMenuButton,
   SidebarProvider,
   SidebarRail,
 } from '@/components/ui/sidebar'
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from '@/components/ui/tooltip'
 import { NavigationGroup } from '@/layouts/components/NavigationGroup'
 import {
   favoriteNavigationList,
   mainNavigationList,
   workspaceNavigationList,
 } from '@/layouts/workbenchNavigation'
+
+import styles from '@/layouts/WorkbenchLayout.module.css'
 
 type WorkbenchLayoutProps = {
   children: ReactNode
@@ -53,6 +39,16 @@ type WorkbenchLayoutProps = {
  */
 const WorkbenchLayout = ({ children }: WorkbenchLayoutProps) => {
   const [selectedNav, setSelectedNav] = useState('initiatives')
+  const [sidebarWidth, setSidebarWidth] = useState(240)
+  const [sidebarOpen, setSidebarOpen] = useState(true)
+  const [sidebarHoverOpen, setSidebarHoverOpen] = useState(false)
+  const sidebarResizeRef = useRef<{
+    startWidth: number
+    startX: number
+  } | null>(null)
+  const sidebarRailDraggedRef = useRef(false)
+
+  const sidebarVisible = sidebarOpen || sidebarHoverOpen
 
   /**
    * 响应侧栏导航选择并提示尚未实现的页面。
@@ -70,90 +66,157 @@ const WorkbenchLayout = ({ children }: WorkbenchLayoutProps) => {
   }
 
   /**
-   * 响应工作台外壳中的创建按钮。
+   * 开始拖拽侧栏轨道，记录拖拽起点并捕获指针事件。
+   *
+   * @param event - 侧栏轨道指针事件
+   * @returns 无返回值；启动侧栏宽度调整
+   */
+  const sidebarRailPointerDownHandler = (
+    event: PointerEvent<HTMLButtonElement>,
+  ): void => {
+    if (event.pointerType === 'mouse' && event.button !== 0) {
+      return
+    }
+
+    sidebarRailDraggedRef.current = false
+    sidebarResizeRef.current = {
+      startWidth: sidebarWidth,
+      startX: event.clientX,
+    }
+    event.currentTarget.setPointerCapture(event.pointerId)
+  }
+
+  /**
+   * 根据指针横向位移更新侧栏宽度。
+   *
+   * @param event - 侧栏轨道指针事件
+   * @returns 无返回值；更新侧栏宽度
+   */
+  const sidebarRailPointerMoveHandler = (
+    event: PointerEvent<HTMLButtonElement>,
+  ): void => {
+    const resize = sidebarResizeRef.current
+    if (!resize) {
+      return
+    }
+
+    const delta = event.clientX - resize.startX
+    if (Math.abs(delta) <= 4) {
+      return
+    }
+
+    sidebarRailDraggedRef.current = true
+    setSidebarWidth(Math.min(420, Math.max(240, resize.startWidth + delta)))
+  }
+
+  /**
+   * 结束侧栏轨道拖拽并释放指针捕获。
+   *
+   * @param event - 侧栏轨道指针事件
+   * @returns 无返回值；结束侧栏宽度调整
+   */
+  const sidebarRailPointerUpHandler = (
+    event: PointerEvent<HTMLButtonElement>,
+  ): void => {
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId)
+    }
+    sidebarResizeRef.current = null
+  }
+
+  /**
+   * 阻止拖拽结束后的点击事件触发侧栏折叠。
+   *
+   * @param event - 侧栏轨道点击事件
+   * @returns 无返回值；拖拽后阻止折叠
+   */
+  const sidebarRailClickCaptureHandler = (
+    event: MouseEvent<HTMLButtonElement>,
+  ): void => {
+    if (!sidebarRailDraggedRef.current) {
+      return
+    }
+
+    event.preventDefault()
+    event.stopPropagation()
+    sidebarRailDraggedRef.current = false
+  }
+
+  /**
+   * 根据鼠标是否进入左侧保留区域，控制临时抽屉侧栏。
+   *
+   * @param event - 工作台容器指针事件
+   * @returns 无返回值；更新临时侧栏可见状态
+   */
+  const sidebarHoverPointerMoveHandler = (
+    event: PointerEvent<HTMLDivElement>,
+  ): void => {
+    if (
+      sidebarOpen ||
+      sidebarResizeRef.current ||
+      event.pointerType !== 'mouse'
+    ) {
+      return
+    }
+
+    const isOverRevealZone = event.clientX <= 18
+    const isOverDrawer = sidebarHoverOpen && event.clientX <= sidebarWidth
+    const nextHoverOpen = isOverRevealZone || isOverDrawer
+
+    if (nextHoverOpen !== sidebarHoverOpen) {
+      setSidebarHoverOpen(nextHoverOpen)
+    }
+  }
+
+  /**
+   * 鼠标离开工作台时收起临时抽屉侧栏。
    *
    * @param 无参数
-   * @returns 无返回值；触发创建提示
+   * @returns 无返回值；关闭临时侧栏
    */
-  const createInitiativeHandler = (): void => {
-    toast('Create initiative is ready for the next step')
+  const sidebarHoverPointerLeaveHandler = (): void => {
+    if (!sidebarOpen) {
+      setSidebarHoverOpen(false)
+    }
+  }
+
+  /**
+   * 响应侧栏展开状态变化并清理临时悬停状态。
+   *
+   * @param open - 侧栏是否保持展开
+   * @returns 无返回值；更新持久展开状态
+   */
+  const sidebarOpenChangeHandler = (open: boolean): void => {
+    setSidebarOpen(open)
+    setSidebarHoverOpen(false)
   }
 
   return (
-    <div className="app-canvas">
-      <div className="workbench-shell">
+    <div className={styles['app-canvas']}>
+      <div className={styles['workbench-shell']}>
         <SidebarProvider
-          defaultOpen
-          className="workbench-provider"
+          open={sidebarVisible}
+          onOpenChange={sidebarOpenChangeHandler}
+          className={`${styles['workbench-provider']}${!sidebarOpen ? ` ${styles['sidebar-floating']}` : ''}`}
+          onPointerMove={sidebarHoverPointerMoveHandler}
+          onPointerLeave={sidebarHoverPointerLeaveHandler}
           style={
             {
-              '--sidebar-width': '19.5rem',
+              '--sidebar-width': `${sidebarWidth}px`,
               '--sidebar-width-icon': '4.5rem',
             } as CSSProperties
           }
         >
           <Sidebar
-            className="workbench-sidebar"
-            collapsible="icon"
+            className={styles['workbench-sidebar']}
+            collapsible="offcanvas"
             variant="sidebar"
           >
-            <SidebarHeader className="sidebar-header">
-              <div className="brand-row">
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <SidebarMenuButton className="brand-button" size="lg">
-                      <BrandMark />
-                      <span className="brand-name">Neozebra</span>
-                      <ChevronDown
-                        aria-hidden="true"
-                        className="brand-chevron"
-                      />
-                    </SidebarMenuButton>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="start" className="workspace-menu">
-                    <DropdownMenuLabel>Workspaces</DropdownMenuLabel>
-                    <DropdownMenuItem>
-                      <BrandMark /> Neozebra
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem>
-                      <Plus aria-hidden="true" /> Add workspace
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-                <div className="brand-actions">
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        aria-label="Search"
-                        className="icon-button"
-                        size="icon-sm"
-                        variant="ghost"
-                      >
-                        <Search aria-hidden="true" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>Search</TooltipContent>
-                  </Tooltip>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        aria-label="Create"
-                        className="create-button"
-                        size="icon"
-                        variant="outline"
-                        onClick={createInitiativeHandler}
-                      >
-                        <Plus aria-hidden="true" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>Create</TooltipContent>
-                  </Tooltip>
-                </div>
-              </div>
+            <SidebarHeader className={styles['sidebar-header']}>
+              <span className={styles['brand-name']}>Neozebra</span>
             </SidebarHeader>
-            <ScrollArea className="sidebar-scroll">
-              <SidebarContent className="sidebar-content">
+            <ScrollArea className={styles['sidebar-scroll']}>
+              <SidebarContent className={styles['sidebar-content']}>
                 <NavigationGroup
                   label=""
                   items={mainNavigationList}
@@ -174,42 +237,19 @@ const WorkbenchLayout = ({ children }: WorkbenchLayoutProps) => {
                 />
               </SidebarContent>
             </ScrollArea>
-            <div className="sidebar-footer">
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    aria-label="Settings"
-                    className="footer-icon-button"
-                    size="icon-sm"
-                    variant="ghost"
-                  >
-                    <Settings2 aria-hidden="true" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>Settings</TooltipContent>
-              </Tooltip>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    aria-label="Notifications"
-                    className="footer-icon-button"
-                    size="icon-sm"
-                    variant="ghost"
-                  >
-                    <Bell aria-hidden="true" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>Notifications</TooltipContent>
-              </Tooltip>
-              <div className="footer-spacer" />
-              <span className="user-avatar" aria-label="Devin profile">
-                D
-              </span>
-            </div>
-            <SidebarRail />
+            <SidebarRail
+              onClickCapture={sidebarRailClickCaptureHandler}
+              onPointerDown={sidebarRailPointerDownHandler}
+              onPointerMove={sidebarRailPointerMoveHandler}
+              onPointerUp={sidebarRailPointerUpHandler}
+              onPointerCancel={sidebarRailPointerUpHandler}
+              title="Drag to resize · Click to collapse"
+            />
           </Sidebar>
 
-          <SidebarInset className="workbench-main">{children}</SidebarInset>
+          <SidebarInset className={styles['workbench-main']}>
+            {children}
+          </SidebarInset>
         </SidebarProvider>
       </div>
     </div>

@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+import { Fragment, type ReactNode } from 'react'
 import {
   ChevronDown,
   ChevronRight,
@@ -11,6 +11,8 @@ import { TableCell, TableRow } from '@/components/ui/table'
 import { ActiveProjectStats } from '@/features/initiatives/components/ActiveProjectStats'
 import { HealthBadge } from '@/features/initiatives/components/HealthBadge'
 import type { InitiativeRow as InitiativeRowType } from '@/features/initiatives/types'
+
+import styles from '@/features/initiatives/components/InitiativeRows.module.css'
 
 const iconToneClassMap: Record<string, string> = {
   cyan: 'row-icon-cyan',
@@ -55,79 +57,96 @@ const InitiativeRows = ({
     const Icon = row.icon
 
     const currentRow = (
-      <Collapsible
-        key={row.id}
-        open={isExpanded}
-        onOpenChange={createExpandedChangeHandler(row.id, onExpandedChange)}
-      >
-        <TableRow
-          className={`initiative-row ${depth === 0 ? 'initiative-row-parent' : ''}`}
+      <Fragment key={row.id}>
+        <Collapsible
+          asChild
+          open={isExpanded}
+          onOpenChange={createExpandedChangeHandler(row.id, onExpandedChange)}
         >
-          <TableCell className="name-cell">
-            <div
-              className="name-tree"
-              style={{ paddingLeft: `${depth * 34 + 12}px` }}
-            >
-              {Array.from({ length: depth }).map((_, index) => (
+          <TableRow
+            className={`${styles['initiative-row']} ${
+              depth === 0 ? styles['initiative-row-parent'] : ''
+            }`}
+          >
+            <TableCell className={styles['name-cell']}>
+              <div
+                className={styles['name-tree']}
+                style={{ paddingLeft: `${depth * 34 + 12}px` }}
+              >
+                {Array.from({ length: depth }).map((_, index) => (
+                  <span
+                    aria-hidden="true"
+                    className={styles['tree-guide']}
+                    key={`${row.id}-guide-${index}`}
+                    style={{ left: `${index * 34 + 25}px` }}
+                  />
+                ))}
+                {hasChildren ? (
+                  <CollapsibleTrigger asChild>
+                    <button
+                      aria-label={`${isExpanded ? 'Collapse' : 'Expand'} ${row.name}`}
+                      className={styles['row-toggle']}
+                      type="button"
+                    >
+                      {isExpanded ? (
+                        <ChevronDown aria-hidden="true" />
+                      ) : (
+                        <ChevronRight aria-hidden="true" />
+                      )}
+                    </button>
+                  </CollapsibleTrigger>
+                ) : (
+                  <span
+                    className={styles['row-toggle-spacer']}
+                    aria-hidden="true"
+                  />
+                )}
                 <span
-                  aria-hidden="true"
-                  className="tree-guide"
-                  key={`${row.id}-guide-${index}`}
-                  style={{ left: `${index * 34 + 25}px` }}
+                  className={`${styles['row-icon']} ${
+                    styles[iconToneClassMap[row.iconTone]]
+                  }`}
+                >
+                  <Icon aria-hidden="true" />
+                </span>
+                <span className={styles['name-copy']}>
+                  <span className={styles['name-title']}>{row.name}</span>
+                  {row.description ? (
+                    <span className={styles['name-description']}>
+                      {row.description}
+                    </span>
+                  ) : null}
+                </span>
+              </div>
+            </TableCell>
+            <TableCell className={styles['target-cell']}>
+              {row.target}
+            </TableCell>
+            <TableCell className={styles['health-cell']}>
+              <HealthBadge status={row.health} />
+            </TableCell>
+            <TableCell className={styles['projects-cell']}>
+              <span className={styles['project-count']}>
+                <span className={styles['project-count-icon']}>
+                  <ShieldCheck aria-hidden="true" />
+                </span>
+                <span>{row.projects}</span>
+              </span>
+            </TableCell>
+            <TableCell className={styles['active-projects-cell']}>
+              <ActiveProjectStats stats={row.activeProjects} />
+            </TableCell>
+            <TableCell className={styles['activity-cell']}>
+              {row.activity === 'up' ? (
+                <TrendingUp
+                  aria-label="Improving activity"
+                  className={styles['activity-up']}
                 />
-              ))}
-              {hasChildren ? (
-                <CollapsibleTrigger asChild>
-                  <button
-                    aria-label={`${isExpanded ? 'Collapse' : 'Expand'} ${row.name}`}
-                    className="row-toggle"
-                    type="button"
-                  >
-                    {isExpanded ? (
-                      <ChevronDown aria-hidden="true" />
-                    ) : (
-                      <ChevronRight aria-hidden="true" />
-                    )}
-                  </button>
-                </CollapsibleTrigger>
               ) : (
-                <span className="row-toggle-spacer" aria-hidden="true" />
+                <span className={styles['activity-flat']}>—</span>
               )}
-              <span className={`row-icon ${iconToneClassMap[row.iconTone]}`}>
-                <Icon aria-hidden="true" />
-              </span>
-              <span className="name-copy">
-                <span className="name-title">{row.name}</span>
-                {row.description ? (
-                  <span className="name-description">{row.description}</span>
-                ) : null}
-              </span>
-            </div>
-          </TableCell>
-          <TableCell className="target-cell">{row.target}</TableCell>
-          <TableCell className="health-cell">
-            <HealthBadge status={row.health} />
-          </TableCell>
-          <TableCell className="projects-cell">
-            <span className="project-count-icon">
-              <ShieldCheck aria-hidden="true" />
-            </span>
-            <span>{row.projects}</span>
-          </TableCell>
-          <TableCell className="active-projects-cell">
-            <ActiveProjectStats stats={row.activeProjects} />
-          </TableCell>
-          <TableCell className="activity-cell">
-            {row.activity === 'up' ? (
-              <TrendingUp
-                aria-label="Improving activity"
-                className="activity-up"
-              />
-            ) : (
-              <span className="activity-flat">—</span>
-            )}
-          </TableCell>
-        </TableRow>
+            </TableCell>
+          </TableRow>
+        </Collapsible>
         {hasChildren && isExpanded ? (
           <InitiativeRows
             rows={row.children ?? []}
@@ -136,7 +155,7 @@ const InitiativeRows = ({
             onExpandedChange={onExpandedChange}
           />
         ) : null}
-      </Collapsible>
+      </Fragment>
     )
 
     return [currentRow]

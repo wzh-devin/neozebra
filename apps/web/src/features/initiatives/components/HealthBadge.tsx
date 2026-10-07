@@ -8,6 +8,8 @@ import {
 import { Badge } from '@/components/ui/badge'
 import type { HealthStatus } from '@/features/initiatives/types'
 
+import styles from '@/features/initiatives/styles/InitiativeShared.module.css'
+
 const healthDetailsRecord: Record<
   HealthStatus,
   { label: string; icon: LucideIcon; className: string }
@@ -40,7 +42,10 @@ const HealthBadge = ({ status }: HealthBadgeProps) => {
   const Icon = health.icon
 
   return (
-    <Badge className={`health-badge ${health.className}`} variant="outline">
+    <Badge
+      className={`${styles['health-badge']} ${styles[health.className]}`}
+      variant="outline"
+    >
       <Icon aria-hidden="true" />
       {health.label}
     </Badge>

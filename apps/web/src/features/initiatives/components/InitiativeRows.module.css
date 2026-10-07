@@ -1,0 +1,187 @@
+.initiative-row {
+  height: 61px;
+  background: transparent;
+  transition: background 160ms ease-out;
+}
+
+.initiative-row:hover {
+  background: rgba(255, 255, 255, 0.028);
+}
+
+.initiative-row-parent {
+  height: 70px;
+}
+
+.name-cell {
+  width: 42%;
+  padding: 0 16px;
+}
+
+.name-tree {
+  position: relative;
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 10px;
+}
+
+.tree-guide {
+  position: absolute;
+  top: -24px;
+  bottom: -24px;
+  width: 1px;
+  background: rgba(126, 136, 145, 0.21);
+}
+
+.row-toggle,
+.row-toggle-spacer {
+  z-index: 1;
+  display: inline-flex;
+  width: 18px;
+  height: 24px;
+  flex: 0 0 18px;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  background: transparent;
+  color: #59616a;
+}
+
+.row-toggle:hover {
+  color: #b8c0c7;
+}
+
+.row-toggle svg {
+  width: 13px;
+  height: 13px;
+}
+
+.row-icon {
+  display: inline-flex;
+  width: 20px;
+  height: 20px;
+  flex: 0 0 20px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid currentColor;
+  border-radius: 6px;
+  background: color-mix(in srgb, currentColor 13%, transparent);
+}
+
+.row-icon svg {
+  width: 12px;
+  height: 12px;
+  stroke-width: 2;
+}
+
+.row-icon-cyan {
+  color: #25c4d6;
+}
+
+.row-icon-red {
+  color: #f06063;
+}
+
+.row-icon-purple {
+  color: #9a7af1;
+}
+
+.name-copy {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.name-title {
+  overflow: hidden;
+  color: #cdd2d7;
+  font-size: 13px;
+  font-weight: 450;
+  letter-spacing: -0.015em;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.initiative-row-parent .name-title {
+  color: #dde2e6;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.name-description {
+  overflow: hidden;
+  color: #737b84;
+  font-size: 11px;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.target-cell,
+.projects-cell,
+.active-projects-cell {
+  color: #8f979f;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.target-cell {
+  width: 10%;
+}
+
+.health-cell {
+  width: 15%;
+}
+
+.projects-cell {
+  width: 12%;
+}
+
+.active-projects-cell {
+  width: 15%;
+}
+
+.health-cell {
+  padding-left: 0;
+}
+
+.projects-cell {
+  padding-left: 0;
+}
+
+.project-count {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.project-count-icon {
+  display: inline-flex;
+  color: #7984ee;
+}
+
+.project-count-icon svg {
+  width: 17px;
+  height: 17px;
+  stroke-width: 2;
+}
+
+.activity-cell {
+  width: 6%;
+  text-align: center;
+}
+
+.activity-up {
+  width: 19px;
+  height: 19px;
+  color: #2bc56a;
+  stroke-width: 2.3;
+}
+
+.activity-flat {
+  color: #646c74;
+  font-size: 19px;
+}

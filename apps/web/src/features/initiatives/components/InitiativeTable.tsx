@@ -11,6 +11,8 @@ import {
 import { InitiativeRows } from '@/features/initiatives/components/InitiativeRows'
 import type { InitiativeRow } from '@/features/initiatives/types'
 
+import styles from '@/features/initiatives/components/InitiativeTable.module.css'
+
 type InitiativeTableProps = {
   initiativeList: InitiativeRow[]
   expandedSet: Set<string>
@@ -28,16 +30,18 @@ const InitiativeTable = ({
   expandedSet,
   onExpandedChange,
 }: InitiativeTableProps) => (
-  <div className="table-scroll-shell">
-    <Table className="initiative-table">
+  <div className={styles['table-scroll-shell']}>
+    <Table className={styles['initiative-table']}>
       <TableHeader>
-        <TableRow className="table-head-row">
-          <TableHead className="name-head">Name</TableHead>
-          <TableHead className="target-head">Target</TableHead>
-          <TableHead className="health-head">Health</TableHead>
-          <TableHead className="projects-head">Projects</TableHead>
-          <TableHead className="active-head">Active projects</TableHead>
-          <TableHead className="activity-head">Activity</TableHead>
+        <TableRow>
+          <TableHead className={styles['name-head']}>Name</TableHead>
+          <TableHead className={styles['target-head']}>Target</TableHead>
+          <TableHead className={styles['health-head']}>Health</TableHead>
+          <TableHead className={styles['projects-head']}>Projects</TableHead>
+          <TableHead className={styles['active-head']}>
+            Active projects
+          </TableHead>
+          <TableHead className={styles['activity-head']}>Activity</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -49,7 +53,7 @@ const InitiativeTable = ({
           />
         ) : (
           <TableRow>
-            <TableCell colSpan={6} className="empty-cell">
+            <TableCell colSpan={6} className={styles['empty-cell']}>
               <Archive aria-hidden="true" />
               No initiatives in this view
             </TableCell>

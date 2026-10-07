@@ -1,0 +1,61 @@
+@import 'tailwindcss';
+@import 'tw-animate-css';
+@import 'shadcn/tailwind.css';
+@import '@fontsource-variable/inter';
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  html {
+    @apply font-sans;
+    background: #08090b;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-size: 15px;
+    font-weight: 450;
+    line-height: 1.5;
+    min-width: 320px;
+    margin: 0;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  button,
+  [role='button'] {
+    cursor: pointer;
+  }
+
+  ::selection {
+    color: #effeff;
+    background: rgba(42, 194, 211, 0.3);
+  }
+
+  ::-webkit-scrollbar {
+    width: 9px;
+    height: 9px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    border: 2px solid transparent;
+    border-radius: 999px;
+    background: rgba(154, 162, 177, 0.24);
+    background-clip: padding-box;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(154, 162, 177, 0.4);
+    background-clip: padding-box;
+  }
+}
+
+#root {
+  min-height: 100svh;
+}

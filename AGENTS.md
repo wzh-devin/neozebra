@@ -93,7 +93,11 @@ apps/web/
 │   ├── lib/                        # 无业务归属的工具、常量和配置
 │   ├── types/                      # 跨业务域共享类型
 │   ├── assets/                     # 需要经过构建处理的图片、字体等资源
-│   ├── styles/                     # 全局样式、主题 token 和设计变量
+│   ├── styles/                     # 分职责的全局样式入口和设计变量
+│   │   ├── index.css               # 唯一全局样式入口，只负责导入
+│   │   ├── tokens.css              # 设计 token 和 Tailwind 主题映射
+│   │   ├── globals.css             # reset、基础元素和全局状态
+│   │   └── utilities.css            # 少量跨模块复用 utility
 │   └── main.tsx                    # 前端入口
 ├── package.json
 └── vite.config.ts
@@ -116,6 +120,25 @@ apps/web/
 - 一个文件优先只导出一个主要组件、hook 或业务函数；多个相关类型可以一起导出。
 - Feature 对外只通过 `index.ts` 暴露公开组件、hook 和类型，避免页面深入访问 feature 内部路径。
 - mock 数据必须标注为 synthetic/local mock，不得伪装成真实业务数据。
+
+## 样式规范
+
+- 严禁把整个应用、多个页面或多个业务域的样式全部写入一个 CSS 文件。单个全局样式文件超过一个清晰职责时，必须拆分。
+- `src/styles/index.css` 只作为样式入口和导入编排文件，不承载大段页面或业务样式。
+- 全局 CSS 统一按以下职责放置：
+  - `src/styles/tokens.css`：颜色、字体、间距、圆角、层级、断点等设计 token，以及 Tailwind `@theme` 映射。
+  - `src/styles/globals.css`：Tailwind 导入、基础 reset、`html/body/#root`、全局可访问性状态、选择文本和滚动条等基础规则。
+  - `src/styles/utilities.css`：确实跨多个模块复用的少量 CSS utility；单个页面专用的 class 不得放这里。
+- 页面和布局样式就近放置：
+  - 页面专属样式放在 `pages/<PageName>.module.css`。
+  - 布局专属样式放在 `layouts/<LayoutName>.module.css`。
+  - feature 专属样式放在 `features/<feature>/components/<ComponentName>.module.css`，多个 feature 组件共享时才使用 `features/<feature>/styles/*.css`。
+  - 跨业务复用组件的样式与组件同目录，优先使用 `<ComponentName>.module.css`。
+- Tailwind class 适合少量局部布局和状态；重复、复杂或超过一行的视觉规则放入 CSS Module，避免在 JSX 中堆积超长 `className`。
+- CSS Module 不得使用全局选择器污染其他模块；需要全局选择器时只能放在 `globals.css`，并说明作用范围。
+- `components/ui` 中的 shadcn/ui 组件保持官方生成结构。主题覆盖写入 token 或上层组件样式，不把业务选择器塞进基础 UI 文件。
+- 样式导入顺序固定为：`index.css` → `tokens.css` → `globals.css` → `utilities.css`；页面或组件的 CSS Module 由使用它的模块就近导入。
+- 新增样式前先搜索已有 token、utility 和组件样式，优先复用，禁止为同一视觉规则创建重复变量或 class。
 
 ## 质量检查
 
