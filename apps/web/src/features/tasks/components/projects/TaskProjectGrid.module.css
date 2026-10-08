@@ -1,0 +1,228 @@
+.heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 20px;
+  margin-bottom: 24px;
+}
+.heading p {
+  font-size: 12px;
+  color: var(--muted-foreground);
+  margin-bottom: 12px;
+}
+.heading h1 {
+  font-size: 28px;
+  font-weight: 600;
+  letter-spacing: -0.025em;
+}
+.heading h1 span {
+  font-size: 16px;
+  font-weight: 400;
+  color: var(--muted-foreground);
+  margin-left: 12px;
+}
+.projectFilters {
+  display: flex;
+  gap: 7px;
+  margin-bottom: 24px;
+}
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(280px, 100%), 1fr));
+  gap: 18px;
+}
+.card {
+  gap: 20px;
+  padding-block: 22px;
+  background: color-mix(in oklch, var(--project-color) 4%, var(--card));
+  border: 1px solid color-mix(in oklch, var(--project-color) 16%, var(--border));
+  box-shadow: none;
+  --tw-ring-color: transparent;
+  transition:
+    border-color 180ms,
+    transform 180ms;
+}
+.card:hover {
+  border-color: color-mix(in oklch, var(--project-color) 42%, var(--border));
+  transform: translateY(-2px);
+}
+.card[data-color='purple'] {
+  --project-color: var(--project-purple);
+}
+.card[data-color='blue'] {
+  --project-color: var(--project-blue);
+}
+.card[data-color='teal'] {
+  --project-color: var(--project-teal);
+}
+.card[data-color='green'] {
+  --project-color: var(--project-green);
+}
+.card[data-color='amber'] {
+  --project-color: var(--project-amber);
+}
+.card[data-color='rose'] {
+  --project-color: var(--project-rose);
+}
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-inline: 22px;
+}
+.cardBody {
+  padding-inline: 22px;
+}
+.cardBody h2 {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  font-size: 17px;
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+.cardBody h2 svg {
+  flex-shrink: 0;
+  width: 16px;
+  color: var(--muted-foreground);
+}
+.cardBody p {
+  min-height: 42px;
+  margin: 12px 0 25px;
+  color: var(--muted-foreground);
+  font-size: 12px;
+  line-height: 1.8;
+  overflow-wrap: anywhere;
+}
+.progressLabel,
+.cardFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  color: var(--muted-foreground);
+  font-size: 11px;
+}
+.progressLabel {
+  margin-bottom: 10px;
+}
+.progressLabel strong {
+  color: var(--project-color);
+  font-weight: 500;
+}
+.cardBody > div[data-slot='progress'] {
+  height: 4px;
+}
+.cardBody > div[data-slot='progress'] > div {
+  background: var(--project-color);
+}
+.cardFooter {
+  margin-top: 16px;
+}
+.cardFooter > span {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.cardFooter svg {
+  width: 12px;
+  height: 12px;
+}
+.newCard {
+  display: flex;
+  flex-direction: column;
+  min-height: 250px;
+  height: auto;
+  white-space: normal;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius);
+  gap: 12px;
+  color: var(--muted-foreground);
+}
+.newCard > svg {
+  width: 28px;
+  height: 28px;
+}
+.newCard > small {
+  font-size: 11px;
+}
+.back {
+  margin: -8px 0 24px -8px;
+  color: var(--muted-foreground);
+}
+.projectHeading {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.projectHeading > div {
+  flex: 1;
+  min-width: 0;
+}
+.projectHeading h1 {
+  font-size: 25px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+.projectHeading > div > span {
+  font-size: 11px;
+  color: var(--muted-foreground);
+}
+.goal {
+  font-size: 14px;
+  line-height: 1.9;
+  color: var(--muted-foreground);
+  max-width: 760px;
+  margin: 22px 0 20px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 24px;
+  font-size: 12px;
+  color: var(--muted-foreground);
+}
+.projectProgress {
+  margin-top: 14px;
+  height: 4px;
+  max-width: 320px;
+}
+.stageHeading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 38px 0 22px;
+}
+.stageHeading h2 {
+  font-size: 13px;
+  color: var(--muted-foreground);
+  font-weight: 500;
+}
+.stageActions {
+  display: flex;
+  flex-shrink: 0;
+}
+@media (max-width: 600px) {
+  .projectHeading {
+    flex-wrap: wrap;
+  }
+  .projectHeading > button {
+    margin-left: 58px;
+  }
+  .projectHeading h1 {
+    font-size: 22px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .card {
+    transition: none;
+  }
+  .card:hover {
+    transform: none;
+  }
+}

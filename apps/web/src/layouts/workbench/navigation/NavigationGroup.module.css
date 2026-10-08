@@ -1,0 +1,130 @@
+.sidebar-group {
+  padding: 0;
+}
+
+.sidebar-group + .sidebar-group {
+  margin-top: 22px;
+}
+
+.sidebar-group [data-sidebar='menu'] {
+  gap: 2px;
+}
+
+.primary-group {
+  padding-top: 13px;
+}
+
+.sidebar-nav-button {
+  height: 32px;
+  gap: 11px;
+  border-radius: 10px;
+  padding: 0 11px;
+  color: #aeb4ba;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  line-height: 1.4;
+  transition:
+    background-color 140ms ease-out,
+    color 140ms ease-out;
+}
+
+.sidebar-nav-button svg {
+  width: 18px;
+  height: 18px;
+  color: #858d95;
+  stroke-width: 1.8;
+}
+
+.sidebar-nav-button:hover {
+  color: #e3e7ea;
+  background: rgba(255, 255, 255, 0.045);
+}
+
+.sidebar-nav-button[aria-current='page'] {
+  background: rgba(255, 255, 255, 0.09);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.018);
+  color: #e8ecef;
+}
+
+.sidebar-nav-button[aria-current='page'] svg {
+  color: #b9c1c7;
+}
+
+.group-trigger {
+  height: 36px;
+  color: var(--muted-foreground);
+  font-size: 12px;
+}
+
+.sidebar-submenu {
+  margin: 2px 0 0 20px;
+  gap: 2px;
+  border-color: var(--sidebar-border);
+  padding: 2px 0 2px 8px;
+}
+
+.sidebar-submenu .sidebar-nav-button {
+  border-radius: 8px;
+}
+
+.group-trigger .group-chevron {
+  width: 14px;
+  height: 14px;
+  margin-left: auto;
+}
+
+.group-trigger[data-state='closed'] .group-chevron {
+  transform: rotate(-90deg);
+}
+
+.group-icon-button {
+  width: 40px;
+  height: 36px;
+  justify-content: center;
+  padding: 0;
+}
+
+.group-flyout {
+  width: 192px;
+  max-width: calc(100vw - 24px);
+  gap: 4px;
+  padding: 6px;
+}
+
+.flyout-title {
+  padding: 6px 11px;
+  color: var(--muted-foreground);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.empty-menu {
+  padding: 8px 11px;
+  color: var(--muted-foreground);
+  font-size: 12px;
+}
+
+@media (min-width: 768px) {
+  [data-collapsible='icon'] .sidebar-group + .sidebar-group {
+    margin-top: 8px;
+  }
+
+  [data-collapsible='icon'] .primary-group {
+    padding-top: 0;
+  }
+
+  [data-collapsible='icon'] .sidebar-nav-button {
+    justify-content: center;
+    gap: 0;
+  }
+
+  [data-collapsible='icon'] .sidebar-nav-button svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  [data-collapsible='icon'] .sidebar-nav-label {
+    display: none;
+  }
+}

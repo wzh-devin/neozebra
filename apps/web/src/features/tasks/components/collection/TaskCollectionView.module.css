@@ -1,0 +1,80 @@
+.workspace {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 304px;
+  align-items: start;
+  gap: 20px;
+}
+.mainColumn {
+  min-width: 0;
+  gap: 0;
+  padding: 24px;
+}
+.mainColumn > :last-child {
+  margin-bottom: 0;
+}
+.heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+.heading h1 {
+  font-size: 26px;
+  font-weight: 600;
+  letter-spacing: -0.025em;
+}
+.heading h1 span {
+  margin-left: 10px;
+  color: var(--muted-foreground);
+  font-size: 14px;
+  font-weight: 400;
+}
+.heading p {
+  margin-top: 6px;
+  color: var(--muted-foreground);
+  font-size: 12px;
+}
+.clearDate {
+  flex-shrink: 0;
+  color: var(--muted-foreground);
+  font-size: 11px;
+  padding-inline: 6px;
+}
+.clearDate svg {
+  width: 13px;
+  height: 13px;
+}
+.calendar {
+  min-width: 0;
+  position: sticky;
+  top: 4px;
+}
+@media (max-width: 1100px) {
+  .workspace {
+    grid-template-columns: minmax(0, 1fr) 280px;
+    gap: 16px;
+  }
+  .mainColumn {
+    padding: 20px;
+  }
+}
+@media (max-width: 767px) {
+  .workspace {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+  }
+  .mainColumn {
+    padding: 20px 16px;
+  }
+  .calendar {
+    grid-row: 1;
+    position: static;
+  }
+  .heading h1 {
+    font-size: 24px;
+  }
+  .heading {
+    margin-bottom: 18px;
+  }
+}

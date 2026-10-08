@@ -75,7 +75,13 @@ apps/web/
 │   │   ├── providers/              # Theme、Toast、Query 等 Provider
 │   │   ├── router/                 # 路由定义
 │   │   └── App.tsx                 # 应用根组件
-│   ├── pages/                      # 路由级页面，只负责页面组合
+│   ├── pages/                      # 按路由领域归组，只负责页面组合
+│   │   ├── dashboard/              # Dashboard 页面与公开出口
+│   │   ├── inbox/                  # Inbox 页面与公开出口
+│   │   ├── task/                   # Task 页面与公开出口
+│   │   ├── assets/
+│   │   │   └── drive/              # Drive 列表与 Provider 页面
+│   │   └── initiatives/            # initiatives 页面
 │   ├── features/                   # 按业务域拆分的功能模块
 │   │   └── initiatives/
 │   │       ├── components/         # initiative 专属组件
@@ -87,6 +93,7 @@ apps/web/
 │   │   ├── ui/                     # shadcn/ui 组件，只放通用 UI
 │   │   └── shared/                 # 跨 feature 复用的业务无关组件
 │   ├── layouts/                    # 页面骨架和导航布局
+│   │   └── workbench/              # 工作台外壳、侧栏与导航职责目录
 │   ├── hooks/                      # 跨 feature 复用的 hooks
 │   ├── services/                   # API、请求客户端和外部服务适配
 │   │   └── mock/                   # 当前阶段的本地 mock 服务
@@ -105,6 +112,8 @@ apps/web/
 
 ### 依赖方向
 
+- `pages` 按路由领域建立目录，不在根目录平铺不同领域的页面；同一领域的相关页面放在一起。
+- 路由通过 `pages/<domain>/index.ts` 访问页面；页面通过对应 feature 的 `index.ts` 访问业务能力。
 - `pages` 可以组合 `layouts`、`features` 和 `components/shared`。
 - `features` 可以使用 `components/ui`、`components/shared`、`hooks`、`services`、`lib` 和 `types`。
 - `components/ui` 不得依赖 `pages` 或具体 `features`。
@@ -119,6 +128,7 @@ apps/web/
 - 页面文件与路由名称保持一致，例如 `InitiativesPage.tsx`。
 - 一个文件优先只导出一个主要组件、hook 或业务函数；多个相关类型可以一起导出。
 - Feature 对外只通过 `index.ts` 暴露公开组件、hook 和类型，避免页面深入访问 feature 内部路径。
+- Feature 内部组件按已经存在的职责归组，例如 Task 的 `collection`、`projects`、`items`、`editors`；内部直接导入具体文件，不经本 feature 的公开出口绕行。
 - mock 数据必须标注为 synthetic/local mock，不得伪装成真实业务数据。
 
 ## 样式规范
@@ -130,9 +140,9 @@ apps/web/
   - `src/styles/globals.css`：Tailwind 导入、基础 reset、`html/body/#root`、全局可访问性状态、选择文本和滚动条等基础规则。
   - `src/styles/utilities.css`：确实跨多个模块复用的少量 CSS utility；单个页面专用的 class 不得放这里。
 - 页面和布局样式就近放置：
-  - 页面专属样式放在 `pages/<PageName>.module.css`。
-  - 布局专属样式放在 `layouts/<LayoutName>.module.css`。
-  - feature 专属样式放在 `features/<feature>/components/<ComponentName>.module.css`，多个 feature 组件共享时才使用 `features/<feature>/styles/*.css`。
+  - 页面专属样式放在 `pages/<domain>/<PageName>.module.css`。
+  - 布局专属样式放在 `layouts/<layout>/<LayoutName>.module.css`，侧栏、导航等独立职责的样式与对应组件同目录。
+  - feature 专属样式与组件就近放在 `features/<feature>/components/<responsibility>/<ComponentName>.module.css`，无需职责子目录的小模块直接放在 `components` 中；多个 feature 组件共享时才使用 `features/<feature>/styles/*.css`。
   - 跨业务复用组件的样式与组件同目录，优先使用 `<ComponentName>.module.css`。
 - Tailwind class 适合少量局部布局和状态；重复、复杂或超过一行的视觉规则放入 CSS Module，避免在 JSX 中堆积超长 `className`。
 - CSS Module 不得使用全局选择器污染其他模块；需要全局选择器时只能放在 `globals.css`，并说明作用范围。

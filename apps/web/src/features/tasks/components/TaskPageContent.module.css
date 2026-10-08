@@ -1,0 +1,158 @@
+.workspace {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  height: calc(100svh - 24px);
+  min-height: 0;
+  background: var(--task-background);
+}
+.toolbar {
+  min-height: 66px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 0 26px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  font-weight: 500;
+}
+.brand > svg {
+  width: 17px;
+  color: var(--project-purple);
+}
+.navigation {
+  background: transparent;
+  gap: 5px;
+  padding: 0;
+  height: 34px;
+}
+.navigation > button {
+  padding: 0 12px;
+  font-size: 12px;
+  gap: 7px;
+  border-radius: 7px;
+}
+.navigation > button[data-state='active'] {
+  background: var(--secondary);
+  box-shadow: none;
+  color: var(--foreground);
+}
+.navigation > button svg {
+  width: 14px;
+  height: 14px;
+}
+.navigation > button[data-state='active'] svg {
+  color: var(--project-purple);
+}
+.panel {
+  margin: 0;
+  min-height: 0;
+  display: flex;
+  flex: 1;
+}
+.scroll {
+  flex: 1;
+  min-width: 0;
+}
+.content {
+  max-width: 1320px;
+  padding: 28px 32px 20px;
+  margin: 0 auto;
+}
+.content p {
+  text-wrap: pretty;
+}
+.localMode {
+  max-width: 1320px;
+  margin: 0 auto;
+  padding: 14px 32px 26px;
+  color: var(--muted-foreground);
+  font-size: 10px;
+}
+.error {
+  flex-shrink: 0;
+  padding: 12px 26px;
+  color: var(--project-rose);
+  background: color-mix(in oklch, var(--project-rose) 8%, transparent);
+  font-size: 12px;
+  line-height: 1.7;
+}
+.demo {
+  flex-shrink: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 8px 26px;
+  border-bottom: 1px solid var(--border);
+}
+.demo > span {
+  font-size: 10px;
+  color: var(--muted-foreground);
+}
+.demo > button {
+  font-size: 11px;
+}
+.loading {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+@media (max-width: 1050px) {
+  .toolbar {
+    padding-inline: 20px;
+    gap: 12px;
+  }
+  .navigation > button {
+    padding-inline: 9px;
+  }
+  .content {
+    padding: 30px 28px 16px;
+  }
+  .localMode {
+    padding-inline: 28px;
+  }
+}
+@media (max-width: 760px) {
+  .workspace {
+    height: 100svh;
+  }
+  .toolbar {
+    padding: 12px 16px 8px;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .brand {
+    flex: 1;
+  }
+  .navigation {
+    order: 3;
+    flex-basis: 100%;
+    justify-content: flex-start;
+    overflow-x: auto;
+    scrollbar-width: none;
+    height: 37px;
+  }
+  .navigation > button {
+    flex: 0 0 auto;
+    padding-inline: 11px;
+  }
+  .content {
+    padding: 25px 18px 12px;
+  }
+  .localMode {
+    padding-inline: 18px;
+  }
+  .demo,
+  .error {
+    padding-inline: 16px;
+  }
+}

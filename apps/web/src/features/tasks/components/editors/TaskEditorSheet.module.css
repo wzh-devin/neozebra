@@ -1,0 +1,126 @@
+.sheet {
+  width: min(560px, 100%);
+  max-width: 560px !important;
+  overflow-y: auto;
+}
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 8px 24px 24px;
+}
+.fields {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  min-width: 0;
+}
+.field > button {
+  width: 100%;
+  justify-content: flex-start;
+}
+.twoColumns {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+.steps {
+  border-top: 1px solid var(--border);
+  padding-top: 20px;
+}
+.steps h3 {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  font-weight: 600;
+}
+.steps h3 span {
+  color: var(--muted-foreground);
+  font-weight: 400;
+}
+.footer {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-end;
+  padding: 0;
+  margin-top: 4px;
+}
+.error {
+  color: var(--project-rose);
+  font-size: 13px;
+}
+.colors {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.colorChoice {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12px;
+}
+.colorChoice > button {
+  width: 22px;
+  height: 22px;
+  transition: transform 180ms;
+}
+.colorChoice > button[data-state='checked'] {
+  transform: scale(1.12);
+}
+.colorChoice[data-color='purple'] > button {
+  background: var(--project-purple);
+}
+.colorChoice[data-color='blue'] > button {
+  background: var(--project-blue);
+}
+.colorChoice[data-color='teal'] > button {
+  background: var(--project-teal);
+}
+.colorChoice[data-color='green'] > button {
+  background: var(--project-green);
+}
+.colorChoice[data-color='amber'] > button {
+  background: var(--project-amber);
+}
+.colorChoice[data-color='rose'] > button {
+  background: var(--project-rose);
+}
+.dangerZone {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 12px;
+  border-top: 1px solid var(--border);
+  padding-top: 20px;
+}
+.deleteOptions {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 12px 0;
+}
+.deleteOption {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+@media (max-width: 420px) {
+  .form {
+    padding-inline: 16px;
+    gap: 20px;
+  }
+  .twoColumns {
+    grid-template-columns: 1fr;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .colorChoice > button {
+    transition: none;
+  }
+}

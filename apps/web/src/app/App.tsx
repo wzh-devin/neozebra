@@ -1,6 +1,5 @@
 import { AppProviders } from '@/app/providers/AppProviders'
-import { InitiativesPage } from '@/pages/InitiativesPage'
-import { WorkbenchLayout } from '@/layouts/WorkbenchLayout'
+import { AppRouter } from '@/app/router/AppRouter'
 
 /**
  * 渲染 Neozebra 应用根组件。
@@ -10,9 +9,7 @@ import { WorkbenchLayout } from '@/layouts/WorkbenchLayout'
  */
 const App = () => (
   <AppProviders>
-    <WorkbenchLayout>
-      <InitiativesPage />
-    </WorkbenchLayout>
+    <AppRouter />
   </AppProviders>
 )
 

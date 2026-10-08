@@ -1,0 +1,72 @@
+.toolbar {
+  display: flex;
+  height: 54px;
+  flex: 0 0 54px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 0 12px 0 20px;
+  border-bottom: 1px solid var(--border);
+}
+
+.title-cluster,
+.toolbar-actions {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 3px;
+}
+
+.title-cluster h1 {
+  margin: 0 5px 0 0;
+  color: var(--foreground);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.icon-button {
+  color: var(--muted-foreground);
+}
+
+.icon-button:hover,
+.icon-button[aria-pressed='true'],
+.icon-button[data-active='true'] {
+  color: var(--foreground);
+  background: var(--accent);
+}
+
+.search-bar {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 4px;
+  padding: 7px 12px;
+  border-bottom: 1px solid var(--border);
+  color: var(--muted-foreground);
+}
+
+.search-bar > svg {
+  width: 15px;
+  height: 15px;
+  margin-left: 4px;
+}
+
+.search-input {
+  min-width: 0;
+  border-color: transparent;
+  box-shadow: none;
+  background: transparent;
+  font-size: 12px;
+}
+
+@media (max-width: 767px) {
+  .toolbar {
+    padding-left: 10px;
+  }
+
+  .toolbar-actions button,
+  .title-cluster button {
+    width: 32px;
+    height: 36px;
+  }
+}

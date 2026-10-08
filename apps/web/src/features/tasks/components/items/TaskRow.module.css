@@ -1,0 +1,291 @@
+.group {
+  margin-bottom: 26px;
+}
+.groupHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+.groupTitle {
+  padding-left: 0;
+  gap: 9px;
+  max-width: 100%;
+  height: auto;
+  min-height: 32px;
+  white-space: normal;
+  text-align: left;
+}
+.groupHeader > h2 {
+  min-width: 0;
+}
+.groupTitle .groupLabel {
+  color: var(--foreground);
+  font-size: 14px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+.groupTitle span {
+  color: var(--muted-foreground);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+.groupTitle svg {
+  width: 14px;
+  color: var(--muted-foreground);
+  transition: transform 180ms;
+}
+.groupTitle[data-state='closed'] svg {
+  transform: rotate(-90deg);
+}
+.groupContent {
+  border-top: 1px solid var(--border);
+}
+.groupEmpty {
+  padding: 18px 12px;
+  color: var(--muted-foreground);
+  font-size: 13px;
+}
+.row {
+  border-bottom: 1px solid var(--border);
+  transition: background 160ms ease;
+}
+.row:hover,
+.row:focus-within {
+  background: color-mix(in oklch, var(--foreground) 3%, transparent);
+}
+.rowMain {
+  display: flex;
+  align-items: flex-start;
+  gap: 13px;
+  padding: 17px 9px;
+}
+.checkbox {
+  margin-top: 5px;
+  width: 19px;
+  height: 19px;
+  border-radius: 6px;
+  transition:
+    transform 160ms,
+    background 180ms;
+}
+.checkbox:active {
+  transform: scale(0.86);
+}
+.checkbox[data-state='checked'] {
+  background: var(--project-green);
+  border-color: var(--project-green);
+  color: var(--background);
+  animation: checkIn 180ms ease-out;
+}
+.rowBody {
+  min-width: 0;
+  flex: 1;
+}
+.title {
+  display: block;
+  width: 100%;
+  height: auto;
+  min-height: 25px;
+  justify-content: start;
+  padding: 0;
+  border-radius: 3px;
+  font-weight: 500;
+  text-align: left;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  font-size: 14px;
+  line-height: 1.65;
+}
+.title:hover {
+  background: transparent;
+}
+.row[data-completed='true'] .title {
+  color: var(--muted-foreground);
+  text-decoration: line-through;
+}
+.metadata {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 7px 12px;
+  margin-top: 8px;
+  color: var(--muted-foreground);
+  font-size: 11px;
+}
+.metadata > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.metadata svg {
+  width: 12px;
+  height: 12px;
+}
+.metadata [data-overdue='true'],
+.high {
+  color: var(--project-rose);
+}
+.inProgress {
+  color: var(--project-blue);
+}
+.label {
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: var(--secondary);
+}
+.actions {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 1px;
+  padding-top: 1px;
+}
+.actions > button:last-child {
+  opacity: 0;
+  transition: opacity 160ms;
+}
+.row:hover .actions > button:last-child,
+.row:focus-within .actions > button:last-child {
+  opacity: 1;
+}
+.stepToggle {
+  color: var(--muted-foreground);
+  font-size: 11px;
+  gap: 3px;
+  padding: 0 6px;
+}
+.stepToggle svg {
+  width: 13px;
+  transition: transform 180ms;
+}
+.stepToggle[data-state='open'] svg {
+  transform: rotate(90deg);
+}
+.pin {
+  width: 12px;
+  color: var(--project-amber);
+  margin-right: 4px;
+}
+.subtasks {
+  padding: 4px 0 8px;
+}
+.subtasks ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.stepContent {
+  padding-left: 41px;
+  padding-right: 9px;
+}
+.subtask {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 0;
+}
+.subtask > input {
+  min-width: 0;
+  height: 32px;
+  border-color: transparent;
+  box-shadow: none;
+  background: transparent;
+  font-size: 12px;
+}
+.subtask > input:focus {
+  border-color: var(--input);
+}
+.subtask[data-completed='true'] > input {
+  text-decoration: line-through;
+  color: var(--muted-foreground);
+}
+.subtask > button {
+  flex-shrink: 0;
+}
+.quickAdd {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 11px 9px;
+}
+.quickAdd > svg {
+  width: 18px;
+  color: var(--muted-foreground);
+  flex-shrink: 0;
+}
+.quickAdd > input {
+  border-color: transparent;
+  box-shadow: none;
+  background: transparent;
+  font-size: 13px;
+  min-width: 0;
+}
+.quickAdd > input:focus {
+  border-color: var(--input);
+}
+.groupContent[data-state='open'],
+.stepContent[data-state='open'] {
+  animation: reveal 180ms ease-out;
+}
+@keyframes reveal {
+  from {
+    opacity: 0;
+    transform: translateY(-3px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes checkIn {
+  from {
+    transform: scale(0.8);
+  }
+  to {
+    transform: scale(1);
+  }
+}
+@media (max-width: 700px) {
+  .rowMain {
+    flex-wrap: wrap;
+    padding-inline: 1px;
+  }
+  .rowBody {
+    flex-basis: calc(100% - 35px);
+  }
+  .actions {
+    margin-left: 31px;
+  }
+  .actions > button:last-child {
+    opacity: 1;
+  }
+  .stepContent {
+    padding-inline: 12px;
+  }
+  .subtask {
+    gap: 3px;
+  }
+  .subtask > button {
+    width: 27px;
+  }
+}
+@media (hover: none) {
+  .actions > button:last-child {
+    opacity: 1;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .row,
+  .checkbox,
+  .stepToggle svg,
+  .groupTitle svg {
+    transition: none;
+  }
+  .groupContent,
+  .stepContent,
+  .checkbox {
+    animation: none !important;
+  }
+}

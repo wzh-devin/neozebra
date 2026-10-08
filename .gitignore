@@ -26,3 +26,6 @@ dist-ssr
 # Other
 PRODUCT.md
 DESIGN.md
+/.agents/skills/devin-project-context/
+/.devin-project-harness/
+tests/

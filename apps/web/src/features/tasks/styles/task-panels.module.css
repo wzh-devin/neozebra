@@ -1,0 +1,6 @@
+.panel {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  background: color-mix(in oklch, var(--foreground) 2%, var(--task-background));
+  box-shadow: none;
+}
