@@ -1,5 +1,12 @@
-import { CheckCheck, FolderOpen, ListTodo, Plus } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import {
+  ChartNoAxesGantt,
+  CheckCheck,
+  FolderOpen,
+  ListChecks,
+  ListTodo,
+  Plus,
+} from 'lucide-react'
+import { lazy, Suspense, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
   AlertDialog,
@@ -35,6 +42,7 @@ import { TaskEditor } from '@/features/tasks/components/editors/TaskEditor'
 import { TaskProjectEditor } from '@/features/tasks/components/editors/TaskProjectEditor'
 import { TaskProjectGrid } from '@/features/tasks/components/projects/TaskProjectGrid'
 import { TaskProjectView } from '@/features/tasks/components/projects/TaskProjectView'
+import { TaskGanttBoundary } from '@/features/tasks/components/gantt/TaskGanttBoundary'
 import { restoreTaskFocusHandler } from '@/features/tasks/utils/task-focus'
 import { TaskPlannerContext } from '@/features/tasks/hooks/TaskPlannerContext'
 import { useTaskPlanner } from '@/features/tasks/hooks/useTaskPlanner'
@@ -47,7 +55,14 @@ const navigationList = [
   { value: 'all', label: '待完成', icon: ListTodo },
   { value: 'completed', label: '已完成', icon: CheckCheck },
   { value: 'projects', label: '项目', icon: FolderOpen },
+  { value: 'gantt', label: '甘特图', icon: ChartNoAxesGantt },
 ]
+
+const TaskGanttView = lazy(() =>
+  import('@/features/tasks/components/gantt/TaskGanttView').then((module) => ({
+    default: module.TaskGanttView,
+  })),
+)
 
 /** 组合规划路由、导航、状态和按需编辑界面。
  * @param 无参数
@@ -160,6 +175,25 @@ export const TaskPageContent = () => {
           </Button>
         </Empty>
       )
+    if (route.view === 'gantt')
+      return (
+        <TaskGanttBoundary>
+          <Suspense
+            fallback={
+              <div
+                className={styles.loading}
+                role="status"
+                aria-label="加载甘特图"
+              >
+                <Skeleton className="h-10 w-48" />
+                <Skeleton className="h-64 w-full" />
+              </div>
+            }
+          >
+            <TaskGanttView />
+          </Suspense>
+        </TaskGanttBoundary>
+      )
     if (route.view === 'projects') {
       if (!route.projectId)
         return <TaskProjectGrid onEdit={projectEditorHandler} />
@@ -198,7 +232,7 @@ export const TaskPageContent = () => {
             {isMobile || state === 'collapsed' ? (
               <SidebarTrigger aria-label="打开导航" />
             ) : null}
-            <ListTodo aria-hidden="true" />
+            <ListChecks aria-hidden="true" />
             <span>Task</span>
           </div>
           <TabsList className={styles.navigation} aria-label="任务规划视图">

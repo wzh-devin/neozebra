@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
+import { taskToastOptions } from '@/features/tasks/utils/task-toast'
 
 import { buildDemoPlannerData } from '@/features/tasks/data/demo-planner'
 import {
@@ -98,7 +99,7 @@ export const useTaskPlanner = () => {
   ): boolean => {
     if (isLoading || isReadError) return false
     if (!isPlannerData(next)) {
-      toast.error('请检查标题、日期、预计用时和项目关联。')
+      toast.error('请检查标题、日期、预计用时和项目关联。', taskToastOptions)
       return false
     }
     const previous = dataRef.current
@@ -106,7 +107,10 @@ export const useTaskPlanner = () => {
       const raw = writePlannerStorage(localStorage, rawRef.current, next)
       if (raw === null) {
         loadHandler()
-        toast.error('计划已在其他标签页更新，请核对后重新保存。')
+        toast.error(
+          '计划已在其他标签页更新，请核对后重新保存。',
+          taskToastOptions,
+        )
         return false
       }
       rawRef.current = raw
@@ -119,12 +123,13 @@ export const useTaskPlanner = () => {
        */
       const undoHandler = (): void => {
         if (dataRef.current !== next) {
-          toast.info('已有后续更改，无法直接撤销这次操作。')
+          toast.info('已有后续更改，无法直接撤销这次操作。', taskToastOptions)
           return
         }
         commitHandler(previous, '已撤销')
       }
       toast.success(message, {
+        ...taskToastOptions,
         id: 'task-planner-change',
         duration: allowUndo ? 12000 : 4000,
         action: allowUndo ? { label: '撤销', onClick: undoHandler } : undefined,
@@ -134,7 +139,7 @@ export const useTaskPlanner = () => {
       setError(
         '本地保存失败，改动尚未保存。输入已保留，请释放存储空间后重试刚才的操作。',
       )
-      toast.error('保存失败，请重试；原计划未改变。')
+      toast.error('保存失败，请重试；原计划未改变。', taskToastOptions)
       return false
     }
   }
@@ -167,6 +172,35 @@ export const useTaskPlanner = () => {
   const updateTaskHandler = (id: string, patch: Partial<TaskItem>): boolean => {
     const task = dataRef.current.taskList.find((entry) => entry.id === id)
     return task ? saveTaskHandler({ ...task, ...patch }) : false
+  }
+
+  /** 保存甘特图日期调整，并允许撤销最近一次改动。
+   * @param id - 任务标识
+   * @param dates - 校验后的本地计划与截止日期
+   * @returns 是否成功；失败时保留原计划并显示现有错误提示
+   */
+  const rescheduleTaskHandler = (
+    id: string,
+    dates: Pick<TaskItem, 'plannedDate' | 'deadlineDate'>,
+  ): boolean => {
+    const current = dataRef.current
+    const task = current.taskList.find((entry) => entry.id === id)
+    if (!task) return false
+    if (
+      task.plannedDate === dates.plannedDate &&
+      task.deadlineDate === dates.deadlineDate
+    )
+      return true
+    return commitHandler(
+      {
+        ...current,
+        taskList: current.taskList.map((entry) =>
+          entry.id === id ? { ...entry, ...dates } : entry,
+        ),
+      },
+      '任务日期已调整',
+      true,
+    )
   }
 
   /** 完成或重新打开任务，未完成步骤须明确确认。
@@ -336,6 +370,7 @@ export const useTaskPlanner = () => {
     loadHandler,
     saveTaskHandler,
     updateTaskHandler,
+    rescheduleTaskHandler,
     toggleTaskHandler,
     deleteTaskHandler,
     moveTaskHandler,

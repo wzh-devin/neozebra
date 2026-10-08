@@ -26,6 +26,7 @@ const AppRouter = () => (
         <Route path="task/projects/:projectId" element={<TaskPage />} />
         <Route path="task/all" element={<TaskPage />} />
         <Route path="task/completed" element={<TaskPage />} />
+        <Route path="task/gantt" element={<TaskPage />} />
         <Route path="task/:taskId" element={<TaskPage />} />
         <Route path="assets/drive">
           <Route index element={<DrivePage />} />

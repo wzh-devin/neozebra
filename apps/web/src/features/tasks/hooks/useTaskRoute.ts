@@ -7,7 +7,7 @@ import {
 } from 'react-router-dom'
 import { isValidDate } from '@/features/tasks/data/task-planner'
 
-const viewList = ['all', 'projects', 'completed'] as const
+const viewList = ['all', 'projects', 'completed', 'gantt'] as const
 
 /** 管理规划视图、兼容链接与编辑查询参数。
  * @param today - 当前本地日期

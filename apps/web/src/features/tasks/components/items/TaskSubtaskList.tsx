@@ -7,6 +7,7 @@ import {
   type KeyboardEvent,
 } from 'react'
 import { toast } from 'sonner'
+import { taskToastOptions } from '@/features/tasks/utils/task-toast'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
@@ -71,7 +72,7 @@ export const TaskSubtaskList = ({ subtasks, onChange }: Props) => {
     const renameHandler = (event: FocusEvent<HTMLInputElement>): void => {
       const next = event.currentTarget.value.trim()
       if (!next) {
-        toast.error('步骤标题不能为空')
+        toast.error('步骤标题不能为空', taskToastOptions)
         return
       }
       if (next !== step.title)

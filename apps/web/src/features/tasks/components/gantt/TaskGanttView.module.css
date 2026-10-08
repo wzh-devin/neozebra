@@ -1,0 +1,235 @@
+.workspace {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+.toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 13px 20px;
+  flex-wrap: wrap;
+}
+.toolbar h1 {
+  font-size: 18px;
+  font-weight: 600;
+}
+.toolbar h1 span {
+  margin-left: 8px;
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--muted-foreground);
+}
+.controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.controls > button {
+  width: 160px;
+  height: 32px;
+  font-size: 12px;
+}
+.completedToggle {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12px;
+  color: var(--muted-foreground);
+  white-space: nowrap;
+  cursor: pointer;
+}
+.controls {
+  flex-wrap: wrap;
+}
+.scale {
+  display: flex;
+  gap: 2px;
+}
+.scale button {
+  min-width: 32px;
+}
+.hint {
+  margin: 0;
+  padding: 0 20px 14px;
+  color: var(--muted-foreground);
+  font-size: 11px;
+  line-height: 1.6;
+}
+.chart {
+  flex: 1;
+  min-height: 0;
+  border-top: 1px solid var(--border);
+}
+.gantt {
+  background: var(--card);
+  border-radius: 0;
+  overscroll-behavior: contain;
+  overflow-anchor: none;
+}
+.sidebar {
+  width: 260px;
+  background: var(--card);
+  backdrop-filter: none;
+}
+.sidebarHeader {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: var(--gantt-header-height);
+  padding: calc(var(--gantt-header-height) / 2) 14px 0;
+  color: var(--muted-foreground);
+  background: var(--card);
+  border-bottom: 1px solid var(--border);
+  font-size: 12px;
+}
+.sidebarItem {
+  display: flex;
+  width: 100%;
+  height: var(--gantt-row-height);
+  padding: 0 14px;
+  align-items: center;
+  gap: 8px;
+  text-align: left;
+  font-size: 12px;
+  cursor: pointer;
+}
+.sidebarItem:hover {
+  background: var(--secondary);
+}
+.sidebarItem:focus-visible {
+  outline: 1px solid var(--ring);
+  outline-offset: -2px;
+}
+.statusDot {
+  flex-shrink: 0;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+.taskName {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.progress {
+  flex-shrink: 0;
+  color: var(--muted-foreground);
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+}
+.timelineItem [data-slot='card'] {
+  padding: 0;
+  border: 1px solid var(--input);
+  background: var(--secondary);
+  box-shadow: none;
+  --tw-ring-shadow: none;
+}
+.timelineItem button {
+  padding: 0 8px;
+  cursor: grab;
+  touch-action: none;
+}
+.timelineItem button:active {
+  cursor: grabbing;
+}
+.timelineItem button:focus-visible {
+  outline: 1px solid var(--ring);
+  outline-offset: -2px;
+}
+.barName {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.barDuration {
+  flex-shrink: 0;
+  color: var(--muted-foreground);
+  font-size: 10px;
+}
+.empty {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  display: grid;
+  place-items: center;
+}
+.unplanned {
+  flex-shrink: 0;
+  max-height: 160px;
+  overflow: auto;
+  padding: 12px 20px;
+  border-top: 1px solid var(--border);
+  font-size: 12px;
+  color: var(--muted-foreground);
+}
+.unplanned summary {
+  cursor: pointer;
+  padding: 4px 0;
+}
+.unplanned details > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding-top: 4px;
+}
+.unplanned button {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+@media (max-width: 767px) {
+  .toolbar {
+    padding-inline: 14px;
+  }
+  .controls {
+    gap: 8px;
+  }
+  .controls > button {
+    width: 112px;
+  }
+  .hint {
+    padding-inline: 14px;
+  }
+  .sidebar {
+    width: 146px;
+  }
+  .sidebarHeader,
+  .sidebarItem {
+    padding-inline: 9px;
+  }
+  .sidebarHeader > :last-child,
+  .progress {
+    display: none;
+  }
+  .unplanned {
+    padding-inline: 14px;
+  }
+  .barDuration {
+    display: none;
+  }
+}
+
+.timelineItem [data-gantt-bar] {
+  transition:
+    left 160ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    width 160ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.timelineItem [data-gantt-dragging='true'] {
+  transition: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .timelineItem [data-gantt-bar] {
+    transition: none;
+  }
+}

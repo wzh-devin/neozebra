@@ -1,0 +1,30 @@
+.notification[data-sonner-toast][data-styled='true'] {
+  --normal-bg: var(--card);
+  --normal-text: var(--foreground);
+  --normal-border: var(--border);
+  padding: 12px 14px;
+  gap: 10px;
+  border-radius: 12px;
+  box-shadow: none;
+}
+.notification[data-sonner-toast][data-styled='true'] [data-icon] {
+  color: var(--muted-foreground);
+}
+.notification[data-sonner-toast][data-styled='true'] [data-button] {
+  height: 28px;
+  padding: 0 10px;
+  border: 1px solid var(--input);
+  border-radius: 7px;
+  background: var(--secondary);
+  color: var(--foreground);
+  font-weight: 500;
+}
+.notification[data-sonner-toast][data-styled='true'] [data-button]:hover {
+  background: var(--accent);
+}
+.notification[data-sonner-toast][data-styled='true']
+  [data-button]:focus-visible {
+  outline: 1px solid var(--ring);
+  outline-offset: 2px;
+  box-shadow: none;
+}

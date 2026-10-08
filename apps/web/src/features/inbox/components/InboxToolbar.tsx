@@ -2,8 +2,10 @@ import { useState, type ChangeEvent, type KeyboardEvent } from 'react'
 import {
   Archive,
   CheckCheck,
+  Inbox,
   ListFilter,
   MoreHorizontal,
+  RotateCcw,
   Search,
   SlidersHorizontal,
   X,
@@ -124,6 +126,7 @@ const InboxToolbar = ({
           {isMobile || state === 'collapsed' ? (
             <SidebarTrigger aria-label="Expand sidebar" />
           ) : null}
+          <Inbox aria-hidden="true" className={styles['title-icon']} />
           <h1>Inbox</h1>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -136,7 +139,7 @@ const InboxToolbar = ({
                 <MoreHorizontal aria-hidden="true" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="start">
+            <DropdownMenuContent align="start" className={styles['menu']}>
               <DropdownMenuItem
                 disabled={!unreadCount}
                 onSelect={markAllReadHandler}
@@ -145,6 +148,7 @@ const InboxToolbar = ({
                 Mark all as read
               </DropdownMenuItem>
               <DropdownMenuItem onSelect={resetFiltersHandler}>
+                <RotateCcw aria-hidden="true" />
                 Reset filters
               </DropdownMenuItem>
             </DropdownMenuContent>
@@ -193,7 +197,7 @@ const InboxToolbar = ({
                 <ListFilter aria-hidden="true" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
+            <DropdownMenuContent align="end" className={styles['menu']}>
               <DropdownMenuLabel>Messages</DropdownMenuLabel>
               <DropdownMenuRadioGroup
                 value={activeTab}
@@ -223,7 +227,7 @@ const InboxToolbar = ({
                 <SlidersHorizontal aria-hidden="true" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
+            <DropdownMenuContent align="end" className={styles['menu']}>
               <DropdownMenuLabel>Sources</DropdownMenuLabel>
               <DropdownMenuRadioGroup
                 value={source}

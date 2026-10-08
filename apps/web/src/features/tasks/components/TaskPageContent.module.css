@@ -7,7 +7,7 @@
   background: var(--task-background);
 }
 .toolbar {
-  min-height: 66px;
+  min-height: 54px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -24,8 +24,10 @@
   font-weight: 500;
 }
 .brand > svg {
-  width: 17px;
-  color: var(--project-purple);
+  width: 18px;
+  height: 18px;
+  color: #b9c1c7;
+  stroke-width: 1.8;
 }
 .navigation {
   background: transparent;
