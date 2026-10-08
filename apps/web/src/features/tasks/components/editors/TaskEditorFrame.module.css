@@ -1,0 +1,35 @@
+.dialog {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding: 0;
+  overflow: hidden;
+}
+.dialog {
+  width: min(620px, calc(100vw - 32px));
+  max-width: 620px !important;
+  max-height: calc(100svh - 48px);
+  border-radius: 16px;
+}
+.header {
+  flex-shrink: 0;
+  gap: 8px;
+  padding: 22px 48px 18px 24px;
+  border-bottom: 1px solid var(--border);
+}
+.header > h2 {
+  font-size: 18px;
+  font-weight: 600;
+}
+.header > p {
+  font-size: 12px;
+  line-height: 1.6;
+}
+@media (max-width: 420px) {
+  .dialog {
+    max-height: calc(100svh - 32px);
+  }
+  .header {
+    padding-left: 16px;
+  }
+}

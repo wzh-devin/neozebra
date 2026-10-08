@@ -1,42 +1,49 @@
 .toolbar {
   display: flex;
-  flex-direction: column;
-  gap: 12px;
-  margin-bottom: 24px;
+  align-items: center;
+  gap: 4px;
+}
+.toolbar > button {
+  color: var(--muted-foreground);
+}
+.toolbar > button[data-active='true'] {
+  color: var(--foreground);
+  background: var(--secondary);
+}
+.searchPopover {
+  width: min(320px, calc(100vw - 32px));
 }
 .search {
   position: relative;
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 .search > svg {
   position: absolute;
-  top: 11px;
+  top: 50%;
   left: 11px;
   width: 15px;
   height: 15px;
+  transform: translateY(-50%);
   color: var(--muted-foreground);
   pointer-events: none;
 }
 .search > input {
+  min-width: 0;
+  flex: 1;
   padding-left: 34px;
   background: transparent;
   font-size: 12px;
 }
-.conditions {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-.conditions > button {
-  width: auto;
-  max-width: 190px;
-  font-size: 12px;
-}
 .popover {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 16px;
   width: min(340px, calc(100vw - 32px));
+  max-height: var(--radix-popover-content-available-height);
+  overflow-y: auto;
+  padding: 14px;
 }
 .field {
   display: flex;
@@ -52,11 +59,8 @@
   width: 100%;
   font-size: 12px;
 }
-@media (max-width: 760px) {
-  .conditions {
-    gap: 6px;
-  }
-  .conditions > button {
-    max-width: 165px;
-  }
+.reset {
+  grid-column: 1 / -1;
+  justify-self: end;
+  color: var(--muted-foreground);
 }

@@ -12,14 +12,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetFooter,
-  SheetHeader,
-  SheetTitle,
-} from '@/components/ui/sheet'
+import { DialogFooter } from '@/components/ui/dialog'
+import { TaskEditorFrame } from '@/features/tasks/components/editors/TaskEditorFrame'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -33,7 +27,6 @@ import {
 } from '@/components/ui/alert-dialog'
 import { Textarea } from '@/components/ui/textarea'
 import { TaskDatePicker } from '@/features/tasks/components/editors/TaskDatePicker'
-import { restoreTaskFocusHandler } from '@/features/tasks/utils/task-focus'
 import {
   projectColorList,
   projectIconList,
@@ -44,7 +37,8 @@ import type {
   ProjectIcon,
   TaskProject,
 } from '@/features/tasks/types'
-import styles from '@/features/tasks/components/editors/TaskEditorSheet.module.css'
+import styles from '@/features/tasks/components/editors/TaskEditor.module.css'
+import surfaceStyles from '@/features/tasks/styles/task-surfaces.module.css'
 
 const colorLabelRecord = {
   purple: '紫',
@@ -65,7 +59,7 @@ const iconLabelRecord = {
 
 /** 编辑项目目标、配色和归档状态，明确删除范围。
  * @param props - 项目及关闭操作
- * @returns 项目编辑抽屉 JSX
+ * @returns 项目新建或编辑弹窗 JSX
  */
 export const TaskProjectEditor = ({
   project,
@@ -174,169 +168,157 @@ export const TaskProjectEditor = ({
       navigate('/task/projects')
     }
   }
-  /** 关闭抽屉。
-   * @param open - 打开状态
-   * @returns 无返回值；按需关闭
-   */
-  const openChangeHandler = (open: boolean): void => {
-    if (!open) onClose()
-  }
   return (
-    <Sheet open onOpenChange={openChangeHandler}>
-      <SheetContent
-        className={styles.sheet}
-        onCloseAutoFocus={restoreTaskFocusHandler}
-      >
-        <SheetHeader>
-          <SheetTitle>{project ? '项目设置' : '开始一个新项目'}</SheetTitle>
-          <SheetDescription>
-            给目标一个名字，再把它拆成可以完成的小事。
-          </SheetDescription>
-        </SheetHeader>
-        <form className={styles.form} onSubmit={submitHandler}>
+    <TaskEditorFrame
+      title={project ? '项目设置' : '开始一个新项目'}
+      description={'给目标一个名字，再把它拆成可以完成的小事。'}
+      onClose={onClose}
+    >
+      <form className={styles.form} onSubmit={submitHandler}>
+        <div className={styles.field}>
+          <Label htmlFor="project-name">项目名称</Label>
+          <Input
+            id="project-name"
+            name="name"
+            value={draft.name}
+            onChange={textChangeHandler}
+            autoFocus
+            required
+            maxLength={80}
+            placeholder="例如：个人网站改版"
+          />
+        </div>
+        <div className={styles.field}>
+          <Label htmlFor="project-description">目标说明</Label>
+          <Textarea
+            id="project-description"
+            name="description"
+            value={draft.description}
+            onChange={textChangeHandler}
+            maxLength={10000}
+            rows={4}
+            placeholder="这次计划希望达成什么？"
+          />
+        </div>
+        <div className={styles.field}>
+          <Label id="project-colors-label">项目颜色</Label>
+          <RadioGroup
+            aria-labelledby="project-colors-label"
+            value={draft.color}
+            onValueChange={colorChangeHandler}
+            className={styles.colors}
+          >
+            {projectColorList.map((color) => (
+              <div
+                key={color}
+                className={styles.colorChoice}
+                data-color={color}
+              >
+                <RadioGroupItem
+                  id={`project-color-${color}`}
+                  value={color}
+                  aria-label={colorLabelRecord[color]}
+                />
+                <Label htmlFor={`project-color-${color}`}>
+                  {colorLabelRecord[color]}
+                </Label>
+              </div>
+            ))}
+          </RadioGroup>
+        </div>
+        <div className={styles.twoColumns}>
           <div className={styles.field}>
-            <Label htmlFor="project-name">项目名称</Label>
-            <Input
-              id="project-name"
-              name="name"
-              value={draft.name}
-              onChange={textChangeHandler}
-              autoFocus
-              required
-              maxLength={80}
-              placeholder="例如：个人网站改版"
+            <Label htmlFor="project-icon">项目图标</Label>
+            <Select value={draft.icon} onValueChange={iconChangeHandler}>
+              <SelectTrigger id="project-icon">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent
+                className={surfaceStyles.surface}
+                position="popper"
+                align="start"
+                sideOffset={6}
+              >
+                {projectIconList.map((icon) => (
+                  <SelectItem key={icon} value={icon}>
+                    {iconLabelRecord[icon]}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className={styles.field}>
+            <Label>项目截止</Label>
+            <TaskDatePicker
+              label="项目截止日期"
+              value={draft.deadlineDate}
+              onChange={dateChangeHandler}
             />
           </div>
-          <div className={styles.field}>
-            <Label htmlFor="project-description">目标说明</Label>
-            <Textarea
-              id="project-description"
-              name="description"
-              value={draft.description}
-              onChange={textChangeHandler}
-              maxLength={10000}
-              rows={4}
-              placeholder="这次计划希望达成什么？"
-            />
-          </div>
-          <div className={styles.field}>
-            <Label id="project-colors-label">项目颜色</Label>
-            <RadioGroup
-              aria-labelledby="project-colors-label"
-              value={draft.color}
-              onValueChange={colorChangeHandler}
-              className={styles.colors}
-            >
-              {projectColorList.map((color) => (
-                <div
-                  key={color}
-                  className={styles.colorChoice}
-                  data-color={color}
-                >
-                  <RadioGroupItem
-                    id={`project-color-${color}`}
-                    value={color}
-                    aria-label={colorLabelRecord[color]}
-                  />
-                  <Label htmlFor={`project-color-${color}`}>
-                    {colorLabelRecord[color]}
-                  </Label>
-                </div>
-              ))}
-            </RadioGroup>
-          </div>
-          <div className={styles.twoColumns}>
-            <div className={styles.field}>
-              <Label htmlFor="project-icon">项目图标</Label>
-              <Select value={draft.icon} onValueChange={iconChangeHandler}>
-                <SelectTrigger id="project-icon">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {projectIconList.map((icon) => (
-                    <SelectItem key={icon} value={icon}>
-                      {iconLabelRecord[icon]}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className={styles.field}>
-              <Label>项目截止</Label>
-              <TaskDatePicker
-                label="项目截止日期"
-                value={draft.deadlineDate}
-                onChange={dateChangeHandler}
-              />
-            </div>
-          </div>
-          {error ? (
-            <p className={styles.error} role="alert">
-              {error}
-            </p>
-          ) : null}
-          <SheetFooter className={styles.footer}>
-            <Button type="button" variant="outline" onClick={onClose}>
-              取消
+        </div>
+        {error ? (
+          <p className={styles.error} role="alert">
+            {error}
+          </p>
+        ) : null}
+        <DialogFooter className={styles.footer}>
+          <Button type="button" variant="outline" onClick={onClose}>
+            取消
+          </Button>
+          <Button type="submit">{project ? '保存项目' : '创建项目'}</Button>
+        </DialogFooter>
+        {project ? (
+          <div className={styles.dangerZone}>
+            <Button type="button" variant="outline" onClick={archiveHandler}>
+              <Archive aria-hidden="true" />
+              {project.archived ? '恢复项目' : '归档项目'}
             </Button>
-            <Button type="submit">{project ? '保存项目' : '创建项目'}</Button>
-          </SheetFooter>
-          {project ? (
-            <div className={styles.dangerZone}>
-              <Button type="button" variant="outline" onClick={archiveHandler}>
-                <Archive aria-hidden="true" />
-                {project.archived ? '恢复项目' : '归档项目'}
-              </Button>
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button type="button" variant="ghost">
-                    <Trash2 aria-hidden="true" />
-                    删除项目
-                  </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>删除“{project.name}”？</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      请选择如何处理项目中的任务。最近一次删除可撤销。
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <RadioGroup
-                    className={styles.deleteOptions}
-                    value={deleteMode}
-                    onValueChange={setDeleteMode}
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button type="button" variant="ghost">
+                  <Trash2 aria-hidden="true" />
+                  删除项目
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent className={surfaceStyles.surface}>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>删除“{project.name}”？</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    请选择如何处理项目中的任务。最近一次删除可撤销。
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <RadioGroup
+                  className={styles.deleteOptions}
+                  value={deleteMode}
+                  onValueChange={setDeleteMode}
+                >
+                  <div className={styles.deleteOption}>
+                    <RadioGroupItem id="keep-project-tasks" value="keep" />
+                    <Label htmlFor="keep-project-tasks">
+                      保留任务，移出这个项目
+                    </Label>
+                  </div>
+                  <div className={styles.deleteOption}>
+                    <RadioGroupItem id="delete-project-tasks" value="delete" />
+                    <Label htmlFor="delete-project-tasks">
+                      删除项目及其中全部任务
+                    </Label>
+                  </div>
+                </RadioGroup>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>取消</AlertDialogCancel>
+                  <AlertDialogAction
+                    variant="destructive"
+                    onClick={deleteHandler}
                   >
-                    <div className={styles.deleteOption}>
-                      <RadioGroupItem id="keep-project-tasks" value="keep" />
-                      <Label htmlFor="keep-project-tasks">
-                        保留任务，移出这个项目
-                      </Label>
-                    </div>
-                    <div className={styles.deleteOption}>
-                      <RadioGroupItem
-                        id="delete-project-tasks"
-                        value="delete"
-                      />
-                      <Label htmlFor="delete-project-tasks">
-                        删除项目及其中全部任务
-                      </Label>
-                    </div>
-                  </RadioGroup>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>取消</AlertDialogCancel>
-                    <AlertDialogAction
-                      variant="destructive"
-                      onClick={deleteHandler}
-                    >
-                      删除项目
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
-            </div>
-          ) : null}
-        </form>
-      </SheetContent>
-    </Sheet>
+                    删除项目
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </div>
+        ) : null}
+      </form>
+    </TaskEditorFrame>
   )
 }

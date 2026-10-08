@@ -21,17 +21,17 @@ import {
 } from '@/components/ui/empty'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-} from '@/components/ui/sheet'
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import { SidebarTrigger, useSidebar } from '@/components/ui/sidebar'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { TaskCollectionView } from '@/features/tasks/components/collection/TaskCollectionView'
-import { TaskEditorSheet } from '@/features/tasks/components/editors/TaskEditorSheet'
+import { TaskEditor } from '@/features/tasks/components/editors/TaskEditor'
 import { TaskProjectEditor } from '@/features/tasks/components/editors/TaskProjectEditor'
 import { TaskProjectGrid } from '@/features/tasks/components/projects/TaskProjectGrid'
 import { TaskProjectView } from '@/features/tasks/components/projects/TaskProjectView'
@@ -41,11 +41,12 @@ import { useTaskPlanner } from '@/features/tasks/hooks/useTaskPlanner'
 import { useTaskRoute } from '@/features/tasks/hooks/useTaskRoute'
 import type { TaskProject } from '@/features/tasks/types'
 import styles from '@/features/tasks/components/TaskPageContent.module.css'
+import surfaceStyles from '@/features/tasks/styles/task-surfaces.module.css'
 
 const navigationList = [
-  { value: 'all', label: '全部', icon: ListTodo },
-  { value: 'projects', label: '项目', icon: FolderOpen },
+  { value: 'all', label: '待完成', icon: ListTodo },
   { value: 'completed', label: '已完成', icon: CheckCheck },
+  { value: 'projects', label: '项目', icon: FolderOpen },
 ]
 
 /** 组合规划路由、导航、状态和按需编辑界面。
@@ -178,14 +179,19 @@ export const TaskPageContent = () => {
         </Empty>
       )
     }
-    return <TaskCollectionView completed={route.view === 'completed'} />
+    return (
+      <TaskCollectionView
+        completed={route.view === 'completed'}
+        pending={route.view === 'all'}
+      />
+    )
   }
   return (
     <TaskPlannerContext.Provider value={planner}>
       <Tabs
         value={route.view}
         onValueChange={route.viewChangeHandler}
-        className={styles.workspace}
+        className={`${surfaceStyles.surface} ${styles.workspace}`}
       >
         <header className={styles.toolbar}>
           <div className={styles.brand}>
@@ -226,17 +232,18 @@ export const TaskPageContent = () => {
         ) : null}
         <TabsContent value={route.view} className={styles.panel}>
           <ScrollArea className={styles.scroll}>
-            <main id="task-content" tabIndex={-1} className={styles.content}>
-              {renderView()}
-            </main>
-            <footer className={styles.localMode}>计划保存在当前浏览器</footer>
+            <div className={styles.scrollContent}>
+              <main id="task-content" tabIndex={-1} className={styles.content}>
+                {renderView()}
+              </main>
+            </div>
           </ScrollArea>
         </TabsContent>
       </Tabs>
       {!planner.isLoading &&
       !planner.isReadError &&
       (route.isNew || selectedTask) ? (
-        <TaskEditorSheet
+        <TaskEditor
           key={
             route.isNew
               ? `new-${route.projectId ?? route.view}`
@@ -253,14 +260,17 @@ export const TaskPageContent = () => {
       !route.isNew &&
       route.selectedTaskId &&
       !selectedTask ? (
-        <Sheet open onOpenChange={missingOpenHandler}>
-          <SheetContent onCloseAutoFocus={restoreTaskFocusHandler}>
-            <SheetHeader>
-              <SheetTitle>任务不存在</SheetTitle>
-              <SheetDescription>
+        <Dialog open onOpenChange={missingOpenHandler}>
+          <DialogContent
+            className={surfaceStyles.surface}
+            onCloseAutoFocus={restoreTaskFocusHandler}
+          >
+            <DialogHeader>
+              <DialogTitle>任务不存在</DialogTitle>
+              <DialogDescription>
                 这个任务可能已被删除，原链接仍可返回任务列表。
-              </SheetDescription>
-            </SheetHeader>
+              </DialogDescription>
+            </DialogHeader>
             <Button
               variant="outline"
               className="mx-4"
@@ -268,8 +278,8 @@ export const TaskPageContent = () => {
             >
               返回列表
             </Button>
-          </SheetContent>
-        </Sheet>
+          </DialogContent>
+        </Dialog>
       ) : null}
       {projectEditor !== undefined ? (
         <TaskProjectEditor
@@ -278,7 +288,7 @@ export const TaskPageContent = () => {
         />
       ) : null}
       <AlertDialog open={!!pendingTask} onOpenChange={completionOpenHandler}>
-        <AlertDialogContent>
+        <AlertDialogContent className={surfaceStyles.surface}>
           <AlertDialogHeader>
             <AlertDialogTitle>还有步骤未完成</AlertDialogTitle>
             <AlertDialogDescription>

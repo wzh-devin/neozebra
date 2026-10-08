@@ -13,6 +13,7 @@ import {
 } from '@/components/ui/alert-dialog'
 import { Button } from '@/components/ui/button'
 import type { TaskItem } from '@/features/tasks/types'
+import surfaceStyles from '@/features/tasks/styles/task-surfaces.module.css'
 
 type TaskDeleteAlertDialogProps = {
   task: TaskItem
@@ -39,7 +40,7 @@ const TaskDeleteAlertDialog = ({
         <Trash2 aria-hidden="true" />
       </Button>
     </AlertDialogTrigger>
-    <AlertDialogContent>
+    <AlertDialogContent className={surfaceStyles.surface}>
       <AlertDialogHeader>
         <AlertDialogTitle>删除这个任务？</AlertDialogTitle>
         <AlertDialogDescription>

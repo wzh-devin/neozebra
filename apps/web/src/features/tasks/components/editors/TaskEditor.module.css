@@ -1,18 +1,15 @@
-.sheet {
-  width: min(560px, 100%);
-  max-width: 560px !important;
-  overflow-y: auto;
-}
 .form {
   display: flex;
   flex-direction: column;
-  gap: 24px;
-  padding: 8px 24px 24px;
+  min-height: 0;
+  overflow-y: auto;
+  gap: 20px;
+  padding: 20px 24px 24px;
 }
 .fields {
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 20px;
 }
 .field {
   display: flex;
@@ -23,6 +20,9 @@
 .field > button {
   width: 100%;
   justify-content: flex-start;
+}
+.field > [data-slot='select-trigger'] {
+  justify-content: space-between;
 }
 .twoColumns {
   display: grid;
@@ -48,7 +48,9 @@
   flex-direction: row;
   justify-content: flex-end;
   padding: 0;
-  margin-top: 4px;
+  margin: 4px 0 0;
+  border: 0;
+  background: transparent;
 }
 .error {
   color: var(--project-rose);

@@ -61,6 +61,21 @@ export const addDays = (date: string, offset: number): string => {
   return getLocalDate(result)
 }
 
+/** 格式化日历具体日期，跨年时补充年份。
+ * @param date - YYYY-MM-DD 日期
+ * @param today - 当前日期，用于判断年份
+ * @returns 月日或年月日文本，不使用相对日期标签
+ */
+export const formatTaskCalendarDate = (
+  date: string,
+  today = getLocalDate(),
+): string =>
+  new Intl.DateTimeFormat('zh-CN', {
+    year: date.slice(0, 4) !== today.slice(0, 4) ? 'numeric' : undefined,
+    month: 'short',
+    day: 'numeric',
+  }).format(new Date(`${date}T12:00:00`))
+
 /** 格式化清单日期。
  * @param date - 日期
  * @param today - 当前日期
@@ -73,11 +88,7 @@ export const formatTaskDate = (
   if (date === today) return '今天'
   if (date === addDays(today, 1)) return '明天'
   if (date === addDays(today, -1)) return '昨天'
-  return new Intl.DateTimeFormat('zh-CN', {
-    year: date.slice(0, 4) !== today.slice(0, 4) ? 'numeric' : undefined,
-    month: 'short',
-    day: 'numeric',
-  }).format(new Date(`${date}T12:00:00`))
+  return formatTaskCalendarDate(date, today)
 }
 
 /** 格式化预计用时。
@@ -371,15 +382,16 @@ export const updateTaskCompletion = (
  * @param taskList - 原集合
  * @param visibleIdList - 组内标识
  * @param id - 目标任务
- * @param direction - 方向
+ * @param direction - 在组内移动的整数位移；负数上移，正数下移
  * @returns 重排后的集合
  */
 export const moveTaskList = (
   taskList: TaskItem[],
   visibleIdList: string[],
   id: string,
-  direction: -1 | 1,
+  direction: number,
 ): TaskItem[] => {
+  if (!Number.isInteger(direction) || direction === 0) return taskList
   const visibleIdSet = new Set(visibleIdList)
   const visibleTaskList = taskList.filter((task) => visibleIdSet.has(task.id))
   const index = visibleTaskList.findIndex((task) => task.id === id)
@@ -387,7 +399,8 @@ export const moveTaskList = (
   if (index < 0 || nextIndex < 0 || nextIndex >= visibleTaskList.length)
     return taskList
   const moved = [...visibleTaskList]
-  ;[moved[index], moved[nextIndex]] = [moved[nextIndex], moved[index]]
+  const [task] = moved.splice(index, 1)
+  moved.splice(nextIndex, 0, task)
   let cursor = 0
   return taskList.map((task) =>
     visibleIdSet.has(task.id) ? moved[cursor++] : task,

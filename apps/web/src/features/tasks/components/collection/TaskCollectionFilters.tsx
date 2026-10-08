@@ -1,5 +1,5 @@
 import { Search, SlidersHorizontal, X } from 'lucide-react'
-import type { ChangeEvent } from 'react'
+import { useRef, type ChangeEvent } from 'react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -23,6 +23,7 @@ import {
 import type { TaskCollectionFilters as FilterValues } from '@/features/tasks/data/task-collection'
 import type { TaskProject } from '@/features/tasks/types'
 import styles from '@/features/tasks/components/collection/TaskCollectionFilters.module.css'
+import surfaceStyles from '@/features/tasks/styles/task-surfaces.module.css'
 
 type Props = {
   filters: FilterValues
@@ -34,7 +35,7 @@ type Props = {
   onReset: () => void
 }
 
-/** 常驻常用条件，将较少使用的条件收进官方 Popover。
+/** 将搜索与全部筛选收进按需打开的官方 Popover。
  * @param props - 条件、选项与 URL 更新回调
  * @returns 清单筛选栏 JSX
  */
@@ -47,17 +48,17 @@ export const TaskCollectionFilters = ({
   onChange,
   onReset,
 }: Props) => {
-  const advancedCount =
+  const queryInputRef = useRef<HTMLInputElement>(null)
+  const projectTriggerRef = useRef<HTMLButtonElement>(null)
+  const filterCount =
+    Number(filters.project !== 'all') +
+    Number(!completed && filters.status !== 'all') +
     Number(filters.priority !== 'all') +
     Number(filters.label !== null) +
     Number(filters.schedule !== 'all') +
-    Number(!completed && filters.sort !== 'manual')
-  const hasFilters =
-    !!filters.query ||
-    filters.project !== 'all' ||
-    (!completed && filters.status !== 'all') ||
-    advancedCount > 0 ||
-    hasDateFilter
+    Number(!completed && filters.sort !== 'manual') +
+    Number(hasDateFilter)
+  const hasFilters = !!filters.query || filterCount > 0
 
   /** 更新任务搜索词。
    * @param event - 输入事件
@@ -65,6 +66,22 @@ export const TaskCollectionFilters = ({
    */
   const queryChangeHandler = (event: ChangeEvent<HTMLInputElement>): void =>
     onChange('q', event.target.value)
+  /** 清除搜索词，保留其他筛选。
+   * @param 无参数
+   * @returns 无返回值；更新 URL 条件并聚焦搜索输入
+   */
+  const clearQueryHandler = (): void => {
+    onChange('q', '')
+    queryInputRef.current?.focus()
+  }
+  /** 清除全部条件，让键盘焦点留在筛选面板。
+   * @param 无参数
+   * @returns 无返回值；重置 URL 条件并聚焦项目选项
+   */
+  const resetFiltersHandler = (): void => {
+    onReset()
+    projectTriggerRef.current?.focus()
+  }
   /** 更新项目条件。
    * @param value - 项目 ID 或内置选项
    * @returns 无返回值；更新 URL 条件
@@ -101,69 +118,113 @@ export const TaskCollectionFilters = ({
   const sortChangeHandler = (value: string): void => onChange('sort', value)
   return (
     <div className={styles.toolbar}>
-      <div className={styles.search}>
-        <Search aria-hidden="true" />
-        <Input
-          type="search"
-          placeholder="搜索任务…"
-          aria-label="搜索任务"
-          value={filters.query}
-          onChange={queryChangeHandler}
-        />
-      </div>
-      <div className={styles.conditions}>
-        <Select value={filters.project} onValueChange={projectChangeHandler}>
-          <SelectTrigger aria-label="筛选项目">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">全部项目</SelectItem>
-            <SelectItem value="personal">个人事项</SelectItem>
-            {projectList.map((project) => (
-              <SelectItem key={project.id} value={project.id}>
-                {project.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        {!completed ? (
-          <Select value={filters.status} onValueChange={statusChangeHandler}>
-            <SelectTrigger aria-label="筛选状态">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">全部状态</SelectItem>
-              {Object.entries(statusLabelRecord).map(([value, label]) => (
-                <SelectItem key={value} value={value}>
-                  {label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        ) : null}
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button variant="outline" size="sm">
-              <SlidersHorizontal aria-hidden="true" />
-              筛选
-              {advancedCount ? (
-                <Badge variant="secondary">{advancedCount}</Badge>
-              ) : null}
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent align="start" className={styles.popover}>
-            <div className={styles.field}>
-              <Label htmlFor="task-priority-filter">优先级</Label>
-              <Select
-                value={filters.priority}
-                onValueChange={priorityChangeHandler}
+      <Popover>
+        <PopoverTrigger asChild>
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            aria-label="搜索任务"
+            title={filters.query ? `搜索任务：${filters.query}` : '搜索任务'}
+            data-active={!!filters.query}
+          >
+            <Search aria-hidden="true" />
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent
+          align="end"
+          className={`${surfaceStyles.surface} ${styles.searchPopover}`}
+          aria-label="搜索任务面板"
+        >
+          <div className={styles.search}>
+            <Search aria-hidden="true" />
+            <Input
+              ref={queryInputRef}
+              type="search"
+              placeholder="搜索任务…"
+              aria-label="搜索任务"
+              value={filters.query}
+              onChange={queryChangeHandler}
+            />
+            {filters.query ? (
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                onClick={clearQueryHandler}
+                aria-label="清除搜索"
               >
-                <SelectTrigger id="task-priority-filter">
+                <X aria-hidden="true" />
+              </Button>
+            ) : null}
+          </div>
+        </PopoverContent>
+      </Popover>
+      <Popover>
+        <PopoverTrigger asChild>
+          <Button
+            variant="ghost"
+            size="sm"
+            aria-label="筛选任务"
+            data-active={filterCount > 0}
+          >
+            <SlidersHorizontal aria-hidden="true" />
+            筛选
+            {filterCount ? (
+              <Badge variant="secondary">{filterCount}</Badge>
+            ) : null}
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent
+          align="end"
+          className={`${surfaceStyles.surface} ${styles.popover}`}
+          aria-label="任务筛选"
+        >
+          <div className={styles.field}>
+            <Label htmlFor="task-project-filter">项目</Label>
+            <Select
+              value={filters.project}
+              onValueChange={projectChangeHandler}
+            >
+              <SelectTrigger
+                ref={projectTriggerRef}
+                id="task-project-filter"
+                aria-label="筛选项目"
+              >
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent
+                className={surfaceStyles.surface}
+                position="popper"
+                align="start"
+                sideOffset={6}
+              >
+                <SelectItem value="all">全部项目</SelectItem>
+                <SelectItem value="personal">个人事项</SelectItem>
+                {projectList.map((project) => (
+                  <SelectItem key={project.id} value={project.id}>
+                    {project.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          {!completed ? (
+            <div className={styles.field}>
+              <Label htmlFor="task-status-filter">状态</Label>
+              <Select
+                value={filters.status}
+                onValueChange={statusChangeHandler}
+              >
+                <SelectTrigger id="task-status-filter" aria-label="筛选状态">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">全部优先级</SelectItem>
-                  {Object.entries(priorityLabelRecord).map(([value, label]) => (
+                <SelectContent
+                  className={surfaceStyles.surface}
+                  position="popper"
+                  align="start"
+                  sideOffset={6}
+                >
+                  <SelectItem value="all">全部状态</SelectItem>
+                  {Object.entries(statusLabelRecord).map(([value, label]) => (
                     <SelectItem key={value} value={value}>
                       {label}
                     </SelectItem>
@@ -171,76 +232,111 @@ export const TaskCollectionFilters = ({
                 </SelectContent>
               </Select>
             </div>
-            <div className={styles.field}>
-              <Label htmlFor="task-label-filter">标签</Label>
-              <Select
-                value={
-                  filters.label === null ? 'all' : `label:${filters.label}`
-                }
-                onValueChange={labelChangeHandler}
+          ) : null}
+          <div className={styles.field}>
+            <Label htmlFor="task-priority-filter">优先级</Label>
+            <Select
+              value={filters.priority}
+              onValueChange={priorityChangeHandler}
+            >
+              <SelectTrigger id="task-priority-filter">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent
+                className={surfaceStyles.surface}
+                position="popper"
+                align="start"
+                sideOffset={6}
               >
-                <SelectTrigger id="task-label-filter">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">全部标签</SelectItem>
-                  {labelList.map((label) => (
-                    <SelectItem key={label} value={`label:${label}`}>
-                      {label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            {!completed ? (
-              <>
-                <div className={styles.field}>
-                  <Label htmlFor="task-schedule-filter">安排</Label>
-                  <Select
-                    value={filters.schedule}
-                    onValueChange={scheduleChangeHandler}
+                <SelectItem value="all">全部优先级</SelectItem>
+                {Object.entries(priorityLabelRecord).map(([value, label]) => (
+                  <SelectItem key={value} value={value}>
+                    {label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className={styles.field}>
+            <Label htmlFor="task-label-filter">标签</Label>
+            <Select
+              value={filters.label === null ? 'all' : `label:${filters.label}`}
+              onValueChange={labelChangeHandler}
+            >
+              <SelectTrigger id="task-label-filter">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent
+                className={surfaceStyles.surface}
+                position="popper"
+                align="start"
+                sideOffset={6}
+              >
+                <SelectItem value="all">全部标签</SelectItem>
+                {labelList.map((label) => (
+                  <SelectItem key={label} value={`label:${label}`}>
+                    {label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          {!completed ? (
+            <>
+              <div className={styles.field}>
+                <Label htmlFor="task-schedule-filter">安排</Label>
+                <Select
+                  value={filters.schedule}
+                  onValueChange={scheduleChangeHandler}
+                >
+                  <SelectTrigger id="task-schedule-filter">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent
+                    className={surfaceStyles.surface}
+                    position="popper"
+                    align="start"
+                    sideOffset={6}
                   >
-                    <SelectTrigger id="task-schedule-filter">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">全部安排</SelectItem>
-                      <SelectItem value="unscheduled">尚未安排</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className={styles.field}>
-                  <Label htmlFor="task-sort-filter">排序</Label>
-                  <Select
-                    value={filters.sort}
-                    onValueChange={sortChangeHandler}
+                    <SelectItem value="all">全部安排</SelectItem>
+                    <SelectItem value="unscheduled">尚未安排</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className={styles.field}>
+                <Label htmlFor="task-sort-filter">排序</Label>
+                <Select value={filters.sort} onValueChange={sortChangeHandler}>
+                  <SelectTrigger id="task-sort-filter">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent
+                    className={surfaceStyles.surface}
+                    position="popper"
+                    align="start"
+                    sideOffset={6}
                   >
-                    <SelectTrigger id="task-sort-filter">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="manual">手动顺序</SelectItem>
-                      <SelectItem value="priority">优先级</SelectItem>
-                      <SelectItem value="deadline">截止日期</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </>
-            ) : null}
-          </PopoverContent>
-        </Popover>
-        {hasFilters ? (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onReset}
-            aria-label="清除全部筛选"
-          >
-            <X aria-hidden="true" />
-            清除
-          </Button>
-        ) : null}
-      </div>
+                    <SelectItem value="manual">手动顺序</SelectItem>
+                    <SelectItem value="priority">优先级</SelectItem>
+                    <SelectItem value="deadline">截止日期</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </>
+          ) : null}
+          {hasFilters ? (
+            <Button
+              variant="ghost"
+              size="sm"
+              className={styles.reset}
+              onClick={resetFiltersHandler}
+              aria-label="清除全部筛选"
+            >
+              <X aria-hidden="true" />
+              清除全部筛选
+            </Button>
+          ) : null}
+        </PopoverContent>
+      </Popover>
     </div>
   )
 }

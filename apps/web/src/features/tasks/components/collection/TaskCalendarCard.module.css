@@ -53,9 +53,6 @@
   background: var(--project-purple);
   pointer-events: none;
 }
-.hasTasks[data-selected='true']::after {
-  background: var(--primary-foreground);
-}
 .legend {
   display: flex;
   align-items: center;

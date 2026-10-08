@@ -1,0 +1,74 @@
+.surface {
+  --background: var(--task-background);
+  --card: color-mix(in oklch, var(--foreground) 2%, var(--task-background));
+  --popover: color-mix(in oklch, var(--foreground) 4%, var(--task-background));
+  --secondary: color-mix(
+    in oklch,
+    var(--foreground) 5%,
+    var(--task-background)
+  );
+  --muted: var(--secondary);
+  --accent: color-mix(in oklch, var(--foreground) 8%, var(--task-background));
+  --input: color-mix(in oklch, var(--foreground) 14%, var(--task-background));
+  --ring: color-mix(in oklch, var(--foreground) 40%, var(--task-background));
+}
+.surface:is(
+  [data-slot='popover-content'],
+  [data-slot='select-content'],
+  [data-slot='dropdown-menu-content'],
+  [data-slot='alert-dialog-content'],
+  [data-slot='dialog-content']
+) {
+  border: 1px solid var(--border);
+  box-shadow: none;
+}
+.surface[data-slot='dialog-content'] {
+  background: var(--card);
+}
+.surface
+  :is(
+    [data-slot='input'],
+    [data-slot='textarea'],
+    [data-slot='select-trigger']
+  ) {
+  background: transparent;
+}
+.surface
+  :is(
+    [data-slot='input'],
+    [data-slot='textarea'],
+    [data-slot='select-trigger']
+  ):focus-visible:not([aria-invalid='true']) {
+  border-color: var(--ring);
+  box-shadow: none;
+}
+.surface[data-slot='select-content'] {
+  padding: 4px;
+}
+.surface :is([data-slot='select-item'], [data-slot='dropdown-menu-item']) {
+  min-height: 30px;
+  font-size: 12px;
+}
+.surface [data-slot='calendar'] {
+  --cell-radius: 8px;
+}
+.surface [data-slot='calendar'] [data-today='true'] {
+  background: transparent;
+}
+.surface [data-slot='calendar'] button[data-day] {
+  border: 1px solid transparent;
+  border-radius: var(--cell-radius);
+  box-shadow: none;
+  outline: none;
+  transform: none;
+}
+.surface [data-slot='calendar'] button[data-day][data-selected-single='true'] {
+  border-color: var(--input);
+  background: var(--accent);
+  color: var(--foreground);
+  font-weight: 600;
+}
+.surface [data-slot='calendar'] button[data-day]:focus-visible {
+  outline: 1px solid var(--muted-foreground);
+  outline-offset: 2px;
+}

@@ -10,9 +10,10 @@ import {
 } from '@/components/ui/popover'
 import {
   addDays,
-  formatTaskDate,
+  formatTaskCalendarDate,
   getLocalDate,
 } from '@/features/tasks/data/task-planner'
+import surfaceStyles from '@/features/tasks/styles/task-surfaces.module.css'
 
 type Props = {
   label: string
@@ -64,10 +65,13 @@ export const TaskDatePicker = ({ label, value, onChange }: Props) => {
           aria-label={`${label}：${value ?? '未设置'}`}
         >
           <CalendarDays aria-hidden="true" />
-          {value ? formatTaskDate(value) : label}
+          {value ? formatTaskCalendarDate(value) : label}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-auto p-2" align="start">
+      <PopoverContent
+        className={`${surfaceStyles.surface} w-auto p-2`}
+        align="start"
+      >
         <p className="px-2 py-1 text-sm font-medium">{label}</p>
         <Calendar
           locale={zhCN}
@@ -79,10 +83,10 @@ export const TaskDatePicker = ({ label, value, onChange }: Props) => {
         />
         <div className="flex flex-wrap gap-1 border-t pt-2">
           <Button size="sm" variant="ghost" onClick={todayHandler}>
-            今天
+            {formatTaskCalendarDate(getLocalDate())}
           </Button>
           <Button size="sm" variant="ghost" onClick={tomorrowHandler}>
-            明天
+            {formatTaskCalendarDate(addDays(getLocalDate(), 1))}
           </Button>
           <Button size="sm" variant="ghost" onClick={clearHandler}>
             <X aria-hidden="true" />

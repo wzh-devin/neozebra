@@ -1,4 +1,4 @@
-import { CalendarDays, X } from 'lucide-react'
+import { CalendarX } from 'lucide-react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
@@ -12,7 +12,7 @@ import {
   type TaskCollectionFilters as FilterValues,
 } from '@/features/tasks/data/task-collection'
 import {
-  formatTaskDate,
+  formatTaskCalendarDate,
   getLocalDate,
   isValidDate,
 } from '@/features/tasks/data/task-planner'
@@ -21,13 +21,15 @@ import styles from '@/features/tasks/components/collection/TaskCollectionView.mo
 import panelStyles from '@/features/tasks/styles/task-panels.module.css'
 
 /** 组合左侧筛选清单与右侧日期任务月历。
- * @param props - 是否展示已完成任务
+ * @param props - 是否展示待完成或已完成任务
  * @returns 任务与日期工作区 JSX
  */
 export const TaskCollectionView = ({
   completed = false,
+  pending = false,
 }: {
   completed?: boolean
+  pending?: boolean
 }) => {
   const { data, today } = useTaskPlannerContext()
   const [params, setParams] = useSearchParams()
@@ -69,8 +71,10 @@ export const TaskCollectionView = ({
   const calendarTaskList = getTaskCollectionList(data.taskList, {
     ...filters,
     date: null,
-  })
-  const visibleTaskList = getTaskCollectionList(data.taskList, filters)
+  }).filter((task) => !pending || task.status !== 'completed')
+  const visibleTaskList = getTaskCollectionList(data.taskList, filters).filter(
+    (task) => !pending || task.status !== 'completed',
+  )
   const labelList = [
     ...new Set(data.taskList.flatMap((task) => task.labels)),
   ].sort()
@@ -162,7 +166,7 @@ export const TaskCollectionView = ({
   const renderCompletedDay = (day: string) => (
     <TaskGroup
       key={day}
-      title={formatTaskDate(day, today) + '完成'}
+      title={formatTaskCalendarDate(day, today) + '完成'}
       taskList={visibleTaskList.filter(
         (task) =>
           task.completedAt && getLocalDate(new Date(task.completedAt)) === day,
@@ -179,83 +183,81 @@ export const TaskCollectionView = ({
         aria-label="任务清单"
       >
         <header className={styles.heading}>
-          <div>
-            <h1>
-              {completed
-                ? '已完成'
-                : date
-                  ? formatTaskDate(date, today) + '的任务'
+          <h1>
+            {completed
+              ? '已完成'
+              : date
+                ? formatTaskCalendarDate(date, today) + '的任务'
+                : pending
+                  ? '待完成'
                   : '全部任务'}
-              <span>{visibleTaskList.length}</span>
-            </h1>
-            <p>
-              {date
-                ? new Intl.DateTimeFormat('zh-CN', {
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric',
-                    weekday: 'long',
-                  }).format(new Date(date + 'T12:00:00'))
-                : '记录计划，逐件完成。'}
-            </p>
-          </div>
-          {date ? (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={clearDateHandler}
-              className={styles.clearDate}
-              aria-label="清除日期筛选"
-            >
-              <CalendarDays aria-hidden="true" />
-              全部日期
-              <X aria-hidden="true" />
-            </Button>
-          ) : null}
-        </header>
-        <TaskCollectionFilters
-          filters={filters}
-          projectList={data.projectList}
-          labelList={labelList}
-          completed={completed}
-          hasDateFilter={date !== null}
-          onChange={filterChangeHandler}
-          onReset={resetHandler}
-        />
-        {visibleTaskList.length ? (
-          completed ? (
-            completedDateList.map(renderCompletedDay)
-          ) : (
-            <TaskGroup
-              title="任务清单"
-              taskList={visibleTaskList}
-              quickAdd={canQuickAdd}
-              plannedDate={date}
-              projectId={projectId}
-              reorder={filters.sort === 'manual'}
-            />
-          )
-        ) : (
-          <>
-            <TaskEmptyState
-              title={
-                !data.taskList.length
-                  ? '从一件小事开始'
-                  : date
-                    ? '这一天没有符合条件的任务'
-                    : '没有符合条件的任务'
-              }
-              description={
-                !data.taskList.length
-                  ? '记录第一件事，为计划留出空间。'
-                  : '试试其他日期，或者清除筛选。'
-              }
-            />
-            {canQuickAdd ? (
-              <TaskQuickAdd plannedDate={date} projectId={projectId} />
+            <span>{visibleTaskList.length}</span>
+          </h1>
+          <div className={styles.actions}>
+            {date ? (
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                onClick={clearDateHandler}
+                className={styles.clearDate}
+                aria-label="清除日期筛选"
+                title="清除日期筛选"
+              >
+                <CalendarX aria-hidden="true" />
+              </Button>
             ) : null}
-          </>
-        )}
+            <TaskCollectionFilters
+              filters={filters}
+              projectList={data.projectList}
+              labelList={labelList}
+              completed={completed}
+              hasDateFilter={date !== null}
+              onChange={filterChangeHandler}
+              onReset={resetHandler}
+            />
+          </div>
+        </header>
+        <div
+          className={styles.taskList}
+          data-task-list-scroll
+          role="region"
+          aria-label="可滚动任务列表"
+          tabIndex={0}
+        >
+          {visibleTaskList.length ? (
+            completed ? (
+              completedDateList.map(renderCompletedDay)
+            ) : (
+              <TaskGroup
+                taskList={visibleTaskList}
+                quickAdd={canQuickAdd}
+                plannedDate={date}
+                projectId={projectId}
+                reorder={filters.sort === 'manual'}
+              />
+            )
+          ) : (
+            <>
+              <TaskEmptyState
+                title={
+                  !data.taskList.length
+                    ? '从一件小事开始'
+                    : date
+                      ? '这一天没有符合条件的任务'
+                      : '没有符合条件的任务'
+                }
+                description={
+                  !data.taskList.length
+                    ? '记录第一件事，为计划留出空间。'
+                    : '试试其他日期，或者清除筛选。'
+                }
+              />
+              {canQuickAdd ? (
+                <TaskQuickAdd plannedDate={date} projectId={projectId} />
+              ) : null}
+            </>
+          )}
+        </div>
       </Card>
       <aside className={styles.calendar} aria-label="日期任务">
         <TaskCalendarCard

@@ -60,9 +60,28 @@
 .scroll {
   flex: 1;
   min-width: 0;
+  min-height: 0;
+}
+.scrollContent {
+  display: flex;
+  height: 100%;
+  min-height: 0;
+  flex-direction: column;
+}
+.scroll [data-slot='scroll-area-viewport'] > div {
+  display: flex !important;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  min-width: 100%;
 }
 .content {
+  box-sizing: border-box;
+  flex: 1;
   max-width: 1320px;
+  min-height: 0;
+  overflow: auto;
+  width: 100%;
   padding: 28px 32px 20px;
   margin: 0 auto;
 }
@@ -70,6 +89,7 @@
   text-wrap: pretty;
 }
 .localMode {
+  flex-shrink: 0;
   max-width: 1320px;
   margin: 0 auto;
   padding: 14px 32px 26px;
@@ -115,6 +135,7 @@
     padding-inline: 9px;
   }
   .content {
+    flex-basis: 0;
     padding: 30px 28px 16px;
   }
   .localMode {
@@ -146,6 +167,7 @@
     padding-inline: 11px;
   }
   .content {
+    flex-basis: 0;
     padding: 25px 18px 12px;
   }
   .localMode {

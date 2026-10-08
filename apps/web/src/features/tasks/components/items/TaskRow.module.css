@@ -9,6 +9,7 @@
   margin-bottom: 8px;
 }
 .groupTitle {
+  background: transparent;
   padding-left: 0;
   gap: 9px;
   max-width: 100%;
@@ -39,30 +40,81 @@
 .groupTitle[data-state='closed'] svg {
   transform: rotate(-90deg);
 }
-.groupContent {
-  border-top: 1px solid var(--border);
-}
 .groupEmpty {
   padding: 18px 12px;
   color: var(--muted-foreground);
   font-size: 13px;
 }
+.insertList {
+  isolation: isolate;
+  padding: 6px 3px 14px;
+}
 .row {
-  border-bottom: 1px solid var(--border);
-  transition: background 160ms ease;
+  --task-detail-inset: 45px;
+  position: relative;
+  margin-inline: 6px;
+  padding-bottom: 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--card);
+  transition:
+    background 160ms ease,
+    margin 220ms ease,
+    border-color 160ms ease;
+}
+.row[data-draggable='true'] {
+  --task-detail-inset: 77px;
+}
+.row[data-dragging='true'] {
+  z-index: 3;
+  border-color: var(--muted-foreground);
+}
+.row[data-shifting='true'] {
+  transition:
+    transform 180ms ease,
+    background 160ms ease;
+}
+.dragHandle {
+  width: 19px;
+  height: 32px;
+  flex-shrink: 0;
+  color: var(--muted-foreground);
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+}
+.dragHandle:active {
+  cursor: grabbing;
+}
+.dragHandle svg {
+  width: 14px;
+  height: 14px;
+}
+.row + .row {
+  margin-top: -12px;
 }
 .row:hover,
 .row:focus-within {
-  background: color-mix(in oklch, var(--foreground) 3%, transparent);
+  background: var(--secondary);
+}
+.row[data-state='open'],
+.row[data-active='true'],
+.row[data-active='true']:hover,
+.row[data-active='true']:focus-within {
+  background: var(--secondary);
+}
+.row[data-state='open'] {
+  margin-bottom: 12px;
 }
 .rowMain {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 13px;
-  padding: 17px 9px;
+  min-height: 58px;
+  padding: 12px 13px;
 }
 .checkbox {
-  margin-top: 5px;
+  flex-shrink: 0;
   width: 19px;
   height: 19px;
   border-radius: 6px;
@@ -84,11 +136,12 @@
   flex: 1;
 }
 .title {
-  display: block;
+  display: flex;
   width: 100%;
   height: auto;
-  min-height: 25px;
-  justify-content: start;
+  min-height: 32px;
+  justify-content: space-between;
+  gap: 12px;
   padding: 0;
   border-radius: 3px;
   font-weight: 500;
@@ -101,6 +154,24 @@
 .title:hover {
   background: transparent;
 }
+.title:focus-visible {
+  box-shadow: none;
+  outline: 1px solid var(--muted-foreground);
+  outline-offset: 2px;
+}
+.title > span {
+  min-width: 0;
+  flex: 1;
+}
+.disclosure {
+  flex-shrink: 0;
+  width: 14px;
+  color: var(--muted-foreground);
+  transition: transform 220ms ease;
+}
+.title[data-state='open'] .disclosure {
+  transform: rotate(90deg);
+}
 .row[data-completed='true'] .title {
   color: var(--muted-foreground);
   text-decoration: line-through;
@@ -110,7 +181,7 @@
   flex-wrap: wrap;
   align-items: center;
   gap: 7px 12px;
-  margin-top: 8px;
+  margin-top: 0;
   color: var(--muted-foreground);
   font-size: 11px;
 }
@@ -140,24 +211,61 @@
   flex-shrink: 0;
   align-items: center;
   gap: 1px;
-  padding-top: 1px;
 }
-.actions > button:last-child {
-  opacity: 0;
-  transition: opacity 160ms;
-}
-.row:hover .actions > button:last-child,
-.row:focus-within .actions > button:last-child {
-  opacity: 1;
-}
-.stepToggle {
+.stepCount {
   color: var(--muted-foreground);
   font-size: 11px;
-  gap: 3px;
-  padding: 0 6px;
+  font-variant-numeric: tabular-nums;
+  margin-right: 5px;
+}
+.rowContent {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 220ms ease;
+}
+.rowContent[data-state='open'] {
+  grid-template-rows: 1fr;
+}
+.contentClip {
+  overflow: hidden;
+  min-height: 0;
+}
+.rowContent[data-state='closed'] .contentClip {
+  visibility: hidden;
+}
+.details {
+  padding: 0 13px 8px var(--task-detail-inset);
+}
+.description {
+  margin-top: 12px;
+  color: var(--muted-foreground);
+  font-size: 12px;
+  line-height: 1.65;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.steps {
+  margin-top: 12px;
+}
+.stepToggle {
+  display: grid;
+  grid-template-columns: 18px auto;
+  justify-content: start;
+  color: var(--muted-foreground);
+  font-size: 11px;
+  gap: 9px;
+  padding: 0;
+  border: 0;
+  height: 28px;
+  background: transparent;
+}
+.stepToggle > span {
+  padding-left: 10px;
 }
 .stepToggle svg {
-  width: 13px;
+  justify-self: start;
+  width: 18px;
+  height: 14px;
   transition: transform 180ms;
 }
 .stepToggle[data-state='open'] svg {
@@ -177,14 +285,18 @@
   list-style: none;
 }
 .stepContent {
-  padding-left: 41px;
-  padding-right: 9px;
+  padding-top: 5px;
 }
 .subtask {
-  display: flex;
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr) auto auto auto;
   align-items: center;
   gap: 8px;
   padding: 4px 0;
+}
+.subtask > [role='checkbox'] {
+  width: 18px;
+  height: 18px;
 }
 .subtask > input {
   min-width: 0;
@@ -207,8 +319,8 @@
 .quickAdd {
   display: flex;
   align-items: center;
-  gap: 9px;
-  padding: 11px 9px;
+  gap: 8px;
+  padding: 11px 0;
 }
 .quickAdd > svg {
   width: 18px;
@@ -221,6 +333,7 @@
   background: transparent;
   font-size: 13px;
   min-width: 0;
+  transition: none;
 }
 .quickAdd > input:focus {
   border-color: var(--input);
@@ -248,37 +361,51 @@
   }
 }
 @media (max-width: 700px) {
+  .row {
+    --task-detail-inset: 41px;
+  }
+  .row[data-draggable='true'] {
+    --task-detail-inset: 70px;
+  }
   .rowMain {
     flex-wrap: wrap;
-    padding-inline: 1px;
-  }
-  .rowBody {
-    flex-basis: calc(100% - 35px);
-  }
-  .actions {
-    margin-left: 31px;
-  }
-  .actions > button:last-child {
-    opacity: 1;
-  }
-  .stepContent {
+    gap: 6px 10px;
     padding-inline: 12px;
   }
+  .rowBody {
+    flex-basis: calc(100% - (var(--task-detail-inset) - 12px));
+  }
+  .actions {
+    margin-left: calc(var(--task-detail-inset) - 12px);
+  }
+  .details {
+    padding-right: 12px;
+  }
   .subtask {
-    gap: 3px;
+    grid-template-columns: 18px minmax(0, 1fr) auto;
+    gap: 4px 8px;
   }
   .subtask > button {
     width: 27px;
   }
-}
-@media (hover: none) {
-  .actions > button:last-child {
-    opacity: 1;
+  .subtask > button:nth-last-child(3) {
+    grid-column: 2;
+    justify-self: end;
+  }
+  .subtask > button:nth-last-child(2) {
+    grid-column: 3;
+    grid-row: span 1;
+  }
+  .subtask > button:last-child {
+    grid-column: 3;
+    grid-row: 1;
   }
 }
 @media (prefers-reduced-motion: reduce) {
   .row,
+  .rowContent,
   .checkbox,
+  .disclosure,
   .stepToggle svg,
   .groupTitle svg {
     transition: none;

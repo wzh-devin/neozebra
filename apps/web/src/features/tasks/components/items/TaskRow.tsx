@@ -4,6 +4,7 @@ import {
   CalendarDays,
   ChevronRight,
   Clock3,
+  GripVertical,
   MoreHorizontal,
   Pin,
   Sun,
@@ -32,20 +33,38 @@ import {
   priorityLabelRecord,
 } from '@/features/tasks/data/task-planner'
 import { useTaskPlannerContext } from '@/features/tasks/hooks/TaskPlannerContext'
+import type { TaskCardDragHandlers } from '@/features/tasks/hooks/useTaskCardDrag'
 import { TaskDeleteAlertDialog } from '@/features/tasks/components/items/TaskDeleteAlertDialog'
 import { TaskProjectMark } from '@/features/tasks/components/projects/TaskProjectMark'
 import { TaskSubtaskList } from '@/features/tasks/components/items/TaskSubtaskList'
 import { restoreTaskFocusHandler } from '@/features/tasks/utils/task-focus'
 import type { TaskItem, TaskSubtask } from '@/features/tasks/types'
 import styles from '@/features/tasks/components/items/TaskRow.module.css'
+import surfaceStyles from '@/features/tasks/styles/task-surfaces.module.css'
 
-type Props = { task: TaskItem; siblingIdList?: string[] }
+type Props = {
+  task: TaskItem
+  siblingIdList?: string[]
+  expanded: boolean
+  onExpandedChange: (open: boolean) => void
+  dragHandlers?: TaskCardDragHandlers
+  dragOffset?: number
+  shiftOffset?: number
+}
 
 /** 展示可直接操作与展开的任务，保持编辑上下文。
- * @param props - 任务与排序组
- * @returns 清单行 JSX
+ * @param props - 任务、排序组与分组控制的展开状态
+ * @returns 任务插页 JSX
  */
-export const TaskRow = ({ task, siblingIdList = [] }: Props) => {
+export const TaskRow = ({
+  task,
+  siblingIdList = [],
+  expanded,
+  onExpandedChange,
+  dragHandlers,
+  dragOffset,
+  shiftOffset,
+}: Props) => {
   const {
     data,
     today,
@@ -169,10 +188,36 @@ export const TaskRow = ({ task, siblingIdList = [] }: Props) => {
   return (
     <Collapsible
       className={styles.row}
+      open={expanded}
+      onOpenChange={onExpandedChange}
+      data-active={searchParams.get('task') === task.id}
       data-completed={isCompleted}
       data-color={project?.color ?? 'blue'}
+      data-task-id={task.id}
+      data-dragging={dragOffset !== undefined}
+      data-shifting={shiftOffset !== undefined}
+      data-draggable={Boolean(dragHandlers)}
+      style={
+        dragOffset === undefined && shiftOffset === undefined
+          ? undefined
+          : { transform: `translateY(${dragOffset ?? shiftOffset}px)` }
+      }
     >
       <article className={styles.rowMain}>
+        {dragHandlers ? (
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon-sm"
+            className={styles.dragHandle}
+            aria-label={`拖动排序：${task.title}`}
+            aria-description="按住上下拖动，或使用上下方向键调整顺序"
+            data-task-drag-id={task.id}
+            {...dragHandlers}
+          >
+            <GripVertical aria-hidden="true" />
+          </Button>
+        ) : null}
         <Checkbox
           className={styles.checkbox}
           checked={isCompleted}
@@ -180,73 +225,21 @@ export const TaskRow = ({ task, siblingIdList = [] }: Props) => {
           onCheckedChange={completeHandler}
         />
         <div className={styles.rowBody}>
-          <Button
-            variant="ghost"
-            className={styles.title}
-            onClick={openHandler}
-          >
-            {task.title}
-          </Button>
-          <div className={styles.metadata}>
-            {project ? (
-              <span>
-                <TaskProjectMark project={project} small />
-                {project.name}
-              </span>
-            ) : (
-              <span>
-                <Sun aria-hidden="true" />
-                个人事项
-              </span>
-            )}
-            {task.status === 'inProgress' ? (
-              <span className={styles.inProgress}>进行中</span>
-            ) : null}
-            {task.priority === 'high' ? (
-              <span className={styles.high}>高优先级</span>
-            ) : task.priority === 'low' ? (
-              <span>低优先级</span>
-            ) : null}
-            {task.deadlineDate ? (
-              <span data-overdue={isOverdue}>
-                <CalendarDays aria-hidden="true" />
-                {isOverdue ? '截止逾期 · ' : ''}
-                {formatTaskDate(task.deadlineDate, today)}截止
-              </span>
-            ) : null}
-            {task.plannedDate && task.plannedDate !== today ? (
-              <span>安排于{formatTaskDate(task.plannedDate, today)}</span>
-            ) : null}
-            {task.estimateMinutes ? (
-              <span>
-                <Clock3 aria-hidden="true" />
-                {formatMinutes(task.estimateMinutes)}
-              </span>
-            ) : null}
-            {task.labels.slice(0, 2).map((label) => (
-              <span key={label} className={styles.label}>
-                <Tag aria-hidden="true" />
-                {label}
-              </span>
-            ))}
-          </div>
+          <CollapsibleTrigger asChild>
+            <Button variant="ghost" className={styles.title}>
+              <span>{task.title}</span>
+              <ChevronRight aria-hidden="true" className={styles.disclosure} />
+            </Button>
+          </CollapsibleTrigger>
         </div>
         <div className={styles.actions}>
           {task.isPinned ? (
             <Pin aria-label="已置顶" className={styles.pin} />
           ) : null}
           {task.subtasks.length ? (
-            <CollapsibleTrigger asChild>
-              <Button
-                size="sm"
-                variant="ghost"
-                className={styles.stepToggle}
-                aria-label={`展开 ${task.title} 的步骤`}
-              >
-                <ChevronRight aria-hidden="true" />
-                {completedStepCount}/{task.subtasks.length}
-              </Button>
-            </CollapsibleTrigger>
+            <span className={styles.stepCount} aria-label="已完成步骤数量">
+              {completedStepCount}/{task.subtasks.length}
+            </span>
           ) : null}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -258,7 +251,7 @@ export const TaskRow = ({ task, siblingIdList = [] }: Props) => {
                 <MoreHorizontal aria-hidden="true" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
+            <DropdownMenuContent align="end" className={surfaceStyles.surface}>
               <DropdownMenuItem onSelect={openHandler}>
                 编辑任务
               </DropdownMenuItem>
@@ -309,11 +302,85 @@ export const TaskRow = ({ task, siblingIdList = [] }: Props) => {
           />
         </div>
       </article>
-      <CollapsibleContent className={styles.stepContent}>
-        <TaskSubtaskList
-          subtasks={task.subtasks}
-          onChange={stepsChangeHandler}
-        />
+      <CollapsibleContent
+        forceMount
+        className={styles.rowContent}
+        inert={!expanded}
+        aria-hidden={!expanded}
+      >
+        <div className={styles.contentClip}>
+          <div className={styles.details}>
+            <div className={styles.metadata}>
+              {project ? (
+                <span>
+                  <TaskProjectMark project={project} small />
+                  {project.name}
+                </span>
+              ) : (
+                <span>
+                  <Sun aria-hidden="true" />
+                  个人事项
+                </span>
+              )}
+              {task.status === 'inProgress' ? (
+                <span className={styles.inProgress}>进行中</span>
+              ) : null}
+              {task.priority === 'high' ? (
+                <span className={styles.high}>高优先级</span>
+              ) : task.priority === 'low' ? (
+                <span>低优先级</span>
+              ) : null}
+              {task.deadlineDate ? (
+                <span data-overdue={isOverdue}>
+                  <CalendarDays aria-hidden="true" />
+                  {isOverdue ? '截止逾期 · ' : ''}
+                  {formatTaskDate(task.deadlineDate, today)}截止
+                </span>
+              ) : null}
+              {task.plannedDate && task.plannedDate !== today ? (
+                <span>安排于{formatTaskDate(task.plannedDate, today)}</span>
+              ) : null}
+              {task.estimateMinutes ? (
+                <span>
+                  <Clock3 aria-hidden="true" />
+                  {formatMinutes(task.estimateMinutes)}
+                </span>
+              ) : null}
+              {task.labels.slice(0, 2).map((label) => (
+                <span key={label} className={styles.label}>
+                  <Tag aria-hidden="true" />
+                  {label}
+                </span>
+              ))}
+            </div>
+            {task.description ? (
+              <p className={styles.description}>{task.description}</p>
+            ) : null}
+            {task.subtasks.length ? (
+              <Collapsible className={styles.steps}>
+                <CollapsibleTrigger asChild>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className={styles.stepToggle}
+                    aria-label={`展开 ${task.title} 的步骤`}
+                  >
+                    <ChevronRight aria-hidden="true" />
+                    <span>
+                      步骤 {completedStepCount}/{task.subtasks.length}
+                    </span>
+                  </Button>
+                </CollapsibleTrigger>
+                <CollapsibleContent className={styles.stepContent}>
+                  <TaskSubtaskList
+                    subtasks={task.subtasks}
+                    onChange={stepsChangeHandler}
+                  />
+                </CollapsibleContent>
+              </Collapsible>
+            ) : null}
+          </div>
+        </div>
       </CollapsibleContent>
     </Collapsible>
   )

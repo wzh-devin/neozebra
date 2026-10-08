@@ -9,6 +9,7 @@ import {
 } from '@/components/ui/popover'
 import { useTaskPlannerContext } from '@/features/tasks/hooks/TaskPlannerContext'
 import type { TaskSection } from '@/features/tasks/types'
+import surfaceStyles from '@/features/tasks/styles/task-surfaces.module.css'
 
 /** 在项目内新增或重命名阶段。
  * @param props - 当前阶段与项目
@@ -66,7 +67,7 @@ export const TaskSectionEditor = ({
           )}
         </Button>
       </PopoverTrigger>
-      <PopoverContent align="end">
+      <PopoverContent align="end" className={surfaceStyles.surface}>
         <form onSubmit={submitHandler} className="flex flex-col gap-3">
           <p className="text-sm font-medium">
             {section ? '重命名阶段' : '添加项目阶段'}

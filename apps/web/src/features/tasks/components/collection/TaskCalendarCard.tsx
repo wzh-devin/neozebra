@@ -13,7 +13,7 @@ import {
 import { useSidebar } from '@/components/ui/sidebar'
 import { getTaskDateCountMap } from '@/features/tasks/data/task-collection'
 import {
-  formatTaskDate,
+  formatTaskCalendarDate,
   getLocalDate,
 } from '@/features/tasks/data/task-planner'
 import type { TaskItem } from '@/features/tasks/types'
@@ -133,8 +133,14 @@ export const TaskCalendarCard = ({
             任务日历
           </h2>
           <div>
-            <Button variant="ghost" size="sm" onClick={todayHandler}>
-              今天
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={todayHandler}
+              aria-label={`回到当前日期：${today}`}
+              title="回到当前日期"
+            >
+              {formatTaskCalendarDate(today, today)}
             </Button>
             {isMobile ? (
               <CollapsibleTrigger asChild>
@@ -163,14 +169,10 @@ export const TaskCalendarCard = ({
             modifiersClassNames={{ planned: styles.hasTasks }}
             labels={{ labelDayButton: getDayButtonLabel }}
           />
-          <p className={styles.legend}>
-            <span aria-hidden="true" />
-            有计划的日期
-          </p>
           <section className={styles.preview} aria-label="所选日期任务">
             <div className={styles.previewHeading}>
               <h3>
-                {formatTaskDate(selectedDate, today)}
+                {formatTaskCalendarDate(selectedDate, today)}
                 <span>{selectedTaskList.length}项</span>
               </h3>
               <Button variant="ghost" size="sm" onClick={viewDateHandler}>

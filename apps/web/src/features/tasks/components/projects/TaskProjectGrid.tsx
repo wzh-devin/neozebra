@@ -98,18 +98,6 @@ export const TaskProjectGrid = ({
   }
   return (
     <>
-      <header className={styles.heading}>
-        <div>
-          <p>把长期目标拆成每天的小事</p>
-          <h1>
-            我的项目 <span>{projectList.length}</span>
-          </h1>
-        </div>
-        <Button onClick={createHandler}>
-          <Plus aria-hidden="true" />
-          新建项目
-        </Button>
-      </header>
       <div className={styles.projectFilters}>
         <Button
           variant={archived ? 'ghost' : 'secondary'}

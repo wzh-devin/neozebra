@@ -1,26 +1,41 @@
 .workspace {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 304px;
-  align-items: start;
+  grid-template-rows: minmax(0, 1fr);
+  height: 100%;
+  min-height: 0;
+  align-items: stretch;
   gap: 20px;
 }
 .mainColumn {
   min-width: 0;
+  min-height: 0;
+  height: 100%;
   gap: 0;
   padding: 24px;
 }
 .mainColumn > :last-child {
   margin-bottom: 0;
 }
+.taskList {
+  min-height: 0;
+  flex: 1;
+  overflow-x: hidden;
+  overflow-y: auto;
+  padding-right: 4px;
+  scrollbar-gutter: stable;
+}
 .heading {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  margin-bottom: 24px;
+  margin-bottom: 8px;
 }
 .heading h1 {
-  font-size: 26px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font-size: 20px;
   font-weight: 600;
   letter-spacing: -0.025em;
 }
@@ -30,20 +45,14 @@
   font-size: 14px;
   font-weight: 400;
 }
-.heading p {
-  margin-top: 6px;
-  color: var(--muted-foreground);
-  font-size: 12px;
+.actions {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 4px;
 }
 .clearDate {
-  flex-shrink: 0;
   color: var(--muted-foreground);
-  font-size: 11px;
-  padding-inline: 6px;
-}
-.clearDate svg {
-  width: 13px;
-  height: 13px;
 }
 .calendar {
   min-width: 0;
@@ -62,9 +71,11 @@
 @media (max-width: 767px) {
   .workspace {
     grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr);
     gap: 16px;
   }
   .mainColumn {
+    grid-row: 2;
     padding: 20px 16px;
   }
   .calendar {
@@ -72,9 +83,6 @@
     position: static;
   }
   .heading h1 {
-    font-size: 24px;
-  }
-  .heading {
-    margin-bottom: 18px;
+    font-size: 18px;
   }
 }

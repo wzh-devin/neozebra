@@ -224,7 +224,7 @@ export const useTaskPlanner = () => {
   const moveTaskHandler = (
     ids: string[],
     id: string,
-    direction: -1 | 1,
+    direction: number,
   ): void => {
     const next = moveTaskList(dataRef.current.taskList, ids, id, direction)
     if (next !== dataRef.current.taskList)
