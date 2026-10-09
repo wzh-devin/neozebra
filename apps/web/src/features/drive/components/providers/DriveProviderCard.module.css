@@ -49,6 +49,14 @@
   background: color-mix(in oklch, var(--project-rose) 12%, transparent);
 }
 
+.delete-button {
+  position: absolute;
+  top: 24px;
+  right: 54px;
+  z-index: 1;
+  color: var(--muted-foreground);
+}
+
 .heading,
 .meta {
   padding: 0;
@@ -110,6 +118,15 @@
 
 .status[data-status='configured'] > span {
   background: var(--project-amber);
+}
+
+@media (max-width: 767px) {
+  .delete-button {
+    top: 22px;
+    right: 66px;
+    width: 44px;
+    height: 44px;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -16,7 +16,9 @@ export type TaskGanttGroup = {
   entryList: TaskGanttEntry[]
 }
 
-/** 将任务日历日期转为包含末日的时间轴区间，分离未安排及倒置日期。
+/**
+ * 将任务日历日期转为包含末日的时间轴区间，分离未安排及倒置日期。
+ *
  * @param taskList - 当前筛选后的任务
  * @returns 可展示区间、未安排任务与日期待调整任务
  */
@@ -42,7 +44,9 @@ export const buildTaskGanttRecord = (taskList: TaskItem[]) => {
   return { entryList, unscheduledTaskList, invalidTaskList }
 }
 
-/** 按现有项目顺序分组，保留每组任务的既有顺序。
+/**
+ * 按现有项目顺序分组，保留每组任务的既有顺序。
+ *
  * @param entryList - 有效时间轴区间
  * @param projectList - 当前项目
  * @returns 非空项目组和个人任务组
@@ -66,7 +70,9 @@ export const getTaskGanttGroupList = (
     },
   ].filter((group) => group.entryList.length > 0)
 
-/** 校验拖动区间并还原为本地计划日期及包含末日的截止日期。
+/**
+ * 校验拖动区间并还原为本地计划日期及包含末日的截止日期。
+ *
  * @param startAt - 时间轴起点
  * @param endAt - 时间轴排他终点
  * @returns 可保存的日期字段，非法或倒置区间返回空值
@@ -89,7 +95,9 @@ export const buildTaskGanttDatePatch = (
   return { plannedDate, deadlineDate }
 }
 
-/** 筛选甘特图任务，默认排除已完成历史，状态与项目条件共同生效。
+/**
+ * 筛选甘特图任务，默认排除已完成历史，状态与项目条件共同生效。
+ *
  * @param taskList - 现有任务
  * @param projectId - 全部、个人或具体项目标识
  * @param showCompleted - 是否同时显示已完成任务

@@ -40,7 +40,9 @@ type Props = {
   onClose: () => void
 }
 
-/** 编辑完整任务，保存失败时保留整个草稿。
+/**
+ * 编辑完整任务，保存失败时保留整个草稿。
+ *
  * @param props - 原任务、新建上下文与关闭操作
  * @returns 任务新建或编辑弹窗 JSX
  */
@@ -58,7 +60,9 @@ export const TaskEditor = ({
   const [labelsText, setLabelsText] = useState(task?.labels.join(', ') ?? '')
   const [saveError, setSaveError] = useState('')
 
-  /** 更新标题或描述。
+  /**
+   * 更新标题或描述。
+   *
    * @param event - 输入事件
    * @returns 无返回值；更新草稿
    */
@@ -69,7 +73,10 @@ export const TaskEditor = ({
     if (name === 'title' || name === 'description')
       setDraft((current) => ({ ...current, [name]: value }))
   }
-  /** 更新任务项目并清除旧阶段。
+
+  /**
+   * 更新任务项目并清除旧阶段。
+   *
    * @param value - 项目标识
    * @returns 无返回值；更新草稿关联
    */
@@ -79,24 +86,23 @@ export const TaskEditor = ({
       projectId: value === 'none' ? null : value,
       sectionId: null,
     }))
-  /** 更新阶段。
-   * @param value - 阶段标识
-   * @returns 无返回值；更新草稿
-   */
+
+  // 更新阶段。
   const sectionChangeHandler = (value: string): void =>
     setDraft((current) => ({
       ...current,
       sectionId: value === 'none' ? null : value,
     }))
-  /** 更新优先级。
-   * @param value - 优先级
-   * @returns 无返回值；更新草稿
-   */
+
+  // 更新优先级。
   const priorityChangeHandler = (value: string): void => {
     if (value === 'high' || value === 'medium' || value === 'low')
       setDraft((current) => ({ ...current, priority: value as TaskPriority }))
   }
-  /** 更新执行状态，完成须通过任务行的明确流程。
+
+  /**
+   * 更新执行状态，完成须通过任务行的明确流程。
+   *
    * @param value - 状态
    * @returns 无返回值；更新草稿
    */
@@ -108,19 +114,18 @@ export const TaskEditor = ({
         completedAt: null,
       }))
   }
-  /** 更新计划日期。
-   * @param value - 日期
-   * @returns 无返回值；更新草稿
-   */
+
+  // 更新计划日期。
   const plannedDateHandler = (value: string | null): void =>
     setDraft((current) => ({ ...current, plannedDate: value }))
-  /** 更新截止日期。
-   * @param value - 日期
-   * @returns 无返回值；更新草稿
-   */
+
+  // 更新截止日期。
   const deadlineDateHandler = (value: string | null): void =>
     setDraft((current) => ({ ...current, deadlineDate: value }))
-  /** 更新预计分钟数。
+
+  /**
+   * 更新预计分钟数。
+   *
    * @param event - 输入事件
    * @returns 无返回值；更新草稿
    */
@@ -130,13 +135,14 @@ export const TaskEditor = ({
       estimateMinutes:
         event.target.value === '' ? null : Number(event.target.value),
     }))
-  /** 保留标签输入，允许连续输入分隔符。
-   * @param event - 输入事件
-   * @returns 无返回值；更新标签文本
-   */
+
+  // 保留标签输入，允许连续输入分隔符。
   const labelsChangeHandler = (event: ChangeEvent<HTMLInputElement>): void =>
     setLabelsText(event.target.value)
-  /** 编辑步骤时同步主任务状态。
+
+  /**
+   * 编辑步骤时同步主任务状态。
+   *
    * @param steps - 步骤
    * @returns 是否接受草稿
    */
@@ -151,7 +157,10 @@ export const TaskEditor = ({
     }))
     return true
   }
-  /** 保存草稿并阻止覆盖其他窗口的修改。
+
+  /**
+   * 保存草稿并阻止覆盖其他窗口的修改。
+   *
    * @param event - 提交事件
    * @returns 无返回值；保存成功后关闭
    */

@@ -19,19 +19,22 @@ type Props = {
   onChange: (steps: TaskSubtask[]) => boolean
 }
 
-/** 编辑一层子任务，支持键盘与明确的排序操作。
+/**
+ * 编辑一层子任务，支持键盘与明确的排序操作。
+ *
  * @param props - 步骤与保存操作
  * @returns 步骤清单 JSX
  */
 export const TaskSubtaskList = ({ subtasks, onChange }: Props) => {
   const [title, setTitle] = useState('')
-  /** 更新新增步骤输入。
-   * @param event - 输入事件
-   * @returns 无返回值；更新输入
-   */
+
+  // 更新新增步骤输入。
   const titleChangeHandler = (event: ChangeEvent<HTMLInputElement>): void =>
     setTitle(event.target.value)
-  /** 提交新步骤，成功后清空。
+
+  /**
+   * 提交新步骤，成功后清空。
+   *
    * @param event - 表单事件
    * @returns 无返回值；添加步骤
    */
@@ -46,13 +49,18 @@ export const TaskSubtaskList = ({ subtasks, onChange }: Props) => {
     )
       setTitle('')
   }
-  /** 渲染步骤及其独立操作。
+
+  /**
+   * 渲染步骤及其独立操作。
+   *
    * @param step - 子任务
    * @param index - 当前顺序
    * @returns 子任务 JSX
    */
   const renderStep = (step: TaskSubtask, index: number) => {
-    /** 切换步骤完成状态。
+    /**
+     * 切换步骤完成状态。
+     *
      * @param checked - 选中状态
      * @returns 无返回值；更新步骤
      */
@@ -65,7 +73,10 @@ export const TaskSubtaskList = ({ subtasks, onChange }: Props) => {
         ),
       )
     }
-    /** 保存步骤标题，失败时保留输入。
+
+    /**
+     * 保存步骤标题，失败时保留输入。
+     *
      * @param event - 失焦事件
      * @returns 无返回值；保存步骤
      */
@@ -82,7 +93,10 @@ export const TaskSubtaskList = ({ subtasks, onChange }: Props) => {
           ),
         )
     }
-    /** Enter 提交标题。
+
+    /**
+     * Enter 提交标题。
+     *
      * @param event - 键盘事件
      * @returns 无返回值；触发标题保存
      */
@@ -92,14 +106,15 @@ export const TaskSubtaskList = ({ subtasks, onChange }: Props) => {
         event.currentTarget.blur()
       }
     }
-    /** 删除步骤。
-     * @param 无参数
-     * @returns 无返回值；保存删除结果
-     */
+
+    // 删除步骤。
     const deleteHandler = (): void => {
       onChange(subtasks.filter((entry) => entry.id !== step.id))
     }
-    /** 调整步骤顺序。
+
+    /**
+     * 调整步骤顺序。
+     *
      * @param direction - 方向
      * @returns 无返回值；保存顺序
      */
@@ -111,15 +126,11 @@ export const TaskSubtaskList = ({ subtasks, onChange }: Props) => {
       ]
       onChange(next)
     }
-    /** 上移当前步骤。
-     * @param 无参数
-     * @returns 无返回值；调整顺序
-     */
+
+    // 上移当前步骤。
     const upHandler = (): void => moveHandler(-1)
-    /** 下移当前步骤。
-     * @param 无参数
-     * @returns 无返回值；调整顺序
-     */
+
+    // 下移当前步骤。
     const downHandler = (): void => moveHandler(1)
     return (
       <li

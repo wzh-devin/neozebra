@@ -211,34 +211,17 @@ const driveEntryMap: Record<string, DriveEntry[]> = {
   ],
 }
 
-/**
- * 返回指定 Provider 的根目录节点。
- *
- * @param providerId - Provider 标识
- * @returns 根目录节点
- */
+// 返回指定 Provider 的根目录节点。
 const getDriveRootNode = (providerId: DriveProviderId): DriveTreeNode =>
   driveRootNodeMap[providerId]
 
-/**
- * 返回指定目录在 mock Provider 中的子目录。
- *
- * @param providerId - Provider 标识
- * @param nodeId - 目录标识
- * @returns 子目录列表
- */
+// 返回指定目录在 mock Provider 中的子目录。
 const getDriveChildrenList = (
   providerId: DriveProviderId,
   nodeId: string,
 ): DriveTreeNode[] => driveChildrenMap[`${providerId}:${nodeId}`] ?? []
 
-/**
- * 返回指定 Provider 目录下的 mock 文件条目。
- *
- * @param providerId - Provider 标识
- * @param nodeId - 目录标识
- * @returns 文件和子目录列表
- */
+// 返回指定 Provider 目录下的 mock 文件条目。
 const getDriveEntryList = (
   providerId: DriveProviderId,
   nodeId: string,

@@ -38,12 +38,7 @@ const NavigationGroup = ({ group, onNavigate }: NavigationGroupProps) => {
   const isExpanded = isOpen && !isSidebarCollapsed
   const Icon = group.icon
 
-  /**
-   * 更新分组展开状态并保留标题入口的键盘焦点。
-   *
-   * @param open - 是否展开分组
-   * @returns 无返回值；更新展开状态并恢复入口焦点
-   */
+  // 更新分组展开状态并保留标题入口的键盘焦点。
   const groupOpenChangeHandler = (open: boolean): void => {
     setIsOpen(open)
     window.requestAnimationFrame(() => triggerRef.current?.focus())

@@ -27,12 +27,7 @@ import {
 const CommandMenu = () => {
   const [open, setOpen] = useState(false)
 
-  /**
-   * 关闭命令菜单。
-   *
-   * @param 无参数
-   * @returns 无返回值；关闭命令弹窗
-   */
+  // 关闭命令菜单。
   const closeMenuHandler = (): void => {
     setOpen(false)
   }

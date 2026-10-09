@@ -35,14 +35,7 @@ const getVisibleInboxItemList = ({
   })
 }
 
-/**
- * 根据深链接或列表默认选择查找阅读区消息。
- *
- * @param itemId - 深链接中的消息标识，未指定时选择首条可见消息
- * @param itemList - 全部消息，包含归档消息
- * @param visibleItemList - 当前筛选结果
- * @returns 选中的消息，无结果或无效标识时返回 undefined
- */
+// 根据深链接或列表默认选择查找阅读区消息。
 const getSelectedInboxItem = (
   itemId: string | undefined,
   itemList: InboxItem[],

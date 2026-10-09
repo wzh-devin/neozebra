@@ -36,33 +36,22 @@ type DriveFileRowProps = {
  * @returns 文件表格行 JSX
  */
 const DriveFileRow = ({ entry, onSelect, onAction }: DriveFileRowProps) => {
-  /** 进入目录或打开文件预览。
-   * @param 无参数
-   * @returns 无返回值；更新目录路由或请求预览
-   */
+  // 进入目录或打开文件预览。
   const selectEntryHandler = (): void => {
     if (entry.kind === 'folder') onSelect(entry.id)
     else onAction('Preview', entry)
   }
-  /** 请求下载本地 mock 条目。
-   * @param 无参数
-   * @returns 无返回值；触发下载反馈
-   */
+
+  // 请求下载本地 mock 条目。
   const downloadEntryHandler = (): void => onAction('Download', entry)
-  /** 请求重命名条目。
-   * @param 无参数
-   * @returns 无返回值；打开名称编辑界面
-   */
+
+  // 请求重命名条目。
   const renameEntryHandler = (): void => onAction('Rename', entry)
-  /** 请求移动本地 mock 条目。
-   * @param 无参数
-   * @returns 无返回值；触发移动反馈
-   */
+
+  // 请求移动本地 mock 条目。
   const moveEntryHandler = (): void => onAction('Move', entry)
-  /** 请求删除条目。
-   * @param 无参数
-   * @returns 无返回值；打开删除确认界面
-   */
+
+  // 请求删除条目。
   const deleteEntryHandler = (): void => onAction('Delete', entry)
 
   const entryName = (
@@ -154,7 +143,9 @@ const DriveFilesTable = ({
   onUpload,
   onCreateFolder,
 }: DriveFilesTableProps) => {
-  /** 渲染单个文件列表条目。
+  /**
+   * 渲染单个文件列表条目。
+   *
    * @param entry - 文件条目
    * @returns 文件表格行 JSX
    */

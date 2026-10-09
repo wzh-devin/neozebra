@@ -27,7 +27,9 @@ type Props = {
   onSelect: (date: string) => void
 }
 
-/** 用官方月历标记计划，提供所选日期的精简任务摘要。
+/**
+ * 用官方月历标记计划，提供所选日期的精简任务摘要。
+ *
  * @param props - 筛选后的任务、日期及日期选择回调
  * @returns 日历辅助卡片 JSX
  */
@@ -54,7 +56,9 @@ export const TaskCalendarCard = ({
     setMonth(new Date(`${selectedDate}T12:00:00`))
   }, [selectedDate])
 
-  /** 选中日期并展示对应清单。
+  /**
+   * 选中日期并展示对应清单。
+   *
    * @param date - 官方 Calendar 的选中日期
    * @returns 无返回值；更新日期筛选和可见月份
    */
@@ -63,20 +67,19 @@ export const TaskCalendarCard = ({
     setMonth(date)
     onSelect(getLocalDate(date))
   }
-  /** 回到今天并在窄屏展开日历。
-   * @param 无参数
-   * @returns 无返回值；更新日期与展开状态
-   */
+
+  // 回到今天并在窄屏展开日历。
   const todayHandler = (): void => {
     dateSelectHandler(new Date(`${today}T12:00:00`))
     setCalendarOpen(true)
   }
-  /** 查看当前日期的完整清单。
-   * @param 无参数
-   * @returns 无返回值；应用日期筛选
-   */
+
+  // 查看当前日期的完整清单。
   const viewDateHandler = (): void => onSelect(selectedDate)
-  /** 为日期提供任务数量的可访问名称。
+
+  /**
+   * 为日期提供任务数量的可访问名称。
+   *
    * @param date - 月历日期
    * @returns 日期与任务数量文本
    */
@@ -89,12 +92,17 @@ export const TaskCalendarCard = ({
     }).format(date)
     return `${label}，${dateCountMap.get(getLocalDate(date)) ?? 0}项任务`
   }
-  /** 渲染可直接查看详情的日期任务摘要。
+
+  /**
+   * 渲染可直接查看详情的日期任务摘要。
+   *
    * @param task - 所选日期任务
    * @returns 摘要按钮 JSX
    */
   const renderTask = (task: TaskItem) => {
-    /** 打开任务详情，保留清单筛选与日期上下文。
+    /**
+     * 打开任务详情，保留清单筛选与日期上下文。
+     *
      * @param 无参数
      * @returns 无返回值；更新详情查询参数
      */

@@ -41,12 +41,7 @@ const InboxMessageRow = ({
 }: InboxMessageRowProps) => {
   const ItemIcon = item.kind === 'email' ? Mail : Send
 
-  /**
-   * 打开消息时将其标记为已读。
-   *
-   * @param 无参数
-   * @returns 无返回值；更新消息的本地已读状态
-   */
+  // 打开消息时将其标记为已读。
   const selectMessageHandler = (): void => {
     markReadHandler(item.id)
   }

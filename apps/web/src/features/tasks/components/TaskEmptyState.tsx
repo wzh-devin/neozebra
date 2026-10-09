@@ -10,7 +10,9 @@ import {
 } from '@/components/ui/empty'
 import { useTaskPlannerContext } from '@/features/tasks/hooks/TaskPlannerContext'
 
-/** 展示任务空状态和明确标注的可选示例。
+/**
+ * 展示任务空状态和明确标注的可选示例。
+ *
  * @param props - 标题与说明
  * @returns 空状态 JSX
  */

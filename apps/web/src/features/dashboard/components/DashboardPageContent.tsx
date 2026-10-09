@@ -14,6 +14,7 @@ import surfaceStyles from '@/components/shared/workbench-surface/WorkbenchSurfac
 
 /**
  * 组合统一工作台标题栏、概览统计、动态和快捷入口。
+ *
  * @param 无参数
  * @returns Dashboard 工作区 JSX
  */

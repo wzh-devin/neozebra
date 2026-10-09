@@ -27,13 +27,7 @@ type InitiativeRowsProps = {
   onExpandedChange: (id: string, open: boolean) => void
 }
 
-/**
- * 创建单行展开状态回调，供 Radix Collapsible 使用。
- *
- * @param id - initiative 唯一标识
- * @param onExpandedChange - 更新展开状态的回调
- * @returns 接收展开状态的事件处理函数
- */
+// 创建单行展开状态回调，供 Radix Collapsible 使用。
 const createExpandedChangeHandler =
   (id: string, onExpandedChange: (id: string, open: boolean) => void) =>
   (open: boolean): void =>

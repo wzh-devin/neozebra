@@ -9,7 +9,9 @@ import { isValidDate } from '@/features/tasks/data/task-planner'
 
 const viewList = ['all', 'projects', 'completed', 'gantt'] as const
 
-/** 管理规划视图、兼容链接与编辑查询参数。
+/**
+ * 管理规划视图、兼容链接与编辑查询参数。
+ *
  * @param today - 当前本地日期
  * @returns 路由状态与导航操作
  */
@@ -51,14 +53,14 @@ export const useTaskRoute = (today: string) => {
     today,
   ])
 
-  /** 导航到明确的规划视图。
-   * @param value - 视图名称
-   * @returns 无返回值；更新路由
-   */
+  // 导航到明确的规划视图。
   const viewChangeHandler = (value: string): void => {
     if (viewList.some((entry) => entry === value)) navigate(`/task/${value}`)
   }
-  /** 打开新任务表单。
+
+  /**
+   * 打开新任务表单。
+   *
    * @param 无参数
    * @returns 无返回值；更新查询参数
    */
@@ -68,7 +70,10 @@ export const useTaskRoute = (today: string) => {
     next.set('new', '1')
     setParams(next)
   }
-  /** 关闭详情而保留当前列表上下文。
+
+  /**
+   * 关闭详情而保留当前列表上下文。
+   *
    * @param 无参数
    * @returns 无返回值；更新查询参数
    */

@@ -20,7 +20,9 @@ import { useTaskPlannerContext } from '@/features/tasks/hooks/TaskPlannerContext
 import styles from '@/features/tasks/components/collection/TaskCollectionView.module.css'
 import panelStyles from '@/features/tasks/styles/task-panels.module.css'
 
-/** 组合左侧筛选清单与右侧日期任务月历。
+/**
+ * 组合左侧筛选清单与右侧日期任务月历。
+ *
  * @param props - 是否展示待完成或已完成任务
  * @returns 任务与日期工作区 JSX
  */
@@ -99,7 +101,9 @@ export const TaskCollectionView = ({
     .sort()
     .reverse()
 
-  /** 更新单个条件，保留详情上下文。
+  /**
+   * 更新单个条件，保留详情上下文。
+   *
    * @param key - URL 条件名
    * @param value - 新值
    * @returns 无返回值；替换当前筛选 URL
@@ -116,7 +120,10 @@ export const TaskCollectionView = ({
     else next.set(key, value)
     setParams(next, { replace: true })
   }
-  /** 选择日期并同步左侧清单。
+
+  /**
+   * 选择日期并同步左侧清单。
+   *
    * @param value - YYYY-MM-DD 日期
    * @returns 无返回值；更新日期路由，清除旧详情状态
    */
@@ -127,7 +134,10 @@ export const TaskCollectionView = ({
     next.delete('new')
     navigate('/task/' + (completed ? 'completed' : 'all') + '?' + next)
   }
-  /** 清除日期限制，保留其他筛选。
+
+  /**
+   * 清除日期限制，保留其他筛选。
+   *
    * @param 无参数
    * @returns 无返回值；返回不限制日期的清单
    */
@@ -140,7 +150,10 @@ export const TaskCollectionView = ({
         (next.size ? '?' + next : ''),
     )
   }
-  /** 重置当前视图的全部筛选。
+
+  /**
+   * 重置当前视图的全部筛选。
+   *
    * @param 无参数
    * @returns 无返回值；移除条件并保留任务详情参数
    */
@@ -159,7 +172,10 @@ export const TaskCollectionView = ({
       next.delete(key)
     setParams(next, { replace: true })
   }
-  /** 渲染完成日期分组。
+
+  /**
+   * 渲染完成日期分组。
+   *
    * @param day - 完成日期
    * @returns 完成任务分组 JSX
    */

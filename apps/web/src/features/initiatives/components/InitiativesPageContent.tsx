@@ -41,22 +41,12 @@ const InitiativesPageContent = ({
 }: InitiativesPageContentProps) => {
   const { state, isMobile } = useSidebar()
 
-  /**
-   * 显示创建 initiative 的本地反馈。
-   *
-   * @param 无参数
-   * @returns 无返回值；触发 Sonner 通知
-   */
+  // 显示创建 initiative 的本地反馈。
   const createInitiativeHandler = (): void => {
     toast('Create initiative is ready for the next step')
   }
 
-  /**
-   * 更新当前 initiative 标签。
-   *
-   * @param value - 新的筛选标签
-   * @returns 无返回值；更新页面筛选状态
-   */
+  // 更新当前 initiative 标签。
   const changeInitiativeTabHandler = (value: string): void => {
     setActiveTab(value as InitiativeTab)
   }

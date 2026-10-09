@@ -15,7 +15,9 @@ type GanttScale = {
 }
 type GanttTimelineScale = GanttScale & { timelineData: { year: number }[] }
 
-/** 将时间轴像素转换为本地日历日期，月尺度按实际天数换算。
+/**
+ * 将时间轴像素转换为本地日历日期，月尺度按实际天数换算。
+ *
  * @param context - 时间尺度与起始年
  * @param mouseX - 时间轴内横向像素，已扣除侧栏和页面位置
  * @returns 对应日期
@@ -26,6 +28,7 @@ export const getGanttDateAtOffset = (
 ): Date => {
   const origin = new Date(context.timelineData[0].year, 0, 1)
   const columnWidth = (context.columnWidth * context.zoom) / 100
+
   // Avoid moving a boundary date back one day at fractional zoom levels.
   const offset = Math.floor(mouseX / columnWidth + 0.000001)
   if (context.range === 'daily' || context.range === 'weekly')
@@ -37,7 +40,9 @@ export const getGanttDateAtOffset = (
   return addDays(month, dayOffset)
 }
 
-/** 将本地日历日期转换为时间轴位置，月初从零偏移起算。
+/**
+ * 将本地日历日期转换为时间轴位置，月初从零偏移起算。
+ *
  * @param date - 日期
  * @param origin - 时间轴原点
  * @param context - 时间尺度
@@ -61,7 +66,9 @@ export const getGanttDateOffset = (
   )
 }
 
-/** 按两端位置计算时间条宽度，保持跨月和夏令时一致。
+/**
+ * 按两端位置计算时间条宽度，保持跨月和夏令时一致。
+ *
  * @param startAt - 起点
  * @param endAt - 排他终点；同日兼容上游单日条，空值兼容开放区间
  * @param context - 时间轴尺度与起始年
@@ -82,7 +89,9 @@ export const getGanttWidth = (
   )
 }
 
-/** 按周一到周日拆分一年的日期，年首与年尾保留实际天数。
+/**
+ * 按周一到周日拆分一年的日期，年首与年尾保留实际天数。
+ *
  * @param year - 年份
  * @returns 连续、不重叠的周分段列表
  */
@@ -103,7 +112,9 @@ export const getGanttWeekList = (
   return weekList
 }
 
-/** 使用连续像素预览时间条，日期吸附独立在释放时生效。
+/**
+ * 使用连续像素预览时间条，日期吸附独立在释放时生效。
+ *
  * @param offset - 原位置
  * @param width - 原可视宽度
  * @param part - 平移或调整的一端

@@ -49,23 +49,13 @@ const CollapsedNavigationGroup = ({
 
   useEffect(() => () => window.clearTimeout(closeTimerRef.current), [])
 
-  /**
-   * 更新浮层显示状态并取消待执行的关闭。
-   *
-   * @param open - 是否显示子菜单
-   * @returns 无返回值；取消计时器并更新浮层状态
-   */
+  // 更新浮层显示状态并取消待执行的关闭。
   const flyoutOpenChangeHandler = (open: boolean): void => {
     window.clearTimeout(closeTimerRef.current)
     setIsOpen(open)
   }
 
-  /**
-   * 保持浮层打开，允许指针从组图标移入子菜单。
-   *
-   * @param 无参数
-   * @returns 无返回值；取消关闭并打开浮层
-   */
+  // 保持浮层打开，允许指针从组图标移入子菜单。
   const keepFlyoutOpenHandler = (): void => {
     flyoutOpenChangeHandler(true)
   }
@@ -137,12 +127,7 @@ const CollapsedNavigationGroup = ({
     }
   }
 
-  /**
-   * 点击整栏收起的组图标时保持子菜单打开。
-   *
-   * @param event - 组图标点击事件
-   * @returns 无返回值；打开浮层
-   */
+  // 点击整栏收起的组图标时保持子菜单打开。
   const openFlyoutHandler = (event: MouseEvent<HTMLButtonElement>): void => {
     event.preventDefault()
     keepFlyoutOpenHandler()
@@ -179,22 +164,12 @@ const CollapsedNavigationGroup = ({
     }
   }
 
-  /**
-   * 保留当前焦点，避免悬停打开或关闭浮层时自动移动焦点。
-   *
-   * @param event - Popover 自动聚焦事件
-   * @returns 无返回值；阻止默认自动聚焦
-   */
+  // 保留当前焦点，避免悬停打开或关闭浮层时自动移动焦点。
   const preventFlyoutAutoFocusHandler = (event: Event): void => {
     event.preventDefault()
   }
 
-  /**
-   * 选择子菜单后关闭浮层并通知父级导航完成。
-   *
-   * @param 无参数
-   * @returns 无返回值；关闭浮层并触发导航回调
-   */
+  // 选择子菜单后关闭浮层并通知父级导航完成。
   const navigateHandler = (): void => {
     flyoutOpenChangeHandler(false)
     onNavigate()

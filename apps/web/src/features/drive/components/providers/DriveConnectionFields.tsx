@@ -66,6 +66,7 @@ const minioFieldList: ConnectionField[] = [
 
 /**
  * 渲染Provider专属字段，复用共享编辑控件，不携带其他Provider的输入。
+ *
  * @param props - Provider类型和当前会话或非敏感字段默认值
  * @returns 差异化连接字段JSX
  */
@@ -76,15 +77,11 @@ const DriveConnectionFields = ({
   const [authMode, setAuthMode] = useState(
     initialValues.authMode === 'refreshToken' ? 'refreshToken' : 'accessToken',
   )
-  /** 切换Token方式。
-   * @param value - 授权模式
-   * @returns 无返回值；切换所需字段
-   */
+
+  // 切换 Token 授权方式及对应字段。
   const authModeChangeHandler = (value: string): void => setAuthMode(value)
-  /** 渲染一个业务连接输入字段。
-   * @param field - 字段名称、标签、类型和必填标记
-   * @returns 与标签关联的共享输入JSX
-   */
+
+  // 渲染带标签和校验规则的连接输入字段。
   const renderInputField = (field: ConnectionField) => (
     <EditorField
       key={field.name}

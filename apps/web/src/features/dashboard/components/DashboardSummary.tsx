@@ -3,6 +3,7 @@ import styles from '@/features/dashboard/components/DashboardSummary.module.css'
 
 /**
  * 渲染一项概览统计，保持标签、数值和说明的语义关联。
+ *
  * @param item - 统计内容和图标
  * @returns 统计定义项 JSX
  */
@@ -22,6 +23,7 @@ const renderSummaryItem = (item: DashboardSummaryItem) => {
 
 /**
  * 将已有统计汇总为一个紧凑概览区域。
+ *
  * @param props - 概览统计列表
  * @returns 统计区域 JSX
  */

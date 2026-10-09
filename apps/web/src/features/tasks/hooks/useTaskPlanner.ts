@@ -21,7 +21,9 @@ import type {
   TaskSection,
 } from '@/features/tasks/types'
 
-/** 管理唯一规划状态、本地保存与可撤销操作。
+/**
+ * 管理唯一规划状态、本地保存与可撤销操作。
+ *
  * @param 无参数
  * @returns 规划状态和业务操作
  */
@@ -37,7 +39,9 @@ export const useTaskPlanner = () => {
     null,
   )
 
-  /** 读取并校验存储，异常时保留原数据。
+  /**
+   * 读取并校验存储，异常时保留原数据。
+   *
    * @param 无参数
    * @returns 无返回值；更新状态与错误提示
    */
@@ -60,10 +64,8 @@ export const useTaskPlanner = () => {
   useEffect(() => {
     // oxlint-disable-next-line react/set-state-in-effect -- 挂载后同步浏览器存储及读取错误，不在渲染期间执行持久化副作用。
     loadHandler()
-    /** 同步其他标签页，避免写入过时状态。
-     * @param event - 存储变化
-     * @returns 无返回值；重新读取规划
-     */
+
+    // 同步其他标签页，避免写入过时状态。
     const storageChangeHandler = (event: StorageEvent): void => {
       if (event.key === taskPlannerStorageKey || event.key === null)
         loadHandler()
@@ -73,10 +75,7 @@ export const useTaskPlanner = () => {
   }, [])
 
   useEffect(() => {
-    /** 跨日或恢复窗口时更新今天。
-     * @param 无参数
-     * @returns 无返回值；更新本地日期
-     */
+    // 跨日或恢复窗口时更新今天。
     const refreshDateHandler = (): void => setToday(getLocalDate())
     const timer = window.setInterval(refreshDateHandler, 60000)
     window.addEventListener('focus', refreshDateHandler)
@@ -86,7 +85,9 @@ export const useTaskPlanner = () => {
     }
   }, [])
 
-  /** 先保存再更新界面，保存失败时让调用方保留输入。
+  /**
+   * 先保存再更新界面，保存失败时让调用方保留输入。
+   *
    * @param next - 下一份规划
    * @param message - 成功反馈
    * @param allowUndo - 是否允许撤销
@@ -117,7 +118,10 @@ export const useTaskPlanner = () => {
       dataRef.current = next
       setData(next)
       setError('')
-      /** 仅撤销最近更改，避免覆盖后续编辑。
+
+      /**
+       * 仅撤销最近更改，避免覆盖后续编辑。
+       *
        * @param 无参数
        * @returns 无返回值；恢复上次数据或提示无法撤销
        */
@@ -144,7 +148,9 @@ export const useTaskPlanner = () => {
     }
   }
 
-  /** 保存新增或编辑任务。
+  /**
+   * 保存新增或编辑任务。
+   *
    * @param task - 完整任务
    * @returns 是否成功
    */
@@ -164,17 +170,15 @@ export const useTaskPlanner = () => {
     )
   }
 
-  /** 更新任务字段。
-   * @param id - 任务标识
-   * @param patch - 修改字段
-   * @returns 是否成功
-   */
+  // 更新任务字段。
   const updateTaskHandler = (id: string, patch: Partial<TaskItem>): boolean => {
     const task = dataRef.current.taskList.find((entry) => entry.id === id)
     return task ? saveTaskHandler({ ...task, ...patch }) : false
   }
 
-  /** 保存甘特图日期调整，并允许撤销最近一次改动。
+  /**
+   * 保存甘特图日期调整，并允许撤销最近一次改动。
+   *
    * @param id - 任务标识
    * @param dates - 校验后的本地计划与截止日期
    * @returns 是否成功；失败时保留原计划并显示现有错误提示
@@ -203,7 +207,9 @@ export const useTaskPlanner = () => {
     )
   }
 
-  /** 完成或重新打开任务，未完成步骤须明确确认。
+  /**
+   * 完成或重新打开任务，未完成步骤须明确确认。
+   *
    * @param id - 任务标识
    * @param includeSteps - 是否已确认完成所有步骤
    * @returns 是否成功或正在等待确认
@@ -235,7 +241,9 @@ export const useTaskPlanner = () => {
     return saved
   }
 
-  /** 删除任务并提供撤销。
+  /**
+   * 删除任务并提供撤销。
+   *
    * @param id - 标识
    * @returns 是否成功
    */
@@ -249,7 +257,9 @@ export const useTaskPlanner = () => {
       true,
     )
 
-  /** 调整组内任务顺序。
+  /**
+   * 调整组内任务顺序。
+   *
    * @param ids - 当前组
    * @param id - 目标
    * @param direction - 方向
@@ -265,7 +275,9 @@ export const useTaskPlanner = () => {
       commitHandler({ ...dataRef.current, taskList: next }, '顺序已调整', true)
   }
 
-  /** 保存项目。
+  /**
+   * 保存项目。
+   *
    * @param project - 项目
    * @returns 是否成功
    */
@@ -285,7 +297,9 @@ export const useTaskPlanner = () => {
     )
   }
 
-  /** 删除项目，按明确选择处理任务。
+  /**
+   * 删除项目，按明确选择处理任务。
+   *
    * @param id - 项目
    * @param deleteTasks - 是否删除任务
    * @returns 是否成功
@@ -297,7 +311,9 @@ export const useTaskPlanner = () => {
       true,
     )
 
-  /** 保存项目阶段。
+  /**
+   * 保存项目阶段。
+   *
    * @param section - 阶段
    * @returns 是否成功
    */
@@ -317,7 +333,9 @@ export const useTaskPlanner = () => {
     )
   }
 
-  /** 调整同项目的阶段顺序。
+  /**
+   * 调整同项目的阶段顺序。
+   *
    * @param id - 阶段
    * @param direction - 方向
    * @returns 无返回值；保存阶段顺序
@@ -342,19 +360,13 @@ export const useTaskPlanner = () => {
     commitHandler({ ...current, sectionList: next }, '阶段顺序已调整', true)
   }
 
-  /** 主动加载标注的本地示例，仅用于空工作区。
-   * @param 无参数
-   * @returns 无返回值；保存示例
-   */
+  // 主动加载标注的本地示例，仅用于空工作区。
   const loadDemoHandler = (): void => {
     if (!dataRef.current.taskList.length && !dataRef.current.projectList.length)
       commitHandler(buildDemoPlannerData(today), '已加载本地示例计划')
   }
 
-  /** 将演示计划保留为自己的计划。
-   * @param 无参数
-   * @returns 无返回值；更新示例标识，不删除任务
-   */
+  // 将演示计划保留为自己的计划。
   const keepDemoHandler = (): void => {
     commitHandler({ ...dataRef.current, isDemo: false }, '已保留为你的计划')
   }

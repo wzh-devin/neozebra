@@ -1,5 +1,5 @@
 import { Plus, Settings2 } from 'lucide-react'
-import { useState, type FormEvent } from 'react'
+import { useState, type FormEvent, type Ref } from 'react'
 import { toast } from 'sonner'
 
 import {
@@ -30,14 +30,21 @@ import { useDriveConnections } from '@/features/drive/hooks/useDriveConnections'
 import type { DriveProvider, DriveProviderId } from '@/features/drive/types'
 import styles from '@/features/drive/components/providers/DriveConnectionDialog.module.css'
 
-type DriveConnectionDialogProps = { connection?: DriveProvider }
+type DriveConnectionDialogProps = {
+  connection?: DriveProvider
+  triggerRef?: Ref<HTMLButtonElement>
+}
 
 /**
  * 使用共享居中表单创建或编辑独立Drive实例及Provider配置。
- * @param props - 编辑时的连接实例，创建时为空
+ *
+ * @param props - 编辑时的连接实例和创建入口焦点引用
  * @returns 连接卡片或编辑按钮及差异表单JSX
  */
-const DriveConnectionDialog = ({ connection }: DriveConnectionDialogProps) => {
+const DriveConnectionDialog = ({
+  connection,
+  triggerRef,
+}: DriveConnectionDialogProps) => {
   const [open, setOpen] = useState(false)
   const [providerId, setProviderId] = useState<DriveProviderId>(
     connection?.providerId ?? 'baidu',
@@ -48,24 +55,23 @@ const DriveConnectionDialog = ({ connection }: DriveConnectionDialogProps) => {
     ...connection?.options,
     ...credentialsMap[connection?.id ?? ''],
   }
-  /** 切换Provider专属字段。
-   * @param value - Provider类型
-   * @returns 无返回值；更新类型并清除旧错误
-   */
+
+  // 切换 Provider 专属字段并清除旧错误。
   const providerChangeHandler = (value: string): void => {
     if (isDriveProviderId(value)) setProviderId(value)
     setError(null)
   }
-  /** 打开或关闭编辑界面。
-   * @param nextOpen - 弹窗是否打开
-   * @returns 无返回值；更新弹窗、重置类型和错误
-   */
+
+  // 切换弹窗状态，打开时恢复 Provider，并清除旧错误。
   const openChangeHandler = (nextOpen: boolean): void => {
     setOpen(nextOpen)
     if (nextOpen) setProviderId(connection?.providerId ?? 'baidu')
     setError(null)
   }
-  /** 校验并保存独立连接，凭据只保留在会话内。
+
+  /**
+   * 校验并保存独立连接，凭据只保留在会话内。
+   *
    * @param event - 表单提交事件
    * @returns 无返回值；保存成功更新卡片并关闭，失败保留输入并显示安全错误
    */
@@ -101,7 +107,11 @@ const DriveConnectionDialog = ({ connection }: DriveConnectionDialogProps) => {
             <Settings2 aria-hidden="true" />
           </Button>
         ) : (
-          <Button variant="ghost" className={styles['connect-button']}>
+          <Button
+            ref={triggerRef}
+            variant="ghost"
+            className={styles['connect-button']}
+          >
             <Plus aria-hidden="true" />
             <span className={styles['connect-title']}>Connect provider</span>
             <span className={styles['connect-description']}>

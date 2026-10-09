@@ -66,55 +66,30 @@ const InboxToolbar = ({
   const { isMobile, state } = useSidebar()
   const [isSearchOpen, setIsSearchOpen] = useState(false)
 
-  /**
-   * 展开搜索输入框。
-   *
-   * @param 无参数
-   * @returns 无返回值；显示搜索栏
-   */
+  // 展开搜索输入框。
   const openSearchHandler = (): void => {
     setIsSearchOpen(true)
   }
 
-  /**
-   * 关闭搜索栏并清除关键词。
-   *
-   * @param 无参数
-   * @returns 无返回值；恢复未搜索的列表
-   */
+  // 关闭搜索栏并清除关键词。
   const closeSearchHandler = (): void => {
     setIsSearchOpen(false)
     queryChangeHandler('')
   }
 
-  /**
-   * 将输入内容传给 Inbox 筛选逻辑。
-   *
-   * @param event - 搜索输入事件
-   * @returns 无返回值；更新搜索词
-   */
+  // 将输入内容传给 Inbox 筛选逻辑。
   const searchChangeHandler = (event: ChangeEvent<HTMLInputElement>): void => {
     queryChangeHandler(event.target.value)
   }
 
-  /**
-   * 按 Escape 关闭搜索栏。
-   *
-   * @param event - 输入框键盘事件
-   * @returns 无返回值；按需清除搜索
-   */
+  // 按 Escape 关闭搜索栏。
   const searchKeyDownHandler = (
     event: KeyboardEvent<HTMLInputElement>,
   ): void => {
     if (event.key === 'Escape') closeSearchHandler()
   }
 
-  /**
-   * 在归档与默认收件列表间切换。
-   *
-   * @param 无参数
-   * @returns 无返回值；切换列表筛选
-   */
+  // 在归档与默认收件列表间切换。
   const showArchiveHandler = (): void => {
     tabChangeHandler(activeTab === 'archived' ? 'all' : 'archived')
   }

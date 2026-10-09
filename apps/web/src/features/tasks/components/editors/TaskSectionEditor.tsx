@@ -11,7 +11,9 @@ import { useTaskPlannerContext } from '@/features/tasks/hooks/TaskPlannerContext
 import type { TaskSection } from '@/features/tasks/types'
 import surfaceStyles from '@/components/shared/workbench-surface/WorkbenchSurface.module.css'
 
-/** 在项目内新增或重命名阶段。
+/**
+ * 在项目内新增或重命名阶段。
+ *
  * @param props - 当前阶段与项目
  * @returns 阶段编辑 Popover JSX
  */
@@ -25,13 +27,14 @@ export const TaskSectionEditor = ({
   const { saveSectionHandler } = useTaskPlannerContext()
   const [open, setOpen] = useState(false)
   const [title, setTitle] = useState(section?.title ?? '')
-  /** 更新名称输入。
-   * @param event - 输入事件
-   * @returns 无返回值；更新名称
-   */
+
+  // 更新名称输入。
   const titleChangeHandler = (event: ChangeEvent<HTMLInputElement>): void =>
     setTitle(event.target.value)
-  /** 保存阶段，失败时保留名称。
+
+  /**
+   * 保存阶段，失败时保留名称。
+   *
    * @param event - 提交事件
    * @returns 无返回值；保存并关闭
    */

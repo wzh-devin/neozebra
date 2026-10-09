@@ -53,7 +53,9 @@ type Props = {
   shiftOffset?: number
 }
 
-/** 展示可直接操作与展开的任务，保持编辑上下文。
+/**
+ * 展示可直接操作与展开的任务，保持编辑上下文。
+ *
  * @param props - 任务、排序组与分组控制的展开状态
  * @returns 任务插页 JSX
  */
@@ -84,7 +86,9 @@ export const TaskRow = ({
   const isOverdue =
     !isCompleted && task.deadlineDate !== null && task.deadlineDate < today
 
-  /** 打开当前任务编辑。
+  /**
+   * 打开当前任务编辑。
+   *
    * @param 无参数
    * @returns 无返回值；更新 URL
    */
@@ -94,38 +98,33 @@ export const TaskRow = ({
     next.set('task', task.id)
     setSearchParams(next)
   }
-  /** 切换完成状态。
-   * @param 无参数
-   * @returns 无返回值；完成任务或请求确认
-   */
+
+  // 切换完成状态。
   const completeHandler = (): void => {
     if (toggleTaskHandler(task.id)) restoreTaskFocusHandler()
   }
-  /** 加入今天但保留截止日期。
-   * @param 无参数
-   * @returns 无返回值；更新安排
-   */
+
+  // 加入今天但保留截止日期。
   const todayHandler = (): void => {
     if (updateTaskHandler(task.id, { plannedDate: today }))
       restoreTaskFocusHandler()
   }
-  /** 改期到明天。
-   * @param 无参数
-   * @returns 无返回值；更新安排
-   */
+
+  // 改期到明天。
   const tomorrowHandler = (): void => {
     if (updateTaskHandler(task.id, { plannedDate: addDays(today, 1) }))
       restoreTaskFocusHandler()
   }
-  /** 取消安排。
-   * @param 无参数
-   * @returns 无返回值；清除计划日期
-   */
+
+  // 取消安排。
   const unscheduleHandler = (): void => {
     if (updateTaskHandler(task.id, { plannedDate: null, isPinned: false }))
       restoreTaskFocusHandler()
   }
-  /** 置顶为今日重点。
+
+  /**
+   * 置顶为今日重点。
+   *
    * @param 无参数
    * @returns 无返回值；更新置顶与安排
    */
@@ -138,7 +137,10 @@ export const TaskRow = ({
     )
       restoreTaskFocusHandler()
   }
-  /** 设置进行中。
+
+  /**
+   * 设置进行中。
+   *
    * @param 无参数
    * @returns 无返回值；更新状态
    */
@@ -147,24 +149,21 @@ export const TaskRow = ({
       status: task.status === 'inProgress' ? 'todo' : 'inProgress',
     })
   }
-  /** 删除当前任务。
-   * @param 无参数
-   * @returns 无返回值；保存删除
-   */
+
+  // 删除当前任务。
   const deleteHandler = (): void => {
     if (deleteTaskHandler(task.id)) restoreTaskFocusHandler()
   }
-  /** 上移任务。
-   * @param 无参数
-   * @returns 无返回值；保存顺序
-   */
+
+  // 上移任务。
   const upHandler = (): void => moveTaskHandler(siblingIdList, task.id, -1)
-  /** 下移任务。
-   * @param 无参数
-   * @returns 无返回值；保存顺序
-   */
+
+  // 下移任务。
   const downHandler = (): void => moveTaskHandler(siblingIdList, task.id, 1)
-  /** 保存子任务并在需要时重新打开主任务。
+
+  /**
+   * 保存子任务并在需要时重新打开主任务。
+   *
    * @param steps - 新步骤
    * @returns 是否保存成功
    */

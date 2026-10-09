@@ -53,12 +53,12 @@ const DriveProviderPageContent = (view: DriveView) => {
   const [entryToPreview, setEntryToPreview] = useState<DriveEntry | null>(null)
   const [isFolderDialogOpen, setIsFolderDialogOpen] = useState(false)
 
-  /** 打开本地文件选择器。
-   * @param 无参数
-   * @returns 无返回值；打开文件选择器
-   */
+  // 打开本地文件选择器。
   const triggerUploadHandler = (): void => uploadInputRef.current?.click()
-  /** 将选中的文件加入当前 mock 目录。
+
+  /**
+   * 将选中的文件加入当前 mock 目录。
+   *
    * @param event - 文件选择事件
    * @returns 无返回值；更新文件列表并重置输入
    */
@@ -70,7 +70,10 @@ const DriveProviderPageContent = (view: DriveView) => {
     view.uploadFile(file)
     event.target.value = ''
   }
-  /** 确认删除条目。
+
+  /**
+   * 确认删除条目。
+   *
    * @param 无参数
    * @returns 无返回值；更新文件列表并关闭确认界面
    */
@@ -79,31 +82,27 @@ const DriveProviderPageContent = (view: DriveView) => {
     view.deleteEntry(entryToDelete.id)
     setEntryToDelete(null)
   }
-  /** 关闭删除确认界面。
-   * @param open - 确认界面是否打开
-   * @returns 无返回值；按需清除待删除条目
-   */
+
+  // 关闭删除确认界面。
   const deleteOpenChangeHandler = (open: boolean): void => {
     if (!open) setEntryToDelete(null)
   }
-  /** 处理目录树操作。
-   * @param action - 操作名称
-   * @param node - 当前目录节点
-   * @returns 无返回值；新建目录或显示既有本地反馈
-   */
+
+  // 处理目录树操作。
   const treeActionHandler = (action: string, node: DriveTreeNode): void => {
     if (action === 'New folder') view.createFolder()
     else view.showEntryFeedback(action, node.name)
   }
-  /** 选择目录并关闭窄屏目录面板。
-   * @param nodeId - 目录标识
-   * @returns 无返回值；更新目录路由并关闭面板
-   */
+
+  // 选择目录并关闭窄屏目录面板。
   const selectDirectoryHandler = (nodeId: string): void => {
     view.selectDirectory(nodeId)
     setIsFolderDialogOpen(false)
   }
-  /** 处理文件条目操作。
+
+  /**
+   * 处理文件条目操作。
+   *
    * @param action - 操作名称
    * @param entry - 当前条目
    * @returns 无返回值；打开编辑或确认界面，或显示本地反馈
@@ -114,17 +113,16 @@ const DriveProviderPageContent = (view: DriveView) => {
     else if (action === 'Preview') setEntryToPreview(entry)
     else view.showEntryFeedback(action, entry.name)
   }
-  /** 关闭名称编辑界面。
-   * @param 无参数
-   * @returns 无返回值；清除待编辑条目
-   */
+
+  // 关闭名称编辑界面。
   const closeRenameHandler = (): void => setEntryToRename(null)
-  /** 关闭文件预览。
-   * @param 无参数
-   * @returns 无返回值；清除预览条目并释放预览资源
-   */
+
+  // 关闭文件预览。
   const closePreviewHandler = (): void => setEntryToPreview(null)
-  /** 保存条目名称。
+
+  /**
+   * 保存条目名称。
+   *
    * @param name - 输入的新名称
    * @returns 无返回值；更新条目名称并关闭编辑界面
    */

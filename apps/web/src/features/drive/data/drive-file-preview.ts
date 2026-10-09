@@ -54,7 +54,9 @@ const textExtensionSet = new Set([
   'sql',
 ])
 
-/** 解析文件真实 MIME，缺失时才使用原始文件扩展名。
+/**
+ * 解析文件真实 MIME，缺失时才使用原始文件扩展名。
+ *
  * @param file - 本地文件，改名不会改变此原始来源
  * @returns 预览使用的 MIME
  */
@@ -69,7 +71,9 @@ const getDriveFileMime = (file: File): string => {
       : ''
 }
 
-/** 按内容类型选择浏览器预览方式；HTML 也只展示纯文本。
+/**
+ * 按内容类型选择浏览器预览方式；HTML 也只展示纯文本。
+ *
  * @param file - 本地文件
  * @returns 预览类型或不支持类型
  */
@@ -84,7 +88,9 @@ export const getDriveFilePreviewKind = (file: File): DriveFilePreviewKind => {
   return 'unsupported'
 }
 
-/** 读取安全文本或建立当前弹窗使用的 Blob URL。
+/**
+ * 读取安全文本或建立当前弹窗使用的 Blob URL。
+ *
  * @param file - 本地文件
  * @returns 预览内容；调用方负责撤销 URL，读取失败时抛出错误
  */
@@ -109,7 +115,9 @@ export const loadDriveFilePreview = async (
   }
 }
 
-/** 显示本地文件的实际大小。
+/**
+ * 显示本地文件的实际大小。
+ *
  * @param bytes - 文件字节数
  * @returns 带单位的文件大小
  */

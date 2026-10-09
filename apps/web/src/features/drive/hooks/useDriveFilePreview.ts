@@ -11,7 +11,9 @@ type PreviewState =
   | { status: 'ready'; preview: DriveFilePreview }
   | { status: 'error'; message: string }
 
-/** 读取单个弹窗的文件内容并管理临时 URL 和过期异步结果。
+/**
+ * 读取单个弹窗的文件内容并管理临时 URL 和过期异步结果。
+ *
  * @param file - 可选本地文件；弹窗按条目 ID 独立挂载
  * @returns 加载、内容或失败状态
  */
@@ -28,7 +30,10 @@ const useDriveFilePreview = (file?: File): PreviewState => {
     if (!file || getDriveFilePreviewKind(file) === 'unsupported') return
     let isActive = true
     let url: string | undefined
-    /** 完成文件读取，卸载后的结果仅释放资源。
+
+    /**
+     * 完成文件读取，卸载后的结果仅释放资源。
+     *
      * @param 无参数
      * @returns 无返回值；更新预览状态或释放过期资源
      */

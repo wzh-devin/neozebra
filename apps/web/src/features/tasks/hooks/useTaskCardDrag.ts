@@ -35,7 +35,9 @@ type DragSession = {
   pitch: number
 }
 
-/** 在当前任务组中预览拖动，释放后使用现有保存与撤销操作。
+/**
+ * 在当前任务组中预览拖动，释放后使用现有保存与撤销操作。
+ *
  * @param taskIdList - 当前可手动排序的任务 ID
  * @returns 列表 ref、拖动状态及手柄事件
  */
@@ -48,7 +50,9 @@ export const useTaskCardDrag = (taskIdList: string[]) => {
   const settleFrameRef = useRef<number | null>(null)
   const [dragState, setDragState] = useState<DragState | null>(null)
 
-  /** 停止拖动与边缘滚动，不改变任务数据。
+  /**
+   * 停止拖动与边缘滚动，不改变任务数据。
+   *
    * @param 无参数
    * @returns 无返回值；清除会话和预览
    */
@@ -61,7 +65,9 @@ export const useTaskCardDrag = (taskIdList: string[]) => {
   }
 
   useEffect(() => {
-    /** 卸载时停止动画帧，不在卸载组件上更新状态。
+    /**
+     * 卸载时停止动画帧，不在卸载组件上更新状态。
+     *
      * @param 无参数
      * @returns 无返回值；释放动画帧
      */
@@ -74,7 +80,9 @@ export const useTaskCardDrag = (taskIdList: string[]) => {
     return cleanupHandler
   }, [])
 
-  /** 根据指针和同组卡片中心更新落点与位移。
+  /**
+   * 根据指针和同组卡片中心更新落点与位移。
+   *
    * @param 无参数
    * @returns 无返回值；更新拖动预览
    */
@@ -115,7 +123,9 @@ export const useTaskCardDrag = (taskIdList: string[]) => {
     setDragState(next)
   }
 
-  /** 拖动期间在列表上下边缘连续滚动。
+  /**
+   * 拖动期间在列表上下边缘连续滚动。
+   *
    * @param 无参数
    * @returns 无返回值；滚动列表并调度下一帧
    */
@@ -138,7 +148,9 @@ export const useTaskCardDrag = (taskIdList: string[]) => {
     frameRef.current = requestAnimationFrame(scrollFrameHandler)
   }
 
-  /** 从独立手柄启动主指针拖动。
+  /**
+   * 从独立手柄启动主指针拖动。
+   *
    * @param event - 手柄指针事件
    * @returns 无返回值；捕获指针并记录起点
    */
@@ -187,7 +199,9 @@ export const useTaskCardDrag = (taskIdList: string[]) => {
     frameRef.current = requestAnimationFrame(scrollFrameHandler)
   }
 
-  /** 更新被捕获指针的位置。
+  /**
+   * 更新被捕获指针的位置。
+   *
    * @param event - 指针移动事件
    * @returns 无返回值；更新预览
    */
@@ -197,7 +211,9 @@ export const useTaskCardDrag = (taskIdList: string[]) => {
     updatePreviewHandler()
   }
 
-  /** 保存移动并从当前视觉位置平滑归位。
+  /**
+   * 保存移动并从当前视觉位置平滑归位。
+   *
    * @param id - 当前任务
    * @param direction - 组内整数位移
    * @returns 无返回值；保存顺序并播放短动画
@@ -217,7 +233,10 @@ export const useTaskCardDrag = (taskIdList: string[]) => {
     if (matchMedia('(prefers-reduced-motion: reduce)').matches) return
     if (settleFrameRef.current !== null)
       cancelAnimationFrame(settleFrameRef.current)
-    /** 从旧屏幕坐标到保存后的卡片坐标播放位移。
+
+    /**
+     * 从旧屏幕坐标到保存后的卡片坐标播放位移。
+     *
      * @param 无参数
      * @returns 无返回值；播放归位动画
      */
@@ -241,7 +260,9 @@ export const useTaskCardDrag = (taskIdList: string[]) => {
     settleFrameRef.current = requestAnimationFrame(settleHandler)
   }
 
-  /** 松开后一次保存组内插入位置。
+  /**
+   * 松开后一次保存组内插入位置。
+   *
    * @param event - 指针释放事件
    * @returns 无返回值；结束预览并保存有效移动
    */
@@ -258,7 +279,9 @@ export const useTaskCardDrag = (taskIdList: string[]) => {
     }
   }
 
-  /** 键盘上下移动或取消当前拖动。
+  /**
+   * 键盘上下移动或取消当前拖动。
+   *
    * @param event - 手柄键盘事件
    * @returns 无返回值；移动任务或取消预览
    */

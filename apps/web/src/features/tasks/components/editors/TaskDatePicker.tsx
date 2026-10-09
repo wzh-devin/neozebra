@@ -21,40 +21,32 @@ type Props = {
   onChange: (value: string | null) => void
 }
 
-/** 组合官方 Calendar 与 Popover 选择独立日期。
+/**
+ * 组合官方 Calendar 与 Popover 选择独立日期。
+ *
  * @param props - 名称、日期与更新操作
  * @returns 日期选择器 JSX
  */
 export const TaskDatePicker = ({ label, value, onChange }: Props) => {
   const [open, setOpen] = useState(false)
-  /** 接受日期后收起日历。
-   * @param next - 选择的日期
-   * @returns 无返回值；更新日期和弹层状态
-   */
+
+  // 接受日期后收起日历。
   const changeHandler = (next: string | null): void => {
     onChange(next)
     setOpen(false)
   }
-  /** 更新日历选中日期。
-   * @param date - 选择结果
-   * @returns 无返回值；更新日期
-   */
+
+  // 更新日历选中日期。
   const dateSelectHandler = (date: Date | undefined): void =>
     changeHandler(date ? getLocalDate(date) : null)
-  /** 设置今天。
-   * @param 无参数
-   * @returns 无返回值；更新日期
-   */
+
+  // 设置今天。
   const todayHandler = (): void => changeHandler(getLocalDate())
-  /** 设置明天。
-   * @param 无参数
-   * @returns 无返回值；更新日期
-   */
+
+  // 设置明天。
   const tomorrowHandler = (): void => changeHandler(addDays(getLocalDate(), 1))
-  /** 清除日期。
-   * @param 无参数
-   * @returns 无返回值；更新日期
-   */
+
+  // 清除日期。
   const clearHandler = (): void => changeHandler(null)
   return (
     <Popover open={open} onOpenChange={setOpen}>

@@ -11,7 +11,9 @@ import { useTaskPlannerContext } from '@/features/tasks/hooks/TaskPlannerContext
 import type { TaskProject } from '@/features/tasks/types'
 import styles from '@/features/tasks/components/projects/TaskProjectGrid.module.css'
 
-/** 展示项目目标、配色和真实任务进度。
+/**
+ * 展示项目目标、配色和真实任务进度。
+ *
  * @param props - 新建与编辑入口
  * @returns 项目概览 JSX
  */
@@ -25,22 +27,19 @@ export const TaskProjectGrid = ({
   const projectList = data.projectList.filter(
     (project) => project.archived === archived,
   )
-  /** 新建项目。
-   * @param 无参数
-   * @returns 无返回值；打开表单
-   */
+
+  // 新建项目。
   const createHandler = (): void => onEdit(null)
-  /** 查看活跃项目。
-   * @param 无参数
-   * @returns 无返回值；更新筛选
-   */
+
+  // 查看活跃项目。
   const activeHandler = (): void => setArchived(false)
-  /** 查看归档项目。
-   * @param 无参数
-   * @returns 无返回值；更新筛选
-   */
+
+  // 查看归档项目。
   const archiveHandler = (): void => setArchived(true)
-  /** 渲染一个项目卡片。
+
+  /**
+   * 渲染一个项目卡片。
+   *
    * @param project - 项目
    * @returns 卡片 JSX
    */
@@ -48,10 +47,8 @@ export const TaskProjectGrid = ({
     const tasks = data.taskList.filter((task) => task.projectId === project.id)
     const done = tasks.filter((task) => task.status === 'completed').length
     const progress = tasks.length ? Math.round((done / tasks.length) * 100) : 0
-    /** 编辑当前项目。
-     * @param 无参数
-     * @returns 无返回值；打开表单
-     */
+
+    // 编辑当前项目。
     const editHandler = (): void => onEdit(project)
     return (
       <Card key={project.id} className={styles.card} data-color={project.color}>

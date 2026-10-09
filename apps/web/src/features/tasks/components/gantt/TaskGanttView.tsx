@@ -51,7 +51,9 @@ const statusColorRecord: Record<TaskStatus, string> = {
   completed: 'var(--project-green)',
 }
 
-/** 将任务区间转换为 Kibo 的时间条属性。
+/**
+ * 将任务区间转换为 Kibo 的时间条属性。
+ *
  * @param entry - 有效任务区间
  * @returns 时间条的标题、日期与真实状态
  */
@@ -67,7 +69,9 @@ const buildFeature = (entry: TaskGanttEntry): GanttFeature => ({
   },
 })
 
-/** 展示可拖动的任务时间轴，日期保存仍由唯一 TaskPlanner 管理。
+/**
+ * 展示可拖动的任务时间轴，日期保存仍由唯一 TaskPlanner 管理。
+ *
  * @param 无参数
  * @returns 甘特图、项目筛选和未安排任务 JSX
  */
@@ -103,55 +107,42 @@ export const TaskGanttView = () => {
     dateList.length ? Math.max(...dateList) : initialDate,
   )
 
-  /** 修改视图条件，并保留当前编辑弹窗参数。
-   * @param key - 条件名
-   * @param value - 新条件
-   * @returns 无返回值；替换筛选 URL
-   */
+  // 修改视图条件，并保留当前编辑弹窗参数。
   const filterChangeHandler = (key: string, value: string): void => {
     const next = new URLSearchParams(params)
     if (!value || value === 'all' || value === 'daily') next.delete(key)
     else next.set(key, value)
     setParams(next, { replace: true })
   }
-  /** 切换已完成历史的显示，保留原始计划数据。
-   * @param checked - 勾选状态
-   * @returns 无返回值；更新状态筛选 URL
-   */
+
+  // 切换已完成历史的显示，保留原始计划数据。
   const completedChangeHandler = (checked: boolean | 'indeterminate'): void =>
     filterChangeHandler('completed', checked === true ? '1' : '')
-  /** 切换项目。
-   * @param value - 项目标识或全部
-   * @returns 无返回值；更新项目筛选
-   */
+
+  // 切换项目。
   const projectChangeHandler = (value: string): void =>
     filterChangeHandler('project', value)
-  /** 切换到日尺度。
-   * @param 无参数
-   * @returns 无返回值；更新尺度
-   */
+
+  // 切换到日尺度。
   const dailyHandler = (): void => filterChangeHandler('range', 'daily')
-  /** 切换到周尺度。
-   * @param 无参数
-   * @returns 无返回值；更新尺度
-   */
+
+  // 切换到周尺度。
   const weeklyHandler = (): void => filterChangeHandler('range', 'weekly')
-  /** 切换到月尺度。
-   * @param 无参数
-   * @returns 无返回值；更新尺度
-   */
+
+  // 切换到月尺度。
   const monthlyHandler = (): void => filterChangeHandler('range', 'monthly')
-  /** 从任意任务入口打开现有居中编辑弹窗。
-   * @param id - 任务标识
-   * @returns 无返回值；设置编辑路由
-   */
+
+  // 从任意任务入口打开现有居中编辑弹窗。
   const taskSelectHandler = (id: string): void => {
     const next = new URLSearchParams(params)
     next.delete('new')
     next.set('task', id)
     setParams(next)
   }
-  /** 校验日期拖动，调用方结束预览后始终显示保存的真实日期。
+
+  /**
+   * 校验日期拖动，调用方结束预览后始终显示保存的真实日期。
+   *
    * @param id - 任务标识
    * @param startAt - 预览起点
    * @param endAt - 预览排他终点
@@ -163,7 +154,10 @@ export const TaskGanttView = () => {
       toast.error('截止日期不能早于计划日期，已恢复原位置。', taskToastOptions)
     else rescheduleTaskHandler(id, patch)
   }
-  /** 渲染任务名称、日期与真实步骤进度。
+
+  /**
+   * 渲染任务名称、日期与真实步骤进度。
+   *
    * @param entry - 有效任务区间
    * @returns 左侧任务按钮 JSX
    */
@@ -195,7 +189,10 @@ export const TaskGanttView = () => {
       </GanttSidebarItem>
     )
   }
-  /** 渲染受保存日期控制的任务区间，保留节点以完成释放归位动画。
+
+  /**
+   * 渲染受保存日期控制的任务区间，保留节点以完成释放归位动画。
+   *
    * @param entry - 有效任务区间
    * @returns 可拖动时间条 JSX
    */
@@ -213,7 +210,10 @@ export const TaskGanttView = () => {
       </span>
     </GanttFeatureItem>
   )
-  /** 渲染项目名称与对应任务列。
+
+  /**
+   * 渲染项目名称与对应任务列。
+   *
    * @param group - 非空项目组
    * @returns 侧栏组 JSX
    */
@@ -226,7 +226,10 @@ export const TaskGanttView = () => {
       {group.entryList.map(renderSidebarEntry)}
     </GanttSidebarGroup>
   )
-  /** 渲染与侧栏严格对应的时间条组。
+
+  /**
+   * 渲染与侧栏严格对应的时间条组。
+   *
    * @param group - 非空项目组
    * @returns 时间轴组 JSX
    */
@@ -235,15 +238,15 @@ export const TaskGanttView = () => {
       {group.entryList.map(renderTimelineEntry)}
     </GanttFeatureListGroup>
   )
-  /** 渲染没有日期或需要调整日期的编辑入口。
+
+  /**
+   * 渲染没有日期或需要调整日期的编辑入口。
+   *
    * @param task - 任务
    * @returns 未绘制任务按钮 JSX
    */
   const renderUnscheduledTask = (task: TaskItem) => {
-    /** 编辑当前未绘制任务。
-     * @param 无参数
-     * @returns 无返回值；打开任务编辑
-     */
+    // 编辑当前未绘制任务。
     const selectHandler = (): void => taskSelectHandler(task.id)
     return (
       <Button key={task.id} variant="ghost" size="sm" onClick={selectHandler}>
@@ -252,7 +255,9 @@ export const TaskGanttView = () => {
     )
   }
 
-  /** 渲染已有项目筛选项。
+  /**
+   * 渲染已有项目筛选项。
+   *
    * @param project - 项目
    * @returns 筛选项 JSX
    */

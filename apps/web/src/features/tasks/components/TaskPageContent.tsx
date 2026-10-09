@@ -64,7 +64,9 @@ const TaskGanttView = lazy(() =>
   })),
 )
 
-/** 组合规划路由、导航、状态和按需编辑界面。
+/**
+ * 组合规划路由、导航、状态和按需编辑界面。
+ *
  * @param 无参数
  * @returns Task 工作区 JSX
  */
@@ -93,49 +95,39 @@ export const TaskPageContent = () => {
     }
   }, [])
 
-  /** 打开项目编辑器。
-   * @param value - 项目，空值表示新建
-   * @returns 无返回值；更新编辑器状态
-   */
+  // 打开项目编辑器。
   const projectEditorHandler = (value: TaskProject | null): void =>
     setProjectEditor(value)
-  /** 关闭项目编辑器。
-   * @param 无参数
-   * @returns 无返回值；关闭表单
-   */
+
+  // 关闭项目编辑器。
   const closeProjectHandler = (): void => setProjectEditor(undefined)
-  /** 取消主任务完成确认。
-   * @param open - 打开状态
-   * @returns 无返回值；按需清除待确认任务
-   */
+
+  // 取消主任务完成确认。
   const completionOpenHandler = (open: boolean): void => {
     if (!open) planner.setPendingCompletionId(null)
   }
-  /** 明确完成主任务及全部步骤。
-   * @param 无参数
-   * @returns 无返回值；保存完成结果
-   */
+
+  // 明确完成主任务及全部步骤。
   const confirmCompletionHandler = (): void => {
     if (pendingTask && planner.toggleTaskHandler(pendingTask.id, true))
       restoreTaskFocusHandler()
   }
-  /** 关闭缺失任务的详情。
-   * @param open - 打开状态
-   * @returns 无返回值；关闭详情
-   */
+
+  // 关闭缺失任务的详情。
   const missingOpenHandler = (open: boolean): void => {
     if (!open) route.closeEditorHandler()
   }
-  /** 渲染导航入口；项目详情允许点当前标签返回概览。
+
+  /**
+   * 渲染导航入口；项目详情允许点当前标签返回概览。
+   *
    * @param item - 导航项
    * @returns 导航 JSX
    */
   const renderNavigation = (item: (typeof navigationList)[number]) => {
     const Icon = item.icon
-    /** 返回当前视图的根目录。
-     * @param 无参数
-     * @returns 无返回值；按需导航
-     */
+
+    // 返回当前视图的根目录。
     const clickHandler = (): void => {
       if (route.view === item.value && route.projectId)
         route.viewChangeHandler(item.value)
@@ -147,7 +139,10 @@ export const TaskPageContent = () => {
       </TabsTrigger>
     )
   }
-  /** 根据路由组合页面，业务数据处理留在各 feature 组件。
+
+  /**
+   * 根据路由组合页面，业务数据处理留在各 feature 组件。
+   *
    * @param 无参数
    * @returns 当前视图 JSX
    */

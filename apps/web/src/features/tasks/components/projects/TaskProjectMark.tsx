@@ -18,7 +18,9 @@ const iconRecord = {
   rocket: Rocket,
 }
 
-/** 展示贯穿项目卡片和清单的图标与颜色。
+/**
+ * 展示贯穿项目卡片和清单的图标与颜色。
+ *
  * @param props - 项目与尺寸
  * @returns 项目图标 JSX
  */

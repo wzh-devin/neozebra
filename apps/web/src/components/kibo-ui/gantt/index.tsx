@@ -59,16 +59,23 @@ import {
 const draggingAtom = atom(false)
 const scrollXAtom = atom(0)
 
-/** 读取 Kibo 共享拖动状态。
+/**
+ * 读取 Kibo 共享拖动状态。
+ *
  * @param 无参数
  * @returns 拖动状态与更新器
  */
+
 // eslint-disable-next-line react-refresh/only-export-components -- Preserve the installed Kibo public hook API.
 export const useGanttDragging = () => useAtom(draggingAtom)
-/** 读取 Kibo 共享横向滚动位置。
+
+/**
+ * 读取 Kibo 共享横向滚动位置。
+ *
  * @param 无参数
  * @returns 滚动位置与更新器
  */
+
 // eslint-disable-next-line react-refresh/only-export-components -- Preserve the installed Kibo public hook API.
 export const useGanttScrollX = () => useAtom(scrollXAtom)
 
@@ -119,23 +126,19 @@ export type GanttContextProps = {
   scrollToFeature?: (feature: GanttFeature) => void
 }
 
-/** 按时间尺度选取日期差函数。
- * @param range - 时间尺度
- * @returns 日期差函数
- */
+// 按时间尺度选取日期差函数。
 const getDifferenceIn = (range: Range) =>
   range === 'daily' || range === 'weekly'
     ? differenceInDays
     : differenceInMonths
 
-/** 按时间尺度选取日期增量函数。
- * @param range - 时间尺度
- * @returns 日期增量函数
- */
+// 按时间尺度选取日期增量函数。
 const getAddRange = (range: Range) =>
   range === 'daily' || range === 'weekly' ? addDays : addMonths
 
-/** 生成覆盖任务区间并预留前后一年余量的时间轴。
+/**
+ * 生成覆盖任务区间并预留前后一年余量的时间轴。
+ *
  * @param today - 区间起点
  * @param endDate - 区间终点
  * @returns 包含真实月份天数的年份列表
@@ -152,7 +155,9 @@ const buildInitialTimelineDataList = (today: Date, endDate = today) => {
   return data
 }
 
-/** 构建一个年份的季度与月份，复用于初始范围与边缘扩展。
+/**
+ * 构建一个年份的季度与月份，复用于初始范围与边缘扩展。
+ *
  * @param year - 年份
  * @returns 带真实月份天数的年份记录
  */
@@ -168,12 +173,7 @@ const buildTimelineYear = (year: number): TimelineData[number] => {
   return { year, quarters }
 }
 
-/** 计算日期在月份列内的像素偏移。
- * @param date - 日期
- * @param range - 时间尺度
- * @param columnWidth - 列宽
- * @returns 列内横向偏移
- */
+// 计算日期在月份列内的像素偏移。
 const calculateInnerOffset = (
   date: Date,
   range: Range,
@@ -203,7 +203,9 @@ export type GanttContentHeaderProps = {
   columns: number
 }
 
-/** 渲染 Kibo ContentHeader 组件。
+/**
+ * 渲染 Kibo ContentHeader 组件。
+ *
  * @param props - 组件属性与子内容
  * @returns 组件 JSX
  */
@@ -213,7 +215,10 @@ export const GanttContentHeader: FC<GanttContentHeaderProps> = ({
   renderHeaderItem,
 }) => {
   const id = useId()
-  /** 渲染一个表头列。
+
+  /**
+   * 渲染一个表头列。
+   *
    * @param _value - 占位项
    * @param index - 列序号
    * @returns 表头列 JSX
@@ -257,25 +262,35 @@ export const GanttContentHeader: FC<GanttContentHeaderProps> = ({
   )
 }
 
-/** 渲染按日时间轴表头。
+/**
+ * 渲染按日时间轴表头。
+ *
  * @param 无参数
  * @returns 日期表头 JSX
  */
 const DailyHeader: FC = () => {
   const gantt = useContext(GanttContext)
-  /** 渲染一年的月份列。
+
+  /**
+   * 渲染一年的月份列。
+   *
    * @param year - 年份记录
    * @returns 月份列 JSX 列表
    */
   const renderYearList = (year: TimelineData[number]) => {
-    /** 渲染一个月份和日期网格。
+    /**
+     * 渲染一个月份和日期网格。
+     *
      * @param month - 月份记录
      * @param index - 零起算月份
      * @returns 月份 JSX
      */
     const renderMonth = (month: { days: number }, index: number) => {
       const start = new Date(year.year, index, 1)
-      /** 渲染日序号与星期。
+
+      /**
+       * 渲染日序号与星期。
+       *
        * @param item - 日序号
        * @returns 日期 JSX
        */
@@ -287,10 +302,8 @@ const DailyHeader: FC = () => {
           </p>
         </div>
       )
-      /** 判断日期是否为周末。
-       * @param item - 日序号
-       * @returns 是否为周末
-       */
+
+      // 判断日期是否为周末。
       const isWeekend = (item: number) =>
         [0, 6].includes(addDays(start, item).getDay())
       return (
@@ -309,18 +322,25 @@ const DailyHeader: FC = () => {
   return gantt.timelineData.map(renderYearList)
 }
 
-/** 渲染按月时间轴表头。
+/**
+ * 渲染按月时间轴表头。
+ *
  * @param 无参数
  * @returns 月份表头 JSX
  */
 const MonthlyHeader: FC = () => {
   const gantt = useContext(GanttContext)
-  /** 渲染一个年份的月份表头。
+
+  /**
+   * 渲染一个年份的月份表头。
+   *
    * @param year - 年份记录
    * @returns 年份 JSX
    */
   const renderYear = (year: TimelineData[number]) => {
-    /** 渲染本地化月份名称。
+    /**
+     * 渲染本地化月份名称。
+     *
      * @param item - 月序号
      * @returns 月份名称 JSX
      */
@@ -344,18 +364,25 @@ const MonthlyHeader: FC = () => {
   return gantt.timelineData.map(renderYear)
 }
 
-/** 渲染按季度时间轴表头。
+/**
+ * 渲染按季度时间轴表头。
+ *
  * @param 无参数
  * @returns 季度表头 JSX
  */
 const QuarterlyHeader: FC = () => {
   const gantt = useContext(GanttContext)
-  /** 渲染一年的季度。
+
+  /**
+   * 渲染一年的季度。
+   *
    * @param year - 年份记录
    * @returns 季度 JSX 列表
    */
   const renderYearList = (year: TimelineData[number]) => {
-    /** 渲染季度内的月份。
+    /**
+     * 渲染季度内的月份。
+     *
      * @param quarter - 季度记录
      * @param index - 季度序号
      * @returns 季度 JSX
@@ -364,7 +391,9 @@ const QuarterlyHeader: FC = () => {
       quarter: TimelineData[number]['quarters'][number],
       index: number,
     ) => {
-      /** 渲染季度内月份名。
+      /**
+       * 渲染季度内月份名。
+       *
        * @param item - 月序号
        * @returns 月份 JSX
        */
@@ -391,23 +420,32 @@ const QuarterlyHeader: FC = () => {
   return gantt.timelineData.map(renderYearList)
 }
 
-/** 渲染按周分段的紧凑时间轴，仍保留逐日日期精度。
+/**
+ * 渲染按周分段的紧凑时间轴，仍保留逐日日期精度。
+ *
  * @param 无参数
  * @returns 周表头 JSX
  */
 const WeeklyHeader: FC = () => {
   const gantt = useContext(GanttContext)
-  /** 渲染一年的连续周分段。
+
+  /**
+   * 渲染一年的连续周分段。
+   *
    * @param year - 年份记录
    * @returns 周表头 JSX 列表
    */
   const renderYearList = (year: TimelineData[number]) => {
-    /** 渲染一个实际周区间。
+    /**
+     * 渲染一个实际周区间。
+     *
      * @param week - 周起点与列数
      * @returns 周日期网格 JSX
      */
     const renderWeek = (week: { start: Date; days: number }) => {
-      /** 渲染周内日序号，并提供完整日期提示。
+      /**
+       * 渲染周内日序号，并提供完整日期提示。
+       *
        * @param item - 日偏移
        * @returns 日期 JSX
        */
@@ -421,10 +459,8 @@ const WeeklyHeader: FC = () => {
           </p>
         )
       }
-      /** 判断周内日期是否为周末。
-       * @param item - 日偏移
-       * @returns 是否为周末
-       */
+
+      // 判断周内日期是否为周末。
       const isWeekend = (item: number) =>
         [0, 6].includes(addDays(week.start, item).getDay())
       const title = `${format(week.start, 'M月d日')}—${format(addDays(week.start, week.days - 1), 'M月d日')}`
@@ -459,7 +495,9 @@ export type GanttHeaderProps = {
   className?: string
 }
 
-/** 渲染 Kibo Header 组件。
+/**
+ * 渲染 Kibo Header 组件。
+ *
  * @param props - 组件属性与子内容
  * @returns 组件 JSX
  */
@@ -482,7 +520,9 @@ export type GanttSidebarItemProps = {
   title?: string
 }
 
-/** 渲染 Kibo SidebarItem 组件。
+/**
+ * 渲染 Kibo SidebarItem 组件。
+ *
  * @param props - 组件属性与子内容
  * @returns 组件 JSX
  */
@@ -502,10 +542,7 @@ export const GanttSidebarItem: FC<GanttSidebarItemProps> = ({
     locale: gantt.locale,
   })
 
-  /** 平滑定位时间条，并通知调用方选择任务。
-   * @param 无参数
-   * @returns 无返回值；滚动时间轴并触发可选回调
-   */
+  // 平滑定位时间条，并通知调用方选择任务。
   const clickHandler = () => {
     gantt.scrollToFeature?.(feature)
     onSelectItem?.(feature.id)
@@ -541,7 +578,9 @@ export const GanttSidebarItem: FC<GanttSidebarItemProps> = ({
   )
 }
 
-/** 渲染 Kibo SidebarHeader 组件。
+/**
+ * 渲染 Kibo SidebarHeader 组件。
+ *
  * @param 无参数
  * @returns 组件 JSX
  */
@@ -562,7 +601,9 @@ export type GanttSidebarGroupProps = {
   className?: string
 }
 
-/** 渲染 Kibo SidebarGroup 组件。
+/**
+ * 渲染 Kibo SidebarGroup 组件。
+ *
  * @param props - 组件属性与子内容
  * @returns 组件 JSX
  */
@@ -588,7 +629,9 @@ export type GanttSidebarProps = {
   className?: string
 }
 
-/** 渲染 Kibo Sidebar 组件。
+/**
+ * 渲染 Kibo Sidebar 组件。
+ *
  * @param props - 组件属性与子内容
  * @returns 组件 JSX
  */
@@ -614,7 +657,9 @@ export type GanttAddFeatureHelperProps = {
   className?: string
 }
 
-/** 渲染 Kibo AddFeatureHelper 组件。
+/**
+ * 渲染 Kibo AddFeatureHelper 组件。
+ *
  * @param props - 组件属性与子内容
  * @returns 组件 JSX
  */
@@ -626,7 +671,9 @@ export const GanttAddFeatureHelper: FC<GanttAddFeatureHelperProps> = ({
   const gantt = useContext(GanttContext)
   const [mousePosition, mouseRef] = useMouse<HTMLDivElement>()
 
-  /** 处理点击并触发当前组件的选择或添加回调。
+  /**
+   * 处理点击并触发当前组件的选择或添加回调。
+   *
    * @param 无参数
    * @returns 无返回值；调用事件回调
    */
@@ -667,7 +714,9 @@ export type GanttColumnProps = {
   isColumnSecondary?: (item: number) => boolean
 }
 
-/** 渲染 Kibo InteractiveColumn 组件。
+/**
+ * 渲染 Kibo InteractiveColumn 组件。
+ *
  * @param props - 组件属性与子内容
  * @returns 组件 JSX
  */
@@ -681,15 +730,10 @@ const GanttInteractiveColumn: FC<GanttColumnProps> = ({
   const [hovering, setHovering] = useState(false)
   const [windowScroll] = useWindowScroll()
 
-  /** 显示列内添加入口。
-   * @param 无参数
-   * @returns 无返回值；更新悬停状态
-   */
+  // 显示列内添加入口。
   const mouseEnterHandler = () => setHovering(true)
-  /** 隐藏列内添加入口。
-   * @param 无参数
-   * @returns 无返回值；更新悬停状态
-   */
+
+  // 隐藏列内添加入口。
   const mouseLeaveHandler = () => setHovering(false)
 
   const [elementOffset, setElementOffset] = useState(0)
@@ -722,7 +766,9 @@ const GanttInteractiveColumn: FC<GanttColumnProps> = ({
   )
 }
 
-/** 渲染 Kibo Column 组件。
+/**
+ * 渲染 Kibo Column 组件。
+ *
  * @param props - 组件属性与子内容
  * @returns 组件 JSX
  */
@@ -745,7 +791,9 @@ export type GanttColumnsProps = {
   isColumnSecondary?: (item: number) => boolean
 }
 
-/** 渲染 Kibo Columns 组件。
+/**
+ * 渲染 Kibo Columns 组件。
+ *
  * @param props - 组件属性与子内容
  * @returns 组件 JSX
  */
@@ -754,7 +802,10 @@ export const GanttColumns: FC<GanttColumnsProps> = ({
   isColumnSecondary,
 }) => {
   const id = useId()
-  /** 渲染一列日期背景。
+
+  /**
+   * 渲染一列日期背景。
+   *
    * @param _value - 占位项
    * @param index - 列序号
    * @returns 背景列 JSX
@@ -784,7 +835,9 @@ export type GanttCreateMarkerTriggerProps = {
   className?: string
 }
 
-/** 渲染 Kibo CreateMarkerTrigger 组件。
+/**
+ * 渲染 Kibo CreateMarkerTrigger 组件。
+ *
  * @param props - 组件属性与子内容
  * @returns 组件 JSX
  */
@@ -808,10 +861,7 @@ export const GanttCreateMarkerTrigger: FC<GanttCreateMarkerTriggerProps> = ({
 
   const date = getDateByMousePosition(gantt, x)
 
-  /** 处理点击并触发当前组件的选择或添加回调。
-   * @param 无参数
-   * @returns 无返回值；调用事件回调
-   */
+  // 处理点击并触发当前组件的选择或添加回调。
   const clickHandler = () => onCreateMarker(date)
 
   return (
@@ -847,7 +897,9 @@ export type GanttFeatureDragHelperProps = {
   date: Date | null
 }
 
-/** 渲染 Kibo FeatureDragHelper 组件。
+/**
+ * 渲染 Kibo FeatureDragHelper 组件。
+ *
  * @param props - 组件属性与子内容
  * @returns 组件 JSX
  */
@@ -910,7 +962,9 @@ export type GanttFeatureItemCardProps = Pick<GanttFeature, 'id'> & {
   children?: ReactNode
 }
 
-/** 渲染 Kibo FeatureItemCard 组件。
+/**
+ * 渲染 Kibo FeatureItemCard 组件。
+ *
  * @param props - 组件属性与子内容
  * @returns 组件 JSX
  */
@@ -954,7 +1008,9 @@ export type GanttFeatureItemProps = GanttFeature & {
   className?: string
 }
 
-/** 渲染 Kibo FeatureItem 组件。
+/**
+ * 渲染 Kibo FeatureItem 组件。
+ *
  * @param props - 组件属性与子内容
  * @returns 组件 JSX
  */
@@ -996,7 +1052,9 @@ export const GanttFeatureItem: FC<GanttFeatureItemProps> = ({
     activationConstraint: { distance: 5 },
   })
 
-  /** 保存拖动开始时的真实日期。
+  /**
+   * 保存拖动开始时的真实日期。
+   *
    * @param 无参数
    * @returns 无返回值；更新拖动快照
    */
@@ -1007,7 +1065,10 @@ export const GanttFeatureItem: FC<GanttFeatureItemProps> = ({
     setEndAt(feature.endAt)
     setDragPreview({ part: 'move', delta: 0 })
   }
-  /** 按横向位移平移时间条，保留区间天数。
+
+  /**
+   * 按横向位移平移时间条，保留区间天数。
+   *
    * @param event - 拖动或键盘事件
    * @returns 无返回值；更新日期预览
    */
@@ -1022,22 +1083,21 @@ export const GanttFeatureItem: FC<GanttFeatureItemProps> = ({
     setEndAt(previousEndAt ? addDays(previousEndAt, days) : null)
     setDragPreview({ part: 'move', delta: event.delta.x })
   }
-  /** 通知调用方保存最终日期区间。
-   * @param 无参数
-   * @returns 无返回值；触发 onMove
-   */
+
+  // 通知调用方保存最终日期区间。
   const dragEndHandler = () => {
     onMove?.(feature.id, startAt, endAt)
     setDragPreview(null)
   }
-  /** 取消拖动并恢复开始时的日期。
-   * @param 无参数
-   * @returns 无返回值；恢复预览
-   */
+
+  // 取消拖动并恢复开始时的日期。
   const dragCancelHandler = () => {
     setDragPreview(null)
   }
-  /** 按位移调整区间起点。
+
+  /**
+   * 按位移调整区间起点。
+   *
    * @param event - 拖动或键盘事件
    * @returns 无返回值；更新起点预览
    */
@@ -1046,7 +1106,10 @@ export const GanttFeatureItem: FC<GanttFeatureItemProps> = ({
     setStartAt(getDateByMousePosition(gantt, originalOffset + event.delta.x))
     setDragPreview({ part: 'left', delta: event.delta.x })
   }
-  /** 按位移调整区间排他终点。
+
+  /**
+   * 按位移调整区间排他终点。
+   *
    * @param event - 拖动或键盘事件
    * @returns 无返回值；更新终点预览
    */
@@ -1056,10 +1119,8 @@ export const GanttFeatureItem: FC<GanttFeatureItemProps> = ({
     setEndAt(getDateByMousePosition(gantt, originalOffset + event.delta.x))
     setDragPreview({ part: 'right', delta: event.delta.x })
   }
-  /** 触发时间条的选择回调。
-   * @param 无参数
-   * @returns 无返回值；通知调用方
-   */
+
+  // 触发时间条的选择回调。
   const selectHandler = () => onSelect?.(feature.id)
 
   const position = dragPreview
@@ -1082,6 +1143,7 @@ export const GanttFeatureItem: FC<GanttFeatureItemProps> = ({
         data-gantt-dragging={Boolean(dragPreview)}
         style={{
           height: 'calc(var(--gantt-row-height) - 4px)',
+
           // Short month-scale bars retain a center between the two resize handles.
           width: position.width,
           left: position.offset,
@@ -1147,7 +1209,9 @@ export type GanttFeatureListGroupProps = {
   className?: string
 }
 
-/** 渲染 Kibo FeatureListGroup 组件。
+/**
+ * 渲染 Kibo FeatureListGroup 组件。
+ *
  * @param props - 组件属性与子内容
  * @returns 组件 JSX
  */
@@ -1167,7 +1231,9 @@ export type GanttFeatureRowProps = {
   className?: string
 }
 
-/** 渲染 Kibo FeatureRow 组件。
+/**
+ * 渲染 Kibo FeatureRow 组件。
+ *
  * @param props - 组件属性与子内容
  * @returns 组件 JSX
  */
@@ -1210,7 +1276,9 @@ export const GanttFeatureRow: FC<GanttFeatureRowProps> = ({
   const maxSubRows = Math.max(1, subRowEndTimes.length)
   const subRowHeight = 36 // Base row height
 
-  /** 渲染具有内部泳道位置的时间条。
+  /**
+   * 渲染具有内部泳道位置的时间条。
+   *
    * @param feature - 区间与泳道位置
    * @returns 时间条 JSX
    */
@@ -1251,7 +1319,9 @@ export type GanttFeatureListProps = {
   children: ReactNode
 }
 
-/** 渲染 Kibo FeatureList 组件。
+/**
+ * 渲染 Kibo FeatureList 组件。
+ *
  * @param props - 组件属性与子内容
  * @returns 组件 JSX
  */
@@ -1267,7 +1337,9 @@ export const GanttFeatureList: FC<GanttFeatureListProps> = ({
   </div>
 )
 
-/** 渲染 Kibo Marker 组件。
+/**
+ * 渲染 Kibo Marker 组件。
+ *
  * @param props - 组件属性与子内容
  * @returns 组件 JSX
  */
@@ -1302,7 +1374,9 @@ export const GanttMarker: FC<
     [date, gantt.range, gantt.columnWidth, gantt.zoom],
   )
 
-  /** 触发标记删除回调。
+  /**
+   * 触发标记删除回调。
+   *
    * @param 无参数
    * @returns 无返回值；通知调用方删除标记
    */
@@ -1360,7 +1434,9 @@ export type GanttProviderProps = {
   className?: string
 }
 
-/** 渲染 Kibo Provider 组件。
+/**
+ * 渲染 Kibo Provider 组件。
+ *
  * @param props - 组件属性与子内容
  * @returns 组件 JSX
  */
@@ -1420,7 +1496,9 @@ export const GanttProvider: FC<GanttProviderProps> = ({
     }
   }, [initialOffset, setScrollX])
 
-  /** 读取侧栏实际宽度并同步时间轴网格。
+  /**
+   * 读取侧栏实际宽度并同步时间轴网格。
+   *
    * @param 无参数
    * @returns 无返回值；更新侧栏宽度
    */
@@ -1463,7 +1541,10 @@ export const GanttProvider: FC<GanttProviderProps> = ({
   useEffect(() => {
     const scrollElement = scrollRef.current
     if (!scrollElement) return
-    /** 同步滚动位置并在边缘补充时间轴年份。
+
+    /**
+     * 同步滚动位置并在边缘补充时间轴年份。
+     *
      * @param 无参数
      * @returns 无返回值；更新位置与时间轴
      */
@@ -1514,7 +1595,9 @@ export const GanttProvider: FC<GanttProviderProps> = ({
     }
   }, [timelineData, setScrollX, zoom, range, columnWidth])
 
-  /** 将任务起点滚动到侧栏旁，遵循减少动态效果设置。
+  /**
+   * 将任务起点滚动到侧栏旁，遵循减少动态效果设置。
+   *
    * @param feature - 目标任务区间
    * @returns 无返回值；滚动时间轴
    */
@@ -1589,7 +1672,9 @@ export type GanttTimelineProps = {
   className?: string
 }
 
-/** 渲染 Kibo Timeline 组件。
+/**
+ * 渲染 Kibo Timeline 组件。
+ *
  * @param props - 组件属性与子内容
  * @returns 组件 JSX
  */
@@ -1611,7 +1696,9 @@ export type GanttTodayProps = {
   className?: string
 }
 
-/** 渲染 Kibo Today 组件。
+/**
+ * 渲染 Kibo Today 组件。
+ *
  * @param props - 组件属性与子内容
  * @returns 组件 JSX
  */

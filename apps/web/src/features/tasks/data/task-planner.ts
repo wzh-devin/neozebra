@@ -31,14 +31,13 @@ export const statusLabelRecord = {
   completed: '已完成',
 }
 
-/** 获取本地日期，避免 UTC 偏移。
- * @param date - 指定时间，默认当前时间
- * @returns YYYY-MM-DD 日期
- */
+// 获取本地日期，避免 UTC 偏移。
 export const getLocalDate = (date = new Date()): string =>
   `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
 
-/** 验证真实日历日期。
+/**
+ * 验证真实日历日期。
+ *
  * @param value - 待检查值
  * @returns 是否为有效日期或空日期
  */
@@ -50,7 +49,9 @@ export const isValidDate = (value: unknown): value is string | null => {
   return !Number.isNaN(date.getTime()) && getLocalDate(date) === value
 }
 
-/** 按日历天偏移，避免夏令时问题。
+/**
+ * 按日历天偏移，避免夏令时问题。
+ *
  * @param date - 日期
  * @param offset - 日数偏移
  * @returns 新日期
@@ -61,7 +62,9 @@ export const addDays = (date: string, offset: number): string => {
   return getLocalDate(result)
 }
 
-/** 格式化日历具体日期，跨年时补充年份。
+/**
+ * 格式化日历具体日期，跨年时补充年份。
+ *
  * @param date - YYYY-MM-DD 日期
  * @param today - 当前日期，用于判断年份
  * @returns 月日或年月日文本，不使用相对日期标签
@@ -76,7 +79,9 @@ export const formatTaskCalendarDate = (
     day: 'numeric',
   }).format(new Date(`${date}T12:00:00`))
 
-/** 格式化清单日期。
+/**
+ * 格式化清单日期。
+ *
  * @param date - 日期
  * @param today - 当前日期
  * @returns 日期文本
@@ -91,16 +96,15 @@ export const formatTaskDate = (
   return formatTaskCalendarDate(date, today)
 }
 
-/** 格式化预计用时。
- * @param minutes - 分钟数
- * @returns 用时文本
- */
+// 格式化预计用时。
 export const formatMinutes = (minutes: number): string =>
   minutes >= 60
     ? `${Math.floor(minutes / 60)}h${minutes % 60 ? ` ${minutes % 60}m` : ''}`
     : `${minutes}m`
 
-/** 创建空的个人规划。
+/**
+ * 创建空的个人规划。
+ *
  * @param 无参数
  * @returns 空数据
  */
@@ -115,7 +119,9 @@ export const buildEmptyPlannerData = (): TaskPlannerData => ({
 // ponytail: 首版只保存到当前浏览器；需要跨设备或大量任务时迁移到服务端存储。
 export const taskPlannerStorageKey = 'neozebra.task-planner.v1'
 
-/** 从浏览器存储读取并校验计划；异常交给调用方保留原数据。
+/**
+ * 从浏览器存储读取并校验计划；异常交给调用方保留原数据。
+ *
  * @param storage - 浏览器存储或测试替身
  * @returns 已校验的计划及用于并发检查的原文
  */
@@ -127,7 +133,9 @@ export const readPlannerStorage = (storage: Pick<Storage, 'getItem'>) => {
   }
 }
 
-/** 仅在原文未发生变化时写入，写入异常不提前更新界面。
+/**
+ * 仅在原文未发生变化时写入，写入异常不提前更新界面。
+ *
  * @param storage - 浏览器存储或测试替身
  * @param previousRaw - 上次读取的原文
  * @param next - 调用方已校验的计划
@@ -144,7 +152,9 @@ export const writePlannerStorage = (
   return raw
 }
 
-/** 构造带上下文的任务。
+/**
+ * 构造带上下文的任务。
+ *
  * @param title - 标题
  * @param projectId - 项目
  * @param plannedDate - 安排日期
@@ -175,40 +185,29 @@ export const buildTask = (
   completedAt: null,
 })
 
-/** 判断是否为键值对象。
- * @param value - 不可信输入
- * @returns 是否为对象
- */
+// 判断是否为键值对象。
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null && !Array.isArray(value)
 
-/** 校验非空字符串。
- * @param value - 输入
- * @param maxLength - 长度上限
- * @returns 是否有效
- */
+// 校验非空字符串。
 const isText = (value: unknown, maxLength = 200): value is string =>
   typeof value === 'string' &&
   value.trim().length > 0 &&
   value.length <= maxLength
 
-/** 校验可空关联标识。
- * @param value - 输入
- * @returns 是否有效
- */
+// 校验可空关联标识。
 const isNullableId = (value: unknown): boolean =>
   value === null || isText(value)
 
-/** 校验时间戳。
- * @param value - 输入
- * @returns 是否有效
- */
+// 校验时间戳。
 const isTimestamp = (value: unknown): value is string =>
   typeof value === 'string' &&
   /^\d{4}-\d{2}-\d{2}T/.test(value) &&
   Number.isFinite(Date.parse(value))
 
-/** 校验任务与完成状态的一致性。
+/**
+ * 校验任务与完成状态的一致性。
+ *
  * @param value - 不可信任务
  * @returns 是否有效
  */
@@ -283,7 +282,9 @@ const isTask = (value: unknown): value is TaskItem => {
   )
 }
 
-/** 校验项目字段。
+/**
+ * 校验项目字段。
+ *
  * @param value - 不可信项目
  * @returns 是否有效
  */
@@ -298,7 +299,9 @@ const isProject = (value: unknown): value is TaskProject =>
   isValidDate(value.deadlineDate) &&
   typeof value.archived === 'boolean'
 
-/** 校验存储与引用，拒绝损坏的数据。
+/**
+ * 校验存储与引用，拒绝损坏的数据。
+ *
  * @param value - 未知存储
  * @returns 是否为有效规划
  */
@@ -350,7 +353,9 @@ export const isPlannerData = (value: unknown): value is TaskPlannerData => {
   )
 }
 
-/** 解析本地保存的规划。
+/**
+ * 解析本地保存的规划。
+ *
  * @param raw - 原始 JSON
  * @returns 规划；无效输入抛出错误
  */
@@ -361,7 +366,9 @@ export const parsePlannerData = (raw: string): TaskPlannerData => {
   return value
 }
 
-/** 同步主任务与步骤的完成状态。
+/**
+ * 同步主任务与步骤的完成状态。
+ *
  * @param task - 当前任务
  * @param completed - 目标状态
  * @returns 更新后的任务
@@ -378,7 +385,9 @@ export const updateTaskCompletion = (
     : task.subtasks,
 })
 
-/** 在可见组内排序，不移动其他组。
+/**
+ * 在可见组内排序，不移动其他组。
+ *
  * @param taskList - 原集合
  * @param visibleIdList - 组内标识
  * @param id - 目标任务
@@ -407,7 +416,9 @@ export const moveTaskList = (
   )
 }
 
-/** 删除项目并保留或删除任务。
+/**
+ * 删除项目并保留或删除任务。
+ *
  * @param data - 规划
  * @param projectId - 项目
  * @param deleteTasks - 是否删除任务

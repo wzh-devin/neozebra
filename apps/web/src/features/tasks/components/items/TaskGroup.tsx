@@ -24,7 +24,9 @@ type Props = {
   reorder?: boolean
 }
 
-/** 组合任务分组与上下文新增，有标题时可折叠。
+/**
+ * 组合任务分组与上下文新增，有标题时可折叠。
+ *
  * @param props - 组标题、任务与操作
  * @returns 分组 JSX
  */
@@ -45,7 +47,9 @@ export const TaskGroup = ({
     siblingIdList ?? [],
   )
 
-  /** 渲染共享展开选择的任务插页。
+  /**
+   * 渲染共享展开选择的任务插页。
+   *
    * @param task - 当前任务
    * @param index - 当前组内顺序
    * @returns 任务插页 JSX
@@ -59,10 +63,8 @@ export const TaskGroup = ({
             index < dragState.fromIndex
           ? dragState.pitch
           : undefined
-    /** 切换当前插页并收回同组其他插页。
-     * @param open - 是否展开
-     * @returns 无返回值；更新分组展开选择
-     */
+
+    // 切换当前插页并收回同组其他插页。
     const expandedChangeHandler = (open: boolean): void =>
       setSelectedTaskId(open ? task.id : null)
     return (

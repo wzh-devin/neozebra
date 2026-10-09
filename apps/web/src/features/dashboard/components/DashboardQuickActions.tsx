@@ -6,6 +6,7 @@ import styles from '@/features/dashboard/components/DashboardQuickActions.module
 
 /**
  * 展示既有 Inbox 和 Task 快捷入口。
+ *
  * @param 无参数
  * @returns 快捷入口卡片 JSX
  */

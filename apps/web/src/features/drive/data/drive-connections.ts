@@ -9,6 +9,7 @@ import type {
 
 /**
  * 校验MinIO服务地址，拒绝控制台路径、URL凭据及非HTTP协议。
+ *
  * @param value - S3服务的完整URL
  * @returns 标准化服务地址；无效输入抛出安全错误
  */
@@ -36,6 +37,7 @@ const normalizeDriveEndpoint = (value: string): string => {
 
 /**
  * 校验产品挂载使用的S3存储桶名称。
+ *
  * @param value - Bucket名称
  * @returns 合法名称；无效输入抛出安全错误
  */
@@ -54,6 +56,7 @@ const validateDriveBucket = (value: string): string => {
 
 /**
  * 从表单读取并校验所选Provider的配置，保留密钥原值。
+ *
  * @param providerId - Provider类型
  * @param formData - 用户输入的表单数据
  * @returns 已校验的连接草稿；无效输入抛出不含凭据的错误
@@ -62,15 +65,14 @@ const buildDriveConnectionDraft = (
   providerId: DriveProviderId,
   formData: FormData,
 ): DriveConnectionDraft => {
-  /** 读取表单文本。
-   * @param key - 字段名称
-   * @returns 字符串值，非文本值视为空
-   */
   const getValue = (key: string): string => {
     const value = formData.get(key)
     return typeof value === 'string' ? value : ''
   }
-  /** 读取并校验必填值。
+
+  /**
+   * 读取并校验必填值。
+   *
    * @param key - 字段名称
    * @param label - 用户可见字段名
    * @returns 非空原始文本；缺失时抛出错误
@@ -145,6 +147,7 @@ const buildDriveConnectionDraft = (
 
 /**
  * 从已校验草稿投影可持久化参数，排除所有密钥和Token。
+ *
  * @param draft - 连接草稿
  * @param id - 稳定的连接实例ID
  * @returns 无凭据的卡片和挂载元数据
@@ -182,28 +185,47 @@ const buildDriveConnection = (
   }
 }
 
-/**
- * 判定缓存值是否为普通键值对象。
- * @param value - 不可信缓存值
- * @returns 是否为非空且非数组对象
- */
+// 检查缓存值是否为非空且非数组对象。
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null && !Array.isArray(value)
 
+type SavedDriveConnectionRecord = {
+  connectionList: DriveProvider[]
+  removedDefaultIds: DriveProviderId[]
+}
+
 /**
- * 校验缓存并重建白名单元数据，忽略额外字段中的凭据。
+ * 校验缓存并重建公共配置与默认连接删除记录，兼容旧缓存且排除凭据。
+ *
  * @param serialized - 浏览器保存的版本化连接JSON
- * @returns 已校验的连接列表；损坏缓存抛出统一错误
+ * @returns 已校验的连接和删除记录；损坏缓存抛出统一错误
  */
-const parseSavedDriveConnectionList = (
+const parseSavedDriveConnectionRecord = (
   serialized: string | null,
-): DriveProvider[] => {
-  if (!serialized) return []
+): SavedDriveConnectionRecord => {
+  if (!serialized) return { connectionList: [], removedDefaultIds: [] }
   const data: unknown = JSON.parse(serialized)
   if (!isRecord(data) || data.version !== 1 || !Array.isArray(data.connections))
     throw new Error('Saved Drive configuration is invalid.')
+  const removedIds =
+    data.removedDefaultIds === undefined ? [] : data.removedDefaultIds
+  if (!Array.isArray(removedIds))
+    throw new Error('Saved Drive configuration is invalid.')
+  const removedDefaultIds: DriveProviderId[] = []
+  for (const id of removedIds) {
+    if (
+      typeof id !== 'string' ||
+      !isDriveProviderId(id) ||
+      removedDefaultIds.includes(id)
+    )
+      throw new Error('Saved Drive configuration is invalid.')
+    removedDefaultIds.push(id)
+  }
   const idSet = new Set<string>()
-  /** 从单条缓存重建无凭据实例。
+
+  /**
+   * 从单条缓存重建无凭据实例。
+   *
    * @param item - 不可信连接对象
    * @returns 安全实例；缺失或非法字段抛出错误
    */
@@ -276,11 +298,20 @@ const parseSavedDriveConnectionList = (
       item.id,
     )
   }
-  return data.connections.map(parseConnection)
+  const connectionList = data.connections.map(parseConnection)
+  if (removedDefaultIds.some((id) => idSet.has(id)))
+    throw new Error('Saved Drive configuration is invalid.')
+  return { connectionList, removedDefaultIds }
 }
+
+// 从已校验的公共配置中读取连接列表。
+const parseSavedDriveConnectionList = (
+  serialized: string | null,
+): DriveProvider[] => parseSavedDriveConnectionRecord(serialized).connectionList
 
 export {
   buildDriveConnectionDraft,
   buildDriveConnection,
   parseSavedDriveConnectionList,
+  parseSavedDriveConnectionRecord,
 }

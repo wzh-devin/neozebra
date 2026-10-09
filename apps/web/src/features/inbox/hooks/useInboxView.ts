@@ -55,12 +55,7 @@ const useInboxView = (): InboxView => {
     (item) => !item.read && !item.archived,
   ).length
 
-  /**
-   * 更新搜索词并让阅读区跟随筛选结果。
-   *
-   * @param value - 新搜索词
-   * @returns 无返回值；更新筛选状态和 URL
-   */
+  // 更新搜索词并让阅读区跟随筛选结果。
   const queryChangeHandler = (value: string): void => {
     setQuery(value)
     navigate('/inbox', { replace: true })

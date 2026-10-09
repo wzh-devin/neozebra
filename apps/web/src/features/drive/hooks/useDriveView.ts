@@ -1,9 +1,13 @@
-import { atom, useAtom } from 'jotai'
+import { useAtom } from 'jotai'
 import { useMemo, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 
 import { getDriveEntryList } from '@/features/drive/data/mockDrive'
+import {
+  fileStateMapAtom,
+  type DriveFileState,
+} from '@/features/drive/data/drive-file-state'
 import { formatDriveFileSize } from '@/features/drive/data/drive-file-preview'
 import {
   buildDriveRootNode,
@@ -16,13 +20,6 @@ import type {
   DriveProvider,
   DriveTreeNode,
 } from '@/features/drive/types'
-
-type DriveFileState = {
-  rootNode: DriveTreeNode
-  entryListMap: Record<string, DriveEntry[]>
-}
-// synthetic/local mock文件操作按连接ID保留在当前会话，不调用真实存储。
-const fileStateMapAtom = atom<Record<string, DriveFileState>>({})
 
 type DriveView = {
   provider: DriveProvider
@@ -42,12 +39,7 @@ type DriveView = {
   showEntryFeedback: (action: string, entryName: string) => void
 }
 
-/**
- * 从当前 URL 中解析 Drive 选中的目录标识。
- *
- * @param pathname - 当前浏览器路径
- * @returns 当前目录标识
- */
+// 从当前 URL 解析选中的目录，默认使用根目录。
 const getSelectedDirectoryId = (pathname: string): string =>
   pathname.split('/').filter(Boolean)[3] || 'root'
 
@@ -85,20 +77,14 @@ const useDriveView = (provider: DriveProvider): DriveView => {
     sourceEntryList,
   )
 
-  /** 保存当前实例的目录和条目状态。
-   * @param nextState - 更新后的文件空间状态
-   * @returns 无返回值；仅更新当前连接的内存数据
-   */
+  // 保存当前连接的目录和条目状态，仅更新内存。
   const updateFileState = (nextState: DriveFileState): void =>
     setFileStateMap((currentMap) => ({
       ...currentMap,
       [provider.id]: nextState,
     }))
-  /** 保存当前目录的条目列表及同步后的目录树。
-   * @param nextList - 新文件条目列表
-   * @param nextRoot - 更新后的目录树
-   * @returns 无返回值；更新当前实例状态
-   */
+
+  // 同步当前目录的条目列表和目录树。
   const updateEntryList = (nextList: DriveEntry[], nextRoot = rootNode): void =>
     updateFileState({
       rootNode: nextRoot,
@@ -131,12 +117,7 @@ const useDriveView = (provider: DriveProvider): DriveView => {
     })
   }
 
-  /**
-   * 选中目录并同步到嵌套路由。
-   *
-   * @param nodeId - 目录标识
-   * @returns 无返回值；更新 URL
-   */
+  // 切换目录并同步路由。
   const selectDirectory = (nodeId: string): void => {
     navigate(
       `/assets/drive/${provider.id}${nodeId === 'root' ? '' : `/${nodeId}`}`,
@@ -158,10 +139,8 @@ const useDriveView = (provider: DriveProvider): DriveView => {
       updatedAt: 'Just now',
       parentId: selectedDirectoryId,
     }
-    /** 将新目录加入当前父目录。
-     * @param node - 父目录
-     * @returns 含新子目录的父节点
-     */
+
+    // 将新建文件夹加入当前父目录。
     const addDirectory = (node: DriveTreeNode): DriveTreeNode => ({
       ...node,
       hasChildren: true,
@@ -213,10 +192,6 @@ const useDriveView = (provider: DriveProvider): DriveView => {
    * @returns 无返回值；更新当前目录并触发反馈
    */
   const deleteEntry = (entryId: string): void => {
-    /** 删除目录树中的同名条目。
-     * @param node - 当前父目录
-     * @returns 删除后的父节点
-     */
     const removeDirectory = (node: DriveTreeNode): DriveTreeNode => {
       const children = (node.children ?? []).filter(
         (child) => child.id !== entryId,
@@ -245,6 +220,7 @@ const useDriveView = (provider: DriveProvider): DriveView => {
    * 保存表单输入的 mock 条目名称。
    *
    * @param entryId - 条目标识
+   *
    * @param nextName - 输入的新名称
    * @returns 无返回值；更新当前目录并触发反馈，忽略无效输入
    */
@@ -254,10 +230,7 @@ const useDriveView = (provider: DriveProvider): DriveView => {
       return
     }
 
-    /** 同步目录树中的名称。
-     * @param node - 目标目录
-     * @returns 使用新名称的目录
-     */
+    // 将新名称同步到目录树。
     const renameDirectory = (node: DriveTreeNode): DriveTreeNode => ({
       ...node,
       name: nextName.trim(),
@@ -271,13 +244,7 @@ const useDriveView = (provider: DriveProvider): DriveView => {
     toast('Item renamed')
   }
 
-  /**
-   * 显示尚未持久化的文件操作反馈。
-   *
-   * @param action - 操作名称
-   * @param entryName - 文件名
-   * @returns 无返回值；触发 Sonner 通知
-   */
+  // 显示当前文件操作提示。
   const showEntryFeedback = (action: string, entryName: string): void => {
     toast(`${action}: ${entryName}`)
   }

@@ -13,7 +13,9 @@ export type TaskCollectionFilters = {
 
 const priorityRankRecord = { high: 0, medium: 1, low: 2 }
 
-/** 按当前条件筛选清单，排序时不改变持久化任务顺序。
+/**
+ * 按当前条件筛选清单，排序时不改变持久化任务顺序。
+ *
  * @param taskList - 原任务列表
  * @param filters - 搜索、项目、状态和日期等条件
  * @returns 匹配条件的任务列表
@@ -36,7 +38,10 @@ export const getTaskCollectionList = (
       (filters.schedule === 'all' || task.plannedDate === null) &&
       (filters.date === null || task.plannedDate === filters.date),
   )
-  /** 比较当前排序下的两个任务。
+
+  /**
+   * 比较当前排序下的两个任务。
+   *
    * @param left - 左任务
    * @param right - 右任务
    * @returns 排序值；相同条件保持原有顺序
@@ -57,7 +62,9 @@ export const getTaskCollectionList = (
   return result.sort(compareTasks)
 }
 
-/** 统计每个计划日期的任务数量，截止日期不代替计划日期。
+/**
+ * 统计每个计划日期的任务数量，截止日期不代替计划日期。
+ *
  * @param taskList - 已经过搜索及状态等条件筛选的任务
  * @returns 日期与任务数的映射
  */

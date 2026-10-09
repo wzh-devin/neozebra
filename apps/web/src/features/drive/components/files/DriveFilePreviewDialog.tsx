@@ -28,7 +28,9 @@ type DriveFilePreviewDialogProps = {
   onClose: () => void
 }
 
-/** 使用统一工作台主题打开居中文件预览。
+/**
+ * 使用统一工作台主题打开居中文件预览。
+ *
  * @param props - 当前文件和关闭操作
  * @returns 带加载、失败、空内容及焦点恢复的弹窗 JSX
  */
@@ -37,17 +39,13 @@ const DriveFilePreviewDialog = ({
   onClose,
 }: DriveFilePreviewDialogProps) => {
   const state = useDriveFilePreview(entry.localFile)
-  /** 响应 Esc、关闭按钮和遮罩关闭。
-   * @param open - 弹窗是否打开
-   * @returns 无返回值；关闭预览
-   */
+
+  // 响应 Esc、关闭按钮和遮罩关闭。
   const openChangeHandler = (open: boolean): void => {
     if (!open) onClose()
   }
-  /** 将关闭后的键盘焦点恢复到文件按钮。
-   * @param event - 默认焦点恢复事件
-   * @returns 无返回值；恢复文件按钮焦点
-   */
+
+  // 将关闭后的键盘焦点恢复到文件按钮。
   const restoreFocusHandler = (event: Event): void => {
     event.preventDefault()
     document.getElementById(`drive-entry-${entry.id}`)?.focus()

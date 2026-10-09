@@ -59,7 +59,9 @@ const iconLabelRecord = {
   rocket: '目标',
 }
 
-/** 编辑项目目标、配色和归档状态，明确删除范围。
+/**
+ * 编辑项目目标、配色和归档状态，明确删除范围。
+ *
  * @param props - 项目及关闭操作
  * @returns 项目新建或编辑弹窗 JSX
  */
@@ -88,7 +90,10 @@ export const TaskProjectEditor = ({
   )
   const [deleteMode, setDeleteMode] = useState('keep')
   const [error, setError] = useState('')
-  /** 更新项目文本。
+
+  /**
+   * 更新项目文本。
+   *
    * @param event - 输入事件
    * @returns 无返回值；更新草稿
    */
@@ -99,29 +104,26 @@ export const TaskProjectEditor = ({
     if (name === 'name' || name === 'description')
       setDraft((current) => ({ ...current, [name]: value }))
   }
-  /** 设置项目颜色。
-   * @param value - 颜色
-   * @returns 无返回值；更新草稿
-   */
+
+  // 设置项目颜色。
   const colorChangeHandler = (value: string): void => {
     if (projectColorList.some((color) => color === value))
       setDraft((current) => ({ ...current, color: value as ProjectColor }))
   }
-  /** 设置图标。
-   * @param value - 图标
-   * @returns 无返回值；更新草稿
-   */
+
+  // 设置图标。
   const iconChangeHandler = (value: string): void => {
     if (projectIconList.some((icon) => icon === value))
       setDraft((current) => ({ ...current, icon: value as ProjectIcon }))
   }
-  /** 设置项目截止日期。
-   * @param value - 日期
-   * @returns 无返回值；更新草稿
-   */
+
+  // 设置项目截止日期。
   const dateChangeHandler = (value: string | null): void =>
     setDraft((current) => ({ ...current, deadlineDate: value }))
-  /** 保存项目，避免覆盖并发更新。
+
+  /**
+   * 保存项目，避免覆盖并发更新。
+   *
    * @param event - 提交事件
    * @returns 无返回值；保存并导航
    */
@@ -140,7 +142,10 @@ export const TaskProjectEditor = ({
       navigate(`/task/projects/${draft.id}`)
     } else setError('保存未成功，输入已保留，请重试。')
   }
-  /** 归档或恢复项目，任务仍可访问。
+
+  /**
+   * 归档或恢复项目，任务仍可访问。
+   *
    * @param 无参数
    * @returns 无返回值；保存状态
    */
@@ -160,7 +165,10 @@ export const TaskProjectEditor = ({
       navigate('/task/projects')
     } else setError('操作未成功，输入已保留，请重试。')
   }
-  /** 执行已明确范围的项目删除。
+
+  /**
+   * 执行已明确范围的项目删除。
+   *
    * @param 无参数
    * @returns 无返回值；删除并返回项目页
    */

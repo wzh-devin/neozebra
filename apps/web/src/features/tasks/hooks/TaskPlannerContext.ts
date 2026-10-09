@@ -3,7 +3,9 @@ import type { TaskPlanner } from '@/features/tasks/hooks/useTaskPlanner'
 
 export const TaskPlannerContext = createContext<TaskPlanner | null>(null)
 
-/** 读取当前 Task 工作区的唯一状态。
+/**
+ * 读取当前 Task 工作区的唯一状态。
+ *
  * @param 无参数
  * @returns 规划状态和操作
  */

@@ -14,7 +14,9 @@ import { useTaskPlannerContext } from '@/features/tasks/hooks/TaskPlannerContext
 import type { TaskProject, TaskSection } from '@/features/tasks/types'
 import styles from '@/features/tasks/components/projects/TaskProjectGrid.module.css'
 
-/** 按阶段展示项目规划并保留归档项目访问。
+/**
+ * 按阶段展示项目规划并保留归档项目访问。
+ *
  * @param props - 项目及设置入口
  * @returns 项目详情 JSX
  */
@@ -34,26 +36,22 @@ export const TaskProjectView = ({
   const estimate = taskList
     .filter((task) => task.status !== 'completed')
     .reduce((sum, task) => sum + (task.estimateMinutes ?? 0), 0)
-  /** 打开项目设置。
-   * @param 无参数
-   * @returns 无返回值；打开表单
-   */
+
+  // 打开项目设置。
   const editHandler = (): void => onEdit(project)
-  /** 渲染可排序和编辑的阶段。
+
+  /**
+   * 渲染可排序和编辑的阶段。
+   *
    * @param section - 阶段
    * @param index - 顺序
    * @returns 阶段 JSX
    */
   const renderSection = (section: TaskSection, index: number) => {
-    /** 上移阶段。
-     * @param 无参数
-     * @returns 无返回值；保存顺序
-     */
+    // 上移阶段。
     const upHandler = (): void => moveSectionHandler(section.id, -1)
-    /** 下移阶段。
-     * @param 无参数
-     * @returns 无返回值；保存顺序
-     */
+
+    // 下移阶段。
     const downHandler = (): void => moveSectionHandler(section.id, 1)
     return (
       <TaskGroup

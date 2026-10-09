@@ -35,7 +35,9 @@ type Props = {
   onReset: () => void
 }
 
-/** 将搜索与全部筛选收进按需打开的官方 Popover。
+/**
+ * 将搜索与全部筛选收进按需打开的官方 Popover。
+ *
  * @param props - 条件、选项与 URL 更新回调
  * @returns 清单筛选栏 JSX
  */
@@ -60,61 +62,42 @@ export const TaskCollectionFilters = ({
     Number(hasDateFilter)
   const hasFilters = !!filters.query || filterCount > 0
 
-  /** 更新任务搜索词。
-   * @param event - 输入事件
-   * @returns 无返回值；更新 URL 条件
-   */
+  // 更新任务搜索词。
   const queryChangeHandler = (event: ChangeEvent<HTMLInputElement>): void =>
     onChange('q', event.target.value)
-  /** 清除搜索词，保留其他筛选。
-   * @param 无参数
-   * @returns 无返回值；更新 URL 条件并聚焦搜索输入
-   */
+
+  // 清除搜索词，保留其他筛选。
   const clearQueryHandler = (): void => {
     onChange('q', '')
     queryInputRef.current?.focus()
   }
-  /** 清除全部条件，让键盘焦点留在筛选面板。
-   * @param 无参数
-   * @returns 无返回值；重置 URL 条件并聚焦项目选项
-   */
+
+  // 清除全部条件，让键盘焦点留在筛选面板。
   const resetFiltersHandler = (): void => {
     onReset()
     projectTriggerRef.current?.focus()
   }
-  /** 更新项目条件。
-   * @param value - 项目 ID 或内置选项
-   * @returns 无返回值；更新 URL 条件
-   */
+
+  // 更新项目条件。
   const projectChangeHandler = (value: string): void =>
     onChange('project', value)
-  /** 更新状态条件。
-   * @param value - 任务状态
-   * @returns 无返回值；更新 URL 条件
-   */
+
+  // 更新状态条件。
   const statusChangeHandler = (value: string): void => onChange('status', value)
-  /** 更新优先级条件。
-   * @param value - 优先级
-   * @returns 无返回值；更新 URL 条件
-   */
+
+  // 更新优先级条件。
   const priorityChangeHandler = (value: string): void =>
     onChange('priority', value)
-  /** 更新标签条件，保留名为 all 的真实标签。
-   * @param value - 标签选项
-   * @returns 无返回值；更新 URL 条件
-   */
+
+  // 更新标签条件，保留名为 all 的真实标签。
   const labelChangeHandler = (value: string): void =>
     onChange('label', value === 'all' ? '' : value.slice(6))
-  /** 更新安排条件。
-   * @param value - 安排状态
-   * @returns 无返回值；更新 URL 条件
-   */
+
+  // 更新安排条件。
   const scheduleChangeHandler = (value: string): void =>
     onChange('schedule', value)
-  /** 更新排序方式。
-   * @param value - 排序选项
-   * @returns 无返回值；更新 URL 条件
-   */
+
+  // 更新排序方式。
   const sortChangeHandler = (value: string): void => onChange('sort', value)
   return (
     <div className={styles.toolbar}>

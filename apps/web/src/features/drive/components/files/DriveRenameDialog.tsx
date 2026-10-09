@@ -29,31 +29,23 @@ const DriveRenameDialog = ({
   onSave,
 }: DriveRenameDialogProps) => {
   const [name, setName] = useState(entry.name)
-  /** 更新名称输入。
-   * @param event - 名称输入事件
-   * @returns 无返回值；更新表单状态
-   */
+
+  // 更新名称输入。
   const nameChangeHandler = (event: ChangeEvent<HTMLInputElement>): void =>
     setName(event.target.value)
-  /** 提交有效名称。
-   * @param event - 表单提交事件
-   * @returns 无返回值；保存非空名称
-   */
+
+  // 提交有效名称。
   const submitRenameHandler = (event: FormEvent<HTMLFormElement>): void => {
     event.preventDefault()
     if (name.trim()) onSave(name)
   }
-  /** 响应弹窗关闭。
-   * @param open - 弹窗是否打开
-   * @returns 无返回值；按需关闭编辑界面
-   */
+
+  // 响应弹窗关闭。
   const openChangeHandler = (open: boolean): void => {
     if (!open) onClose()
   }
-  /** 将关闭后的焦点恢复到条目操作按钮。
-   * @param event - 默认焦点恢复事件
-   * @returns 无返回值；恢复键盘焦点
-   */
+
+  // 将关闭后的焦点恢复到条目操作按钮。
   const restoreFocusHandler = (event: Event): void => {
     event.preventDefault()
     document.getElementById(`drive-actions-${entry.id}`)?.focus()

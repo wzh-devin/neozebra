@@ -12,6 +12,7 @@ import styles from '@/features/dashboard/components/DashboardActivityFeed.module
 
 /**
  * 渲染一条动态，按来源区分图标并展示时间。
+ *
  * @param activity - 动态内容、来源和时间
  * @returns 动态列表项 JSX
  */
@@ -33,6 +34,7 @@ const renderActivityItem = (activity: DashboardActivity) => {
 
 /**
  * 展示工作区动态列表和无动态时的空状态。
+ *
  * @param props - 现有动态列表
  * @returns 动态区域 JSX
  */

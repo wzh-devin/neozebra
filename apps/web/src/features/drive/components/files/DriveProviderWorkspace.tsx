@@ -7,6 +7,7 @@ import type { DriveProvider } from '@/features/drive/types'
 
 /**
  * 组合一个已存在实例的独立文件空间。
+ *
  * @param props - 当前连接实例
  * @returns 文件空间JSX
  */
@@ -21,6 +22,7 @@ const DriveConnectionFiles = ({
 
 /**
  * 解析稳定实例ID并处理未知连接路由。
+ *
  * @param 无参数
  * @returns 实例文件空间或返回总览的导航
  */

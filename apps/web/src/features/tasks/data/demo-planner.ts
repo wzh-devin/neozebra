@@ -1,7 +1,9 @@
 import { addDays, buildTask } from '@/features/tasks/data/task-planner'
 import type { TaskPlannerData } from '@/features/tasks/types'
 
-/** 生成 synthetic/local mock，只有主动选择示例时才加载。
+/**
+ * 生成 synthetic/local mock，只有主动选择示例时才加载。
+ *
  * @param today - 当前日期
  * @returns 示例规划
  */

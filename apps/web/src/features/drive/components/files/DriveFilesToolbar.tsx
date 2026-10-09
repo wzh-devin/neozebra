@@ -43,16 +43,13 @@ const DriveFilesToolbar = ({
   setSearchQuery,
   createFolder,
 }: DriveFilesToolbarProps) => {
-  /**
-   * 更新文件搜索条件。
-   *
-   * @param event - 搜索输入事件
-   * @returns 无返回值；更新本地搜索状态
-   */
+  // 更新文件搜索条件。
   const searchChangeHandler = (event: ChangeEvent<HTMLInputElement>): void =>
     setSearchQuery(event.target.value)
 
-  /** 渲染当前目录路径中的一项。
+  /**
+   * 渲染当前目录路径中的一项。
+   *
    * @param directory - 路径目录
    * @param index - 路径位置
    * @returns 当前目录文本或可返回的父目录链接

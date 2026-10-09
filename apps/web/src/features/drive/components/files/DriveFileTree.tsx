@@ -78,27 +78,21 @@ const DriveTreeNodeView = ({
     }
   }
 
-  /** 选中当前目录。
-   * @param 无参数
-   * @returns 无返回值；更新选中的目录路由
-   */
+  // 选中当前目录。
   const selectNodeHandler = (): void => onSelect(node.id)
-  /** 新建本地目录。
-   * @param 无参数
-   * @returns 无返回值；触发目录新建操作
-   */
+
+  // 新建本地目录。
   const createNodeHandler = (): void => onAction('New folder', node)
-  /** 请求目录重命名反馈。
-   * @param 无参数
-   * @returns 无返回值；显示本地操作反馈
-   */
+
+  // 请求目录重命名反馈。
   const renameNodeHandler = (): void => onAction('Rename', node)
-  /** 请求目录删除反馈。
-   * @param 无参数
-   * @returns 无返回值；显示本地操作反馈
-   */
+
+  // 请求目录删除反馈。
   const deleteNodeHandler = (): void => onAction('Delete', node)
-  /** 渲染一个子目录节点。
+
+  /**
+   * 渲染一个子目录节点。
+   *
    * @param child - 子目录节点
    * @returns 子目录节点 JSX
    */

@@ -19,7 +19,9 @@ type DriveFilePreviewContentProps = {
   name: string
 }
 
-/** 展示文件内容及浏览器解码中的加载、失败状态。
+/**
+ * 展示文件内容及浏览器解码中的加载、失败状态。
+ *
  * @param props - 已读取的文件内容和可访问名称
  * @returns 安全纯文本或浏览器媒体预览 JSX
  */
@@ -31,15 +33,11 @@ const DriveFilePreviewContent = ({
   const [isLoading, setIsLoading] = useState(
     ['image', 'audio', 'video'].includes(preview.kind),
   )
-  /** 完成媒体解码。
-   * @param 无参数
-   * @returns 无返回值；隐藏加载反馈
-   */
+
+  // 完成媒体解码。
   const mediaLoadHandler = (): void => setIsLoading(false)
-  /** 处理媒体读取或解码失败。
-   * @param 无参数
-   * @returns 无返回值；显示失败状态
-   */
+
+  // 处理媒体读取或解码失败。
   const mediaErrorHandler = (): void => setHasError(true)
 
   if (hasError)
