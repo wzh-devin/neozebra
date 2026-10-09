@@ -42,8 +42,21 @@
   border-color: var(--ring);
   box-shadow: none;
 }
+.surface
+  [data-slot='input-group']:has(
+    [data-slot='input-group-control']:focus-visible
+  ):not(:has([aria-invalid='true'])) {
+  border-color: var(--ring);
+  box-shadow: none;
+}
 .surface[data-slot='select-content'] {
   padding: 4px;
+  animation: none;
+  scale: none;
+}
+.surface [data-slot='select-trigger'] {
+  scale: none;
+  transform: none;
 }
 .surface :is([data-slot='select-item'], [data-slot='dropdown-menu-item']) {
   min-height: 30px;

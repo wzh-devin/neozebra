@@ -49,7 +49,7 @@ import { useTaskPlanner } from '@/features/tasks/hooks/useTaskPlanner'
 import { useTaskRoute } from '@/features/tasks/hooks/useTaskRoute'
 import type { TaskProject } from '@/features/tasks/types'
 import styles from '@/features/tasks/components/TaskPageContent.module.css'
-import surfaceStyles from '@/features/tasks/styles/task-surfaces.module.css'
+import surfaceStyles from '@/components/shared/workbench-surface/WorkbenchSurface.module.css'
 
 const navigationList = [
   { value: 'all', label: '待完成', icon: ListTodo },

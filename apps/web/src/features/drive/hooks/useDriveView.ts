@@ -1,23 +1,33 @@
+import { atom, useAtom } from 'jotai'
 import { useMemo, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 
+import { getDriveEntryList } from '@/features/drive/data/mockDrive'
+import { formatDriveFileSize } from '@/features/drive/data/drive-file-preview'
 import {
-  driveProviderList,
-  getDriveChildrenList,
-  getDriveEntryList,
-  getDriveRootNode,
-} from '@/features/drive/data/mockDrive'
+  buildDriveRootNode,
+  buildDriveDirectoryEntryList,
+  getDriveDirectoryPathList,
+  updateDriveDirectoryNode,
+} from '@/features/drive/data/drive-directories'
 import type {
   DriveEntry,
   DriveProvider,
-  DriveProviderId,
   DriveTreeNode,
 } from '@/features/drive/types'
+
+type DriveFileState = {
+  rootNode: DriveTreeNode
+  entryListMap: Record<string, DriveEntry[]>
+}
+// synthetic/local mock文件操作按连接ID保留在当前会话，不调用真实存储。
+const fileStateMapAtom = atom<Record<string, DriveFileState>>({})
 
 type DriveView = {
   provider: DriveProvider
   rootNode: DriveTreeNode
+  directoryPathList: DriveTreeNode[]
   selectedDirectoryId: string
   expandedSet: Set<string>
   visibleEntryList: DriveEntry[]
@@ -26,9 +36,9 @@ type DriveView = {
   toggleDirectory: (nodeId: string) => void
   selectDirectory: (nodeId: string) => void
   createFolder: () => void
-  uploadFile: (fileName: string) => void
+  uploadFile: (file: File) => void
   deleteEntry: (entryId: string) => void
-  renameEntry: (entryId: string) => void
+  renameEntry: (entryId: string, nextName: string) => void
   showEntryFeedback: (action: string, entryName: string) => void
 }
 
@@ -36,88 +46,74 @@ type DriveView = {
  * 从当前 URL 中解析 Drive 选中的目录标识。
  *
  * @param pathname - 当前浏览器路径
- * @param providerId - Provider 标识
  * @returns 当前目录标识
  */
-const getSelectedDirectoryId = (
-  pathname: string,
-  providerId: DriveProviderId,
-): string => {
-  const pathParts = pathname.split('/').filter(Boolean)
-  const providerIndex = pathParts.indexOf(providerId)
-  const directoryId =
-    providerIndex >= 0 ? pathParts[providerIndex + 1] : undefined
-
-  return directoryId || 'root'
-}
-
-/**
- * 在文件树中递归替换一个目录节点。
- *
- * @param node - 当前树节点
- * @param nodeId - 目标节点标识
- * @param children - 目标节点的新子目录
- * @returns 更新后的树节点
- */
-const updateDriveTreeNode = (
-  node: DriveTreeNode,
-  nodeId: string,
-  children: DriveTreeNode[],
-): DriveTreeNode => {
-  if (node.id === nodeId) {
-    return { ...node, children }
-  }
-
-  if (!node.children?.length) {
-    return node
-  }
-
-  return {
-    ...node,
-    children: node.children.map((child) =>
-      updateDriveTreeNode(child, nodeId, children),
-    ),
-  }
-}
+const getSelectedDirectoryId = (pathname: string): string =>
+  pathname.split('/').filter(Boolean)[3] || 'root'
 
 /**
  * 管理 Drive Provider、文件树、目录内容和本地文件操作。
  *
- * @param providerId - 当前 Provider 标识
+ * @param provider - 当前连接实例
  * @returns Drive 页面所需的状态和操作
  */
-const useDriveView = (providerId: DriveProviderId): DriveView => {
+const useDriveView = (provider: DriveProvider): DriveView => {
   const location = useLocation()
   const navigate = useNavigate()
-  const provider =
-    driveProviderList.find((item) => item.id === providerId) ??
-    driveProviderList[0]
-  const [rootNode, setRootNode] = useState(() => getDriveRootNode(providerId))
+  const [fileStateMap, setFileStateMap] = useAtom(fileStateMapAtom)
+  const initialRoot = useMemo(() => buildDriveRootNode(provider), [provider])
+  const fileState = Object.hasOwn(fileStateMap, provider.id)
+    ? fileStateMap[provider.id]
+    : { rootNode: initialRoot, entryListMap: {} }
+  const rootNode = { ...fileState.rootNode, name: provider.name }
   const [expandedSet, setExpandedSet] = useState<Set<string>>(new Set(['root']))
   const [searchQuery, setSearchQuery] = useState('')
-  const [entryListMap, setEntryListMap] = useState<
-    Record<string, DriveEntry[]>
-  >({})
-  const selectedDirectoryId = getSelectedDirectoryId(
-    location.pathname,
-    providerId,
+  const selectedDirectoryId = getSelectedDirectoryId(location.pathname)
+  const entryKey = selectedDirectoryId
+  const sourceEntryList =
+    fileState.entryListMap[entryKey] ??
+    (provider.id === provider.providerId
+      ? getDriveEntryList(provider.providerId, selectedDirectoryId)
+      : [])
+  const directoryPathList = getDriveDirectoryPathList(
+    rootNode,
+    selectedDirectoryId,
   )
-  const entryKey = `${providerId}:${selectedDirectoryId}`
-  const entryList =
-    entryListMap[entryKey] ?? getDriveEntryList(providerId, selectedDirectoryId)
 
-  const visibleEntryList = useMemo(() => {
-    const normalizedQuery = searchQuery.trim().toLowerCase()
+  const entryList = buildDriveDirectoryEntryList(
+    directoryPathList.at(-1),
+    sourceEntryList,
+  )
 
-    return normalizedQuery
-      ? entryList.filter((entry) =>
-          entry.name.toLowerCase().includes(normalizedQuery),
-        )
-      : entryList
-  }, [entryList, searchQuery])
+  /** 保存当前实例的目录和条目状态。
+   * @param nextState - 更新后的文件空间状态
+   * @returns 无返回值；仅更新当前连接的内存数据
+   */
+  const updateFileState = (nextState: DriveFileState): void =>
+    setFileStateMap((currentMap) => ({
+      ...currentMap,
+      [provider.id]: nextState,
+    }))
+  /** 保存当前目录的条目列表及同步后的目录树。
+   * @param nextList - 新文件条目列表
+   * @param nextRoot - 更新后的目录树
+   * @returns 无返回值；更新当前实例状态
+   */
+  const updateEntryList = (nextList: DriveEntry[], nextRoot = rootNode): void =>
+    updateFileState({
+      rootNode: nextRoot,
+      entryListMap: { ...fileState.entryListMap, [entryKey]: nextList },
+    })
+
+  const normalizedQuery = searchQuery.trim().toLowerCase()
+  const visibleEntryList = normalizedQuery
+    ? entryList.filter((entry) =>
+        entry.name.toLowerCase().includes(normalizedQuery),
+      )
+    : entryList
 
   /**
-   * 展开或收起一个目录节点，并在首次展开时注入子目录。
+   * 展开或收起一个目录节点，保留已有子目录。
    *
    * @param nodeId - 目录标识
    * @returns 无返回值；更新树展开状态
@@ -133,16 +129,6 @@ const useDriveView = (providerId: DriveProviderId): DriveView => {
       }
       return nextSet
     })
-
-    if (!isExpanded) {
-      setRootNode((currentRoot) =>
-        updateDriveTreeNode(
-          currentRoot,
-          nodeId,
-          getDriveChildrenList(providerId, nodeId),
-        ),
-      )
-    }
   }
 
   /**
@@ -153,7 +139,7 @@ const useDriveView = (providerId: DriveProviderId): DriveView => {
    */
   const selectDirectory = (nodeId: string): void => {
     navigate(
-      `/assets/drive/${providerId}${nodeId === 'root' ? '' : `/${nodeId}`}`,
+      `/assets/drive/${provider.id}${nodeId === 'root' ? '' : `/${nodeId}`}`,
     )
   }
 
@@ -165,40 +151,59 @@ const useDriveView = (providerId: DriveProviderId): DriveView => {
    */
   const createFolder = (): void => {
     const newEntry: DriveEntry = {
-      id: `folder-${Date.now()}`,
+      id: `folder-${crypto.randomUUID()}`,
       name: 'New folder',
       kind: 'folder',
       size: '—',
       updatedAt: 'Just now',
       parentId: selectedDirectoryId,
     }
-    setEntryListMap((currentMap) => ({
-      ...currentMap,
-      [entryKey]: [...entryList, newEntry],
-    }))
+    /** 将新目录加入当前父目录。
+     * @param node - 父目录
+     * @returns 含新子目录的父节点
+     */
+    const addDirectory = (node: DriveTreeNode): DriveTreeNode => ({
+      ...node,
+      hasChildren: true,
+      children: [
+        ...(node.children ?? []),
+        {
+          id: newEntry.id,
+          name: newEntry.name,
+          kind: 'folder',
+          hasChildren: false,
+          children: [],
+        },
+      ],
+    })
+    updateEntryList(
+      [...entryList, newEntry],
+      updateDriveDirectoryNode(rootNode, selectedDirectoryId, addDirectory),
+    )
+    setExpandedSet(
+      (currentSet) => new Set([...currentSet, selectedDirectoryId]),
+    )
     toast('Folder created')
   }
 
   /**
    * 将选中的本地文件加入当前 mock 目录。
    *
-   * @param fileName - 文件名
+   * @param file - 当前会话保留的本地文件
    * @returns 无返回值；更新当前目录并触发反馈
    */
-  const uploadFile = (fileName: string): void => {
+  const uploadFile = (file: File): void => {
     const newEntry: DriveEntry = {
-      id: `file-${Date.now()}`,
-      name: fileName,
+      id: `file-${crypto.randomUUID()}`,
+      name: file.name,
       kind: 'file',
-      size: 'Local file',
+      size: formatDriveFileSize(file.size),
       updatedAt: 'Just now',
       parentId: selectedDirectoryId,
+      localFile: file,
     }
-    setEntryListMap((currentMap) => ({
-      ...currentMap,
-      [entryKey]: [...entryList, newEntry],
-    }))
-    toast(`${fileName} uploaded`)
+    updateEntryList([...entryList, newEntry])
+    toast(`${file.name} uploaded`)
   }
 
   /**
@@ -208,32 +213,61 @@ const useDriveView = (providerId: DriveProviderId): DriveView => {
    * @returns 无返回值；更新当前目录并触发反馈
    */
   const deleteEntry = (entryId: string): void => {
-    setEntryListMap((currentMap) => ({
-      ...currentMap,
-      [entryKey]: entryList.filter((entry) => entry.id !== entryId),
-    }))
+    /** 删除目录树中的同名条目。
+     * @param node - 当前父目录
+     * @returns 删除后的父节点
+     */
+    const removeDirectory = (node: DriveTreeNode): DriveTreeNode => {
+      const children = (node.children ?? []).filter(
+        (child) => child.id !== entryId,
+      )
+      return { ...node, children, hasChildren: children.length > 0 }
+    }
+    const nextRoot = updateDriveDirectoryNode(
+      rootNode,
+      selectedDirectoryId,
+      removeDirectory,
+    )
+    const nextEntryListMap = Object.fromEntries(
+      Object.entries({
+        ...fileState.entryListMap,
+        [entryKey]: entryList.filter((entry) => entry.id !== entryId),
+      }).filter(
+        ([directoryId]) =>
+          getDriveDirectoryPathList(nextRoot, directoryId).length > 0,
+      ),
+    )
+    updateFileState({ rootNode: nextRoot, entryListMap: nextEntryListMap })
     toast('Item deleted')
   }
 
   /**
-   * 使用原生输入修改 mock 条目名称。
+   * 保存表单输入的 mock 条目名称。
    *
    * @param entryId - 条目标识
-   * @returns 无返回值；更新当前目录或取消操作
+   * @param nextName - 输入的新名称
+   * @returns 无返回值；更新当前目录并触发反馈，忽略无效输入
    */
-  const renameEntry = (entryId: string): void => {
+  const renameEntry = (entryId: string, nextName: string): void => {
     const entry = entryList.find((item) => item.id === entryId)
-    const nextName = entry ? window.prompt('Rename item', entry.name) : null
-    if (!entry || !nextName?.trim()) {
+    if (!entry || !nextName.trim()) {
       return
     }
 
-    setEntryListMap((currentMap) => ({
-      ...currentMap,
-      [entryKey]: entryList.map((item) =>
+    /** 同步目录树中的名称。
+     * @param node - 目标目录
+     * @returns 使用新名称的目录
+     */
+    const renameDirectory = (node: DriveTreeNode): DriveTreeNode => ({
+      ...node,
+      name: nextName.trim(),
+    })
+    updateEntryList(
+      entryList.map((item) =>
         item.id === entryId ? { ...item, name: nextName.trim() } : item,
       ),
-    }))
+      updateDriveDirectoryNode(rootNode, entryId, renameDirectory),
+    )
     toast('Item renamed')
   }
 
@@ -251,6 +285,7 @@ const useDriveView = (providerId: DriveProviderId): DriveView => {
   return {
     provider,
     rootNode,
+    directoryPathList,
     selectedDirectoryId,
     expandedSet,
     visibleEntryList,

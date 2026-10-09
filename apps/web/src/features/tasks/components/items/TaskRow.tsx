@@ -41,7 +41,7 @@ import { TaskSubtaskList } from '@/features/tasks/components/items/TaskSubtaskLi
 import { restoreTaskFocusHandler } from '@/features/tasks/utils/task-focus'
 import type { TaskItem, TaskSubtask } from '@/features/tasks/types'
 import styles from '@/features/tasks/components/items/TaskRow.module.css'
-import surfaceStyles from '@/features/tasks/styles/task-surfaces.module.css'
+import surfaceStyles from '@/components/shared/workbench-surface/WorkbenchSurface.module.css'
 
 type Props = {
   task: TaskItem

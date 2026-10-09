@@ -13,7 +13,7 @@ import {
   formatTaskCalendarDate,
   getLocalDate,
 } from '@/features/tasks/data/task-planner'
-import surfaceStyles from '@/features/tasks/styles/task-surfaces.module.css'
+import surfaceStyles from '@/components/shared/workbench-surface/WorkbenchSurface.module.css'
 
 type Props = {
   label: string

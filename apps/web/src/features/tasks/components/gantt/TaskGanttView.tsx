@@ -43,7 +43,7 @@ import { useTaskPlannerContext } from '@/features/tasks/hooks/TaskPlannerContext
 import type { TaskItem, TaskProject, TaskStatus } from '@/features/tasks/types'
 import styles from '@/features/tasks/components/gantt/TaskGanttView.module.css'
 import panelStyles from '@/features/tasks/styles/task-panels.module.css'
-import surfaceStyles from '@/features/tasks/styles/task-surfaces.module.css'
+import surfaceStyles from '@/components/shared/workbench-surface/WorkbenchSurface.module.css'
 
 const statusColorRecord: Record<TaskStatus, string> = {
   todo: 'var(--muted-foreground)',

@@ -9,7 +9,7 @@ import {
 } from '@/components/ui/popover'
 import { useTaskPlannerContext } from '@/features/tasks/hooks/TaskPlannerContext'
 import type { TaskSection } from '@/features/tasks/types'
-import surfaceStyles from '@/features/tasks/styles/task-surfaces.module.css'
+import surfaceStyles from '@/components/shared/workbench-surface/WorkbenchSurface.module.css'
 
 /** 在项目内新增或重命名阶段。
  * @param props - 当前阶段与项目

@@ -1,0 +1,129 @@
+.table {
+  min-width: 0;
+  min-height: 0;
+  flex: 1;
+  overflow: auto;
+}
+
+.table table {
+  width: 100%;
+  table-layout: fixed;
+}
+
+.table th {
+  height: 36px;
+  color: var(--muted-foreground);
+  font-size: 11px;
+  font-weight: 450;
+}
+
+.row td {
+  height: 52px;
+  color: var(--muted-foreground);
+  font-size: 12px;
+}
+
+.name {
+  width: 50%;
+  padding-left: 20px;
+}
+
+.updated {
+  width: 25%;
+}
+
+.size {
+  width: calc(25% - 52px);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.actions {
+  width: 52px;
+  padding-right: 12px;
+  text-align: right;
+}
+
+.entry {
+  display: inline-flex;
+  width: 100%;
+  min-width: 0;
+  align-items: center;
+  gap: 10px;
+  border: 0;
+  padding: 4px 0;
+  color: var(--foreground);
+  background: transparent;
+  font: inherit;
+  text-align: left;
+}
+
+button.entry:hover {
+  color: var(--project-purple);
+}
+
+button.entry:focus-visible {
+  border-radius: 4px;
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+.copy {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.copy strong {
+  font-weight: 450;
+}
+
+.copy > span {
+  display: none;
+}
+
+.action-button {
+  color: var(--muted-foreground);
+}
+
+@media (max-width: 767px) {
+  .row td {
+    height: 64px;
+  }
+
+  .name {
+    width: auto;
+    padding-left: 16px;
+  }
+
+  .updated {
+    display: none;
+  }
+
+  .size {
+    width: 72px;
+    font-size: 11px;
+  }
+
+  .actions {
+    width: 48px;
+    padding-right: 8px;
+  }
+
+  .copy > span {
+    display: block;
+    color: var(--muted-foreground);
+    font-size: 10px;
+  }
+
+  button.entry,
+  .action-button {
+    min-height: 44px;
+  }
+
+  .action-button {
+    width: 36px;
+  }
+}

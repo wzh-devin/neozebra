@@ -1,3 +1,4 @@
+// synthetic/local mock：Provider、目录和文件数据用于本地界面演示，未连接真实存储。
 import type {
   DriveEntry,
   DriveProvider,
@@ -8,6 +9,7 @@ import type {
 const driveProviderList: DriveProvider[] = [
   {
     id: 'baidu',
+    providerId: 'baidu',
     name: 'Baidu Drive',
     description: 'Personal cloud storage',
     status: 'connected',
@@ -15,6 +17,7 @@ const driveProviderList: DriveProvider[] = [
   },
   {
     id: 'aliyun',
+    providerId: 'aliyun',
     name: 'Aliyun Drive',
     description: 'Shared workspace storage',
     status: 'connected',
@@ -22,6 +25,7 @@ const driveProviderList: DriveProvider[] = [
   },
   {
     id: 'minio',
+    providerId: 'minio',
     name: 'MinIO',
     description: 'Self-hosted object storage',
     status: 'connected',

@@ -1,0 +1,98 @@
+.card {
+  min-width: 0;
+  align-self: start;
+  gap: 16px;
+  border: 1px solid var(--border);
+  padding-block: 24px 16px;
+  background: var(--card);
+  box-shadow: none;
+  --tw-ring-color: transparent;
+  --card-spacing: 24px;
+}
+.header {
+  gap: 6px;
+}
+.header h2 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 500;
+}
+.header p {
+  margin: 0;
+  color: var(--muted-foreground);
+  font-size: 12px;
+  line-height: 1.6;
+}
+.actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+a.link {
+  display: grid;
+  width: 100%;
+  min-width: 0;
+  height: 132px;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-rows: 1fr auto;
+  align-items: start;
+  gap: 16px 8px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px;
+  background: transparent;
+  box-shadow: none;
+  font-size: 13px;
+  font-weight: 500;
+  text-align: left;
+  white-space: normal;
+}
+.mark {
+  display: flex;
+  width: 36px;
+  height: 36px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  background: var(--muted);
+}
+.label {
+  min-width: 0;
+  grid-column: 1 / -1;
+  grid-row: 2;
+  overflow-wrap: anywhere;
+}
+.arrow {
+  grid-column: 2;
+  grid-row: 1;
+  margin-top: 10px;
+  color: var(--muted-foreground);
+}
+.inbox-icon {
+  color: var(--project-teal);
+}
+.task-icon {
+  color: var(--project-purple);
+}
+a.link:focus-visible {
+  outline: 1px solid var(--ring);
+  outline-offset: 2px;
+  box-shadow: none;
+}
+a.link:hover {
+  border-color: var(--input);
+  background: var(--accent);
+}
+@media (max-width: 479px) {
+  .card {
+    padding-block: 20px;
+    --card-spacing: 16px;
+  }
+  .actions {
+    gap: 10px;
+  }
+  a.link {
+    height: 124px;
+    padding: 14px 12px;
+  }
+}

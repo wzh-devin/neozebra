@@ -1,0 +1,140 @@
+.empty {
+  min-height: 320px;
+  flex: 1;
+  gap: 28px;
+  border: 0;
+  padding: 32px 24px;
+}
+
+.header {
+  max-width: 420px;
+  gap: 8px;
+}
+
+.folder,
+.search {
+  display: flex;
+  width: 64px;
+  height: 64px;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 12px;
+  border-radius: 16px;
+}
+
+.folder {
+  color: var(--project-amber);
+  background: color-mix(in oklch, var(--project-amber) 8%, transparent);
+}
+
+.search {
+  color: var(--muted-foreground);
+  background: var(--muted);
+}
+
+.folder svg,
+.search svg {
+  width: 28px;
+  height: 28px;
+}
+
+.title {
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.description {
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.actions {
+  display: grid;
+  width: 100%;
+  max-width: 420px;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 190px), 1fr));
+  gap: 12px;
+}
+
+button.action {
+  width: 100%;
+  height: auto;
+  min-height: 76px;
+  justify-content: flex-start;
+  gap: 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+  color: var(--foreground);
+  background: transparent;
+  text-align: left;
+  white-space: normal;
+  transition:
+    background-color 150ms ease,
+    border-color 150ms ease;
+}
+
+button.action:hover {
+  border-color: var(--input);
+  background: var(--card);
+}
+
+button.action:focus-visible {
+  border-color: var(--ring);
+  outline: 1px solid var(--ring);
+  outline-offset: 3px;
+  box-shadow: none;
+}
+
+button.action svg {
+  width: 20px;
+  height: 20px;
+}
+
+.upload-icon {
+  color: var(--project-blue);
+}
+
+.folder-icon {
+  color: var(--project-amber);
+}
+
+.copy {
+  display: grid;
+  min-width: 0;
+  gap: 4px;
+}
+
+.copy strong {
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.copy > span {
+  color: var(--muted-foreground);
+  font-size: 11px;
+  font-weight: 400;
+  line-height: 1.5;
+}
+
+@media (max-width: 479px) {
+  .empty {
+    gap: 24px;
+  }
+
+  .actions {
+    max-width: 280px;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  button.action {
+    min-height: 68px;
+    padding-block: 12px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  button.action {
+    transition: none;
+  }
+}

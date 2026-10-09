@@ -13,6 +13,7 @@ import {
 } from '@/components/ui/select'
 import { DialogFooter } from '@/components/ui/dialog'
 import { TaskEditorFrame } from '@/features/tasks/components/editors/TaskEditorFrame'
+import { EditorField } from '@/components/shared/editor-dialog'
 import { Textarea } from '@/components/ui/textarea'
 import { TaskDatePicker } from '@/features/tasks/components/editors/TaskDatePicker'
 import { TaskSubtaskList } from '@/features/tasks/components/items/TaskSubtaskList'
@@ -28,8 +29,9 @@ import type {
   TaskStatus,
   TaskSubtask,
 } from '@/features/tasks/types'
+import formStyles from '@/components/shared/editor-dialog/EditorForm.module.css'
 import styles from '@/features/tasks/components/editors/TaskEditor.module.css'
-import surfaceStyles from '@/features/tasks/styles/task-surfaces.module.css'
+import surfaceStyles from '@/components/shared/workbench-surface/WorkbenchSurface.module.css'
 
 type Props = {
   task?: TaskItem
@@ -192,14 +194,13 @@ export const TaskEditor = ({
       }
       onClose={onClose}
     >
-      <div className={styles.form}>
+      <div className={formStyles.form}>
         <form
           id="task-editor-form"
           onSubmit={submitHandler}
-          className={styles.fields}
+          className={formStyles.fields}
         >
-          <div className={styles.field}>
-            <Label htmlFor="task-editor-title">任务标题</Label>
+          <EditorField id="task-editor-title" label="任务标题">
             <Input
               id="task-editor-title"
               name="title"
@@ -210,9 +211,8 @@ export const TaskEditor = ({
               required
               maxLength={200}
             />
-          </div>
-          <div className={styles.field}>
-            <Label htmlFor="task-editor-description">说明</Label>
+          </EditorField>
+          <EditorField id="task-editor-description" label="说明">
             <Textarea
               id="task-editor-description"
               name="description"
@@ -222,9 +222,9 @@ export const TaskEditor = ({
               maxLength={10000}
               rows={4}
             />
-          </div>
+          </EditorField>
           <div className={styles.twoColumns}>
-            <div className={styles.field}>
+            <div className={formStyles.field}>
               <Label htmlFor="task-editor-project">所属项目</Label>
               <Select
                 value={draft.projectId ?? 'none'}
@@ -249,7 +249,7 @@ export const TaskEditor = ({
                 </SelectContent>
               </Select>
             </div>
-            <div className={styles.field}>
+            <div className={formStyles.field}>
               <Label htmlFor="task-editor-section">项目阶段</Label>
               <Select
                 value={draft.sectionId ?? 'none'}
@@ -278,7 +278,7 @@ export const TaskEditor = ({
             </div>
           </div>
           <div className={styles.twoColumns}>
-            <div className={styles.field}>
+            <div className={formStyles.field}>
               <Label>准备在哪天做</Label>
               <TaskDatePicker
                 label="计划日期"
@@ -286,7 +286,7 @@ export const TaskEditor = ({
                 onChange={plannedDateHandler}
               />
             </div>
-            <div className={styles.field}>
+            <div className={formStyles.field}>
               <Label>最晚在哪天完成</Label>
               <TaskDatePicker
                 label="截止日期"
@@ -296,7 +296,7 @@ export const TaskEditor = ({
             </div>
           </div>
           <div className={styles.twoColumns}>
-            <div className={styles.field}>
+            <div className={formStyles.field}>
               <Label htmlFor="task-editor-priority">优先级</Label>
               <Select
                 value={draft.priority}
@@ -319,7 +319,7 @@ export const TaskEditor = ({
                 </SelectContent>
               </Select>
             </div>
-            <div className={styles.field}>
+            <div className={formStyles.field}>
               <Label htmlFor="task-editor-status">状态</Label>
               <Select value={draft.status} onValueChange={statusChangeHandler}>
                 <SelectTrigger id="task-editor-status">
@@ -345,7 +345,7 @@ export const TaskEditor = ({
             </div>
           </div>
           <div className={styles.twoColumns}>
-            <div className={styles.field}>
+            <div className={formStyles.field}>
               <Label htmlFor="task-editor-estimate">预计用时（分钟）</Label>
               <Input
                 id="task-editor-estimate"
@@ -358,7 +358,7 @@ export const TaskEditor = ({
                 placeholder="例如 30"
               />
             </div>
-            <div className={styles.field}>
+            <div className={formStyles.field}>
               <Label htmlFor="task-editor-labels">标签</Label>
               <Input
                 id="task-editor-labels"
@@ -387,7 +387,7 @@ export const TaskEditor = ({
             {saveError}
           </p>
         ) : null}
-        <DialogFooter className={styles.footer}>
+        <DialogFooter className={formStyles.footer}>
           <Button type="button" variant="outline" onClick={onClose}>
             取消
           </Button>

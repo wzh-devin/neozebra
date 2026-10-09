@@ -14,6 +14,7 @@ import {
 } from '@/components/ui/select'
 import { DialogFooter } from '@/components/ui/dialog'
 import { TaskEditorFrame } from '@/features/tasks/components/editors/TaskEditorFrame'
+import { EditorField } from '@/components/shared/editor-dialog'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -37,8 +38,9 @@ import type {
   ProjectIcon,
   TaskProject,
 } from '@/features/tasks/types'
+import formStyles from '@/components/shared/editor-dialog/EditorForm.module.css'
 import styles from '@/features/tasks/components/editors/TaskEditor.module.css'
-import surfaceStyles from '@/features/tasks/styles/task-surfaces.module.css'
+import surfaceStyles from '@/components/shared/workbench-surface/WorkbenchSurface.module.css'
 
 const colorLabelRecord = {
   purple: '紫',
@@ -174,9 +176,8 @@ export const TaskProjectEditor = ({
       description={'给目标一个名字，再把它拆成可以完成的小事。'}
       onClose={onClose}
     >
-      <form className={styles.form} onSubmit={submitHandler}>
-        <div className={styles.field}>
-          <Label htmlFor="project-name">项目名称</Label>
+      <form className={formStyles.form} onSubmit={submitHandler}>
+        <EditorField id="project-name" label="项目名称">
           <Input
             id="project-name"
             name="name"
@@ -187,9 +188,8 @@ export const TaskProjectEditor = ({
             maxLength={80}
             placeholder="例如：个人网站改版"
           />
-        </div>
-        <div className={styles.field}>
-          <Label htmlFor="project-description">目标说明</Label>
+        </EditorField>
+        <EditorField id="project-description" label="目标说明">
           <Textarea
             id="project-description"
             name="description"
@@ -199,8 +199,8 @@ export const TaskProjectEditor = ({
             rows={4}
             placeholder="这次计划希望达成什么？"
           />
-        </div>
-        <div className={styles.field}>
+        </EditorField>
+        <div className={formStyles.field}>
           <Label id="project-colors-label">项目颜色</Label>
           <RadioGroup
             aria-labelledby="project-colors-label"
@@ -227,7 +227,7 @@ export const TaskProjectEditor = ({
           </RadioGroup>
         </div>
         <div className={styles.twoColumns}>
-          <div className={styles.field}>
+          <div className={formStyles.field}>
             <Label htmlFor="project-icon">项目图标</Label>
             <Select value={draft.icon} onValueChange={iconChangeHandler}>
               <SelectTrigger id="project-icon">
@@ -247,7 +247,7 @@ export const TaskProjectEditor = ({
               </SelectContent>
             </Select>
           </div>
-          <div className={styles.field}>
+          <div className={formStyles.field}>
             <Label>项目截止</Label>
             <TaskDatePicker
               label="项目截止日期"
@@ -261,7 +261,7 @@ export const TaskProjectEditor = ({
             {error}
           </p>
         ) : null}
-        <DialogFooter className={styles.footer}>
+        <DialogFooter className={formStyles.footer}>
           <Button type="button" variant="outline" onClick={onClose}>
             取消
           </Button>

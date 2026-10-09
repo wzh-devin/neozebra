@@ -2,12 +2,61 @@ export type DriveProviderId = 'baidu' | 'aliyun' | 'minio'
 export type DriveEntryKind = 'folder' | 'file'
 
 export type DriveProvider = {
-  id: DriveProviderId
+  id: string
+  providerId: DriveProviderId
   name: string
   description: string
-  status: 'connected' | 'notConnected'
+  status: 'connected' | 'configured'
   lastSyncedAt: string
+  options?: DriveMountOptions
 }
+
+export type DriveMountOptions =
+  | {
+      providerId: 'minio'
+      endpoint: string
+      bucket: string
+      region: string
+      prefix: string
+    }
+  | { providerId: 'baidu'; rootPath: string }
+  | {
+      providerId: 'aliyun'
+      rootPath: string
+      driveType: 'default' | 'resource' | 'backup'
+    }
+
+export type DriveConnectionDraft = { name: string } & (
+  | {
+      providerId: 'minio'
+      endpoint: string
+      bucket: string
+      region: string
+      prefix: string
+      accessKey: string
+      secretKey: string
+      sessionToken: string
+    }
+  | {
+      providerId: 'baidu'
+      rootPath: string
+      authMode: 'accessToken' | 'refreshToken'
+      accessToken: string
+      refreshToken: string
+      clientId: string
+      clientSecret: string
+    }
+  | {
+      providerId: 'aliyun'
+      rootPath: string
+      driveType: 'default' | 'resource' | 'backup'
+      authMode: 'accessToken' | 'refreshToken'
+      accessToken: string
+      refreshToken: string
+      clientId: string
+      clientSecret: string
+    }
+)
 
 export type DriveTreeNode = {
   id: string
@@ -24,4 +73,5 @@ export type DriveEntry = {
   size: string
   updatedAt: string
   parentId: string
+  localFile?: File
 }

@@ -30,7 +30,7 @@ const AppRouter = () => (
         <Route path="task/:taskId" element={<TaskPage />} />
         <Route path="assets/drive">
           <Route index element={<DrivePage />} />
-          <Route path=":providerId/*" element={<DriveProviderPage />} />
+          <Route path=":connectionId/*" element={<DriveProviderPage />} />
         </Route>
         <Route path="*" element={<Navigate to="/dashboard" replace />} />
       </Route>

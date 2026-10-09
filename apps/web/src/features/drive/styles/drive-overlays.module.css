@@ -1,0 +1,28 @@
+.menu {
+  min-width: 180px;
+  padding: 4px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: color-mix(in oklch, var(--task-background), var(--foreground) 4%);
+  box-shadow: none;
+}
+
+.menu [data-slot$='menu-item'] {
+  min-height: 32px;
+  gap: 8px;
+  padding: 6px 8px;
+  font-size: 12px;
+}
+
+.dialog {
+  width: min(400px, calc(100vw - 32px));
+  max-width: none;
+  background: var(--task-background);
+}
+
+@media (max-width: 767px) {
+  .menu [data-slot$='menu-item'],
+  .dialog button {
+    min-height: 44px;
+  }
+}

@@ -23,7 +23,7 @@ import {
 import type { TaskCollectionFilters as FilterValues } from '@/features/tasks/data/task-collection'
 import type { TaskProject } from '@/features/tasks/types'
 import styles from '@/features/tasks/components/collection/TaskCollectionFilters.module.css'
-import surfaceStyles from '@/features/tasks/styles/task-surfaces.module.css'
+import surfaceStyles from '@/components/shared/workbench-surface/WorkbenchSurface.module.css'
 
 type Props = {
   filters: FilterValues

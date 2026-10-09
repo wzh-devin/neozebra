@@ -1,0 +1,19 @@
+.icon {
+  width: 17px;
+  height: 17px;
+  flex-shrink: 0;
+  color: var(--project-amber);
+}
+
+.icon[data-folder-type='documents'] {
+  color: var(--project-blue);
+}
+
+.icon[data-folder-type='projects'] {
+  color: var(--project-purple);
+}
+
+.icon[data-folder-type='shared'],
+.icon[data-folder-type='logs'] {
+  color: var(--project-teal);
+}

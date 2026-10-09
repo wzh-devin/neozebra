@@ -1,0 +1,119 @@
+.card {
+  position: relative;
+  flex: 1;
+  gap: 0;
+  padding: 0;
+  border: 1px solid var(--border);
+  background: color-mix(in oklch, var(--foreground) 2%, var(--task-background));
+  box-shadow: none;
+  --tw-ring-color: transparent;
+  transition:
+    border-color 180ms,
+    background 180ms;
+}
+
+.card:hover {
+  border-color: var(--input);
+  background: color-mix(in oklch, var(--foreground) 4%, var(--task-background));
+}
+
+.link {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  padding: 22px;
+  border-radius: inherit;
+  color: var(--foreground);
+  text-decoration: none;
+}
+
+.link:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: -2px;
+}
+
+.mark {
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  margin-bottom: 20px;
+  object-fit: contain;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+
+.mark[data-provider='minio'] {
+  padding: 8px;
+  border-color: color-mix(in oklch, var(--project-rose) 20%, transparent);
+  background: color-mix(in oklch, var(--project-rose) 12%, transparent);
+}
+
+.heading,
+.meta {
+  padding: 0;
+}
+
+.heading {
+  gap: 0;
+}
+
+.heading h3 {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0;
+  font-size: 17px;
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+
+.arrow {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  color: var(--muted-foreground);
+}
+
+.description {
+  min-height: 42px;
+  margin: 12px 0 25px;
+  font-size: 12px;
+  line-height: 1.8;
+  overflow-wrap: anywhere;
+}
+
+.meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: auto;
+  color: var(--muted-foreground);
+  font-size: 11px;
+}
+
+.status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.status > span {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--project-green);
+}
+
+.status[data-status='configured'] > span {
+  background: var(--project-amber);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card {
+    transition: none;
+  }
+}

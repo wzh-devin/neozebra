@@ -1,14 +1,7 @@
 import type { ReactNode } from 'react'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
+import { EditorDialogContent } from '@/components/shared/editor-dialog'
+import { Dialog } from '@/components/ui/dialog'
 import { restoreTaskFocusHandler } from '@/features/tasks/utils/task-focus'
-import styles from '@/features/tasks/components/editors/TaskEditorFrame.module.css'
-import surfaceStyles from '@/features/tasks/styles/task-surfaces.module.css'
 
 type Props = {
   title: string
@@ -37,16 +30,13 @@ export const TaskEditorFrame = ({
 
   return (
     <Dialog open onOpenChange={openChangeHandler}>
-      <DialogContent
-        className={`${surfaceStyles.surface} ${styles.dialog}`}
+      <EditorDialogContent
+        title={title}
+        description={description}
         onCloseAutoFocus={restoreTaskFocusHandler}
       >
-        <DialogHeader className={styles.header}>
-          <DialogTitle>{title}</DialogTitle>
-          <DialogDescription>{description}</DialogDescription>
-        </DialogHeader>
         {children}
-      </DialogContent>
+      </EditorDialogContent>
     </Dialog>
   )
 }
