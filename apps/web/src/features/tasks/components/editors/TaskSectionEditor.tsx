@@ -24,7 +24,7 @@ export const TaskSectionEditor = ({
   projectId: string
   section?: TaskSection
 }) => {
-  const { saveSectionHandler } = useTaskPlannerContext()
+  const { saveSectionHandler, isSaving } = useTaskPlannerContext()
   const [open, setOpen] = useState(false)
   const [title, setTitle] = useState(section?.title ?? '')
 
@@ -38,15 +38,17 @@ export const TaskSectionEditor = ({
    * @param event - 提交事件
    * @returns 无返回值；保存并关闭
    */
-  const submitHandler = (event: FormEvent<HTMLFormElement>): void => {
+  const submitHandler = async (
+    event: FormEvent<HTMLFormElement>,
+  ): Promise<void> => {
     event.preventDefault()
     if (
       title.trim() &&
-      saveSectionHandler({
+      (await saveSectionHandler({
         id: section?.id ?? crypto.randomUUID(),
         projectId,
         title: title.trim(),
-      })
+      }))
     ) {
       setOpen(false)
       if (!section) setTitle('')
@@ -77,6 +79,7 @@ export const TaskSectionEditor = ({
           </p>
           <Input
             aria-label="阶段名称"
+            disabled={isSaving}
             autoFocus
             value={title}
             maxLength={80}
@@ -84,7 +87,7 @@ export const TaskSectionEditor = ({
             placeholder="例如：需求梳理"
             required
           />
-          <Button type="submit" size="sm">
+          <Button type="submit" size="sm" disabled={isSaving}>
             保存阶段
           </Button>
         </form>

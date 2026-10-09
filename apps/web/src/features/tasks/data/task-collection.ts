@@ -28,10 +28,7 @@ export const getTaskCollectionList = (
   const result = taskList.filter(
     (task) =>
       `${task.title} ${task.description}`.toLowerCase().includes(query) &&
-      (filters.project === 'all' ||
-        (filters.project === 'personal'
-          ? task.projectId === null
-          : task.projectId === filters.project)) &&
+      (filters.project === 'all' || task.projectId === filters.project) &&
       (filters.status === 'all' || task.status === filters.status) &&
       (filters.priority === 'all' || task.priority === filters.priority) &&
       (filters.label === null || task.labels.includes(filters.label)) &&

@@ -113,44 +113,7 @@ export const buildEmptyPlannerData = (): TaskPlannerData => ({
   taskList: [],
   projectList: [],
   sectionList: [],
-  isDemo: false,
 })
-
-// ponytail: 首版只保存到当前浏览器；需要跨设备或大量任务时迁移到服务端存储。
-export const taskPlannerStorageKey = 'neozebra.task-planner.v1'
-
-/**
- * 从浏览器存储读取并校验计划；异常交给调用方保留原数据。
- *
- * @param storage - 浏览器存储或测试替身
- * @returns 已校验的计划及用于并发检查的原文
- */
-export const readPlannerStorage = (storage: Pick<Storage, 'getItem'>) => {
-  const raw = storage.getItem(taskPlannerStorageKey)
-  return {
-    raw,
-    data: raw === null ? buildEmptyPlannerData() : parsePlannerData(raw),
-  }
-}
-
-/**
- * 仅在原文未发生变化时写入，写入异常不提前更新界面。
- *
- * @param storage - 浏览器存储或测试替身
- * @param previousRaw - 上次读取的原文
- * @param next - 调用方已校验的计划
- * @returns 保存的原文；存在并发修改时返回空值且不写入
- */
-export const writePlannerStorage = (
-  storage: Pick<Storage, 'getItem' | 'setItem'>,
-  previousRaw: string | null,
-  next: TaskPlannerData,
-): string | null => {
-  if (storage.getItem(taskPlannerStorageKey) !== previousRaw) return null
-  const raw = JSON.stringify(next)
-  storage.setItem(taskPlannerStorageKey, raw)
-  return raw
-}
 
 /**
  * 构造带上下文的任务。
@@ -309,7 +272,6 @@ export const isPlannerData = (value: unknown): value is TaskPlannerData => {
   if (
     !isRecord(value) ||
     value.version !== 1 ||
-    typeof value.isDemo !== 'boolean' ||
     !Array.isArray(value.taskList) ||
     !Array.isArray(value.projectList) ||
     !Array.isArray(value.sectionList)
@@ -351,19 +313,6 @@ export const isPlannerData = (value: unknown): value is TaskPlannerData => {
           )),
     )
   )
-}
-
-/**
- * 解析本地保存的规划。
- *
- * @param raw - 原始 JSON
- * @returns 规划；无效输入抛出错误
- */
-export const parsePlannerData = (raw: string): TaskPlannerData => {
-  const value: unknown = JSON.parse(raw)
-  if (!isPlannerData(value))
-    throw new Error('本地计划数据格式异常，原数据未被覆盖。')
-  return value
 }
 
 /**

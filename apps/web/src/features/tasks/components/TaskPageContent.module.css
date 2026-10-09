@@ -106,23 +106,6 @@
   font-size: 12px;
   line-height: 1.7;
 }
-.demo {
-  flex-shrink: 0;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 8px;
-  padding: 8px 26px;
-  border-bottom: 1px solid var(--border);
-}
-.demo > span {
-  font-size: 10px;
-  color: var(--muted-foreground);
-}
-.demo > button {
-  font-size: 11px;
-}
 .loading {
   display: flex;
   flex-direction: column;
@@ -175,7 +158,6 @@
   .localMode {
     padding-inline: 18px;
   }
-  .demo,
   .error {
     padding-inline: 16px;
   }

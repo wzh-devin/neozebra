@@ -17,6 +17,6 @@ pnpm lint
 pnpm build       # 按依赖顺序构建全部 workspace
 ```
 
-前端开发服务器将 `/api` 转发到 `http://127.0.0.1:3000`。Inbox 已接入 Gmail / QQ IMAP、多账号聚合和 PostgreSQL 持久化；Redis 管理同步锁与节流。真实邮箱需先在页面填写 Google 应用专用密码或 QQ 授权码。其他业务保留现有 local mock。
+前端开发服务器将 `/api` 转发到 `http://127.0.0.1:3000`。Inbox 已接入 Gmail / QQ IMAP、多账号聚合和 PostgreSQL 持久化；Redis 管理同步锁与节流。真实邮箱需先在页面填写 Google 应用专用密码或 QQ 授权码。Task 已接入 PostgreSQL 持久化、事务与版本保护，初始计划为空，所有日期字段使用 TIMESTAMPTZ。其他业务保留现有 local mock。
 
 目录与扩展方式见 [Web 说明](apps/web/README.md)、[Server 说明](apps/server/README.md)，开发约束见 [AGENTS.md](AGENTS.md)。

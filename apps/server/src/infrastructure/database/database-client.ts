@@ -10,6 +10,7 @@ const createDatabase = () => {
   const pool = new Pool({
     connectionString: config.databaseUrl,
     max: 10,
+    options: '-c timezone=UTC',
     connectionTimeoutMillis: 5000,
     statement_timeout: 10_000,
   })

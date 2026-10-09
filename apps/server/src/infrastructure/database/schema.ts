@@ -80,3 +80,10 @@ const emailMessages = pgTable(
 
 export { emailAccounts, emailMessages }
 export type { MailCursor }
+export {
+  taskWorkspaces,
+  taskProjects,
+  taskSections,
+  tasks,
+  taskSubtasks,
+} from './task-schema.ts'

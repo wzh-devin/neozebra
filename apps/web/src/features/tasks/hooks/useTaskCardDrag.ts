@@ -218,7 +218,7 @@ export const useTaskCardDrag = (taskIdList: string[]) => {
    * @param direction - 组内整数位移
    * @returns 无返回值；保存顺序并播放短动画
    */
-  const moveHandler = (id: string, direction: number): void => {
+  const moveHandler = async (id: string, direction: number): Promise<void> => {
     const rowList = [
       ...(listRef.current?.querySelectorAll<HTMLElement>('[data-task-id]') ??
         []),
@@ -229,7 +229,7 @@ export const useTaskCardDrag = (taskIdList: string[]) => {
         row.getBoundingClientRect().top,
       ]),
     )
-    moveTaskHandler(taskIdList, id, direction)
+    if (!(await moveTaskHandler(taskIdList, id, direction))) return
     if (matchMedia('(prefers-reduced-motion: reduce)').matches) return
     if (settleFrameRef.current !== null)
       cancelAnimationFrame(settleFrameRef.current)

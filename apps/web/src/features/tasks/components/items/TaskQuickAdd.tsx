@@ -26,7 +26,7 @@ export const TaskQuickAdd = ({
   projectId?: string | null
   sectionId?: string | null
 }) => {
-  const { saveTaskHandler, isReadError } = useTaskPlannerContext()
+  const { saveTaskHandler, isReadError, isSaving } = useTaskPlannerContext()
   const [title, setTitle] = useState('')
 
   // 保留新增输入。
@@ -39,11 +39,15 @@ export const TaskQuickAdd = ({
    * @param event - 提交事件
    * @returns 无返回值；添加任务
    */
-  const submitHandler = (event: FormEvent<HTMLFormElement>): void => {
+  const submitHandler = async (
+    event: FormEvent<HTMLFormElement>,
+  ): Promise<void> => {
     event.preventDefault()
     if (
       title.trim() &&
-      saveTaskHandler(buildTask(title, projectId, plannedDate, sectionId))
+      (await saveTaskHandler(
+        buildTask(title, projectId, plannedDate, sectionId),
+      ))
     )
       setTitle('')
   }
@@ -62,13 +66,13 @@ export const TaskQuickAdd = ({
         value={title}
         onChange={titleChangeHandler}
         onKeyDown={keyDownHandler}
-        disabled={isReadError}
+        disabled={isReadError || isSaving}
       />
       <Button
         type="submit"
         size="sm"
         variant="ghost"
-        disabled={!title.trim() || isReadError}
+        disabled={!title.trim() || isReadError || isSaving}
       >
         添加
       </Button>

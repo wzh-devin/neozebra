@@ -49,10 +49,14 @@ export const TaskProjectView = ({
    */
   const renderSection = (section: TaskSection, index: number) => {
     // 上移阶段。
-    const upHandler = (): void => moveSectionHandler(section.id, -1)
+    const upHandler = (): void => {
+      void moveSectionHandler(section.id, -1)
+    }
 
     // 下移阶段。
-    const downHandler = (): void => moveSectionHandler(section.id, 1)
+    const downHandler = (): void => {
+      void moveSectionHandler(section.id, 1)
+    }
     return (
       <TaskGroup
         key={section.id}

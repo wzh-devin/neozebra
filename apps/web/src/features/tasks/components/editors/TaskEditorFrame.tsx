@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import { useTaskPlannerContext } from '@/features/tasks/hooks/TaskPlannerContext'
 import { EditorDialogContent } from '@/components/shared/editor-dialog'
 import { Dialog } from '@/components/ui/dialog'
 import { restoreTaskFocusHandler } from '@/features/tasks/utils/task-focus'
@@ -22,9 +23,10 @@ export const TaskEditorFrame = ({
   onClose,
   children,
 }: Props) => {
+  const { isSaving } = useTaskPlannerContext()
   // 关闭当前编辑容器。
   const openChangeHandler = (open: boolean): void => {
-    if (!open) onClose()
+    if (!open && !isSaving) onClose()
   }
 
   return (

@@ -51,7 +51,7 @@ export const TaskEditor = ({
   plannedDate = null,
   onClose,
 }: Props) => {
-  const { data, saveTaskHandler } = useTaskPlannerContext()
+  const { data, saveTaskHandler, isSaving } = useTaskPlannerContext()
   const [originalTask] = useState(task)
   const [draft, setDraft] = useState<TaskItem>(
     () => task ?? buildTask('', projectId, plannedDate),
@@ -163,7 +163,9 @@ export const TaskEditor = ({
    * @param event - 提交事件
    * @returns 无返回值；保存成功后关闭
    */
-  const submitHandler = (event: FormEvent<HTMLFormElement>): void => {
+  const submitHandler = async (
+    event: FormEvent<HTMLFormElement>,
+  ): Promise<void> => {
     event.preventDefault()
     const labels = [
       ...new Set(
@@ -185,7 +187,7 @@ export const TaskEditor = ({
       setSaveError('任务已被其他操作更新。请保留输入，关闭并重新打开后核对。')
       return
     }
-    if (saveTaskHandler({ ...draft, title: draft.title.trim(), labels }))
+    if (await saveTaskHandler({ ...draft, title: draft.title.trim(), labels }))
       onClose()
     else {
       setSaveError('保存未成功，草稿已保留，请检查后重试。')
@@ -202,207 +204,216 @@ export const TaskEditor = ({
       }
       onClose={onClose}
     >
-      <div className={formStyles.form}>
-        <form
-          id="task-editor-form"
-          onSubmit={submitHandler}
-          className={formStyles.fields}
-        >
-          <EditorField id="task-editor-title" label="任务标题">
-            <Input
-              id="task-editor-title"
-              name="title"
-              autoFocus
-              value={draft.title}
-              onChange={textChangeHandler}
-              placeholder="你准备完成什么？"
-              required
-              maxLength={200}
-            />
-          </EditorField>
-          <EditorField id="task-editor-description" label="说明">
-            <Textarea
-              id="task-editor-description"
-              name="description"
-              value={draft.description}
-              onChange={textChangeHandler}
-              placeholder="目标、想法或需要注意的事…"
-              maxLength={10000}
-              rows={4}
-            />
-          </EditorField>
-          <div className={styles.twoColumns}>
-            <div className={formStyles.field}>
-              <Label htmlFor="task-editor-project">所属项目</Label>
-              <Select
-                value={draft.projectId ?? 'none'}
-                onValueChange={projectChangeHandler}
-              >
-                <SelectTrigger id="task-editor-project">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent
-                  className={surfaceStyles.surface}
-                  position="popper"
-                  align="start"
-                  sideOffset={6}
+      <div className={formStyles.form} aria-busy={isSaving}>
+        <fieldset disabled={isSaving} className="contents">
+          <form
+            id="task-editor-form"
+            onSubmit={submitHandler}
+            className={formStyles.fields}
+          >
+            <EditorField id="task-editor-title" label="任务标题">
+              <Input
+                id="task-editor-title"
+                name="title"
+                autoFocus
+                value={draft.title}
+                onChange={textChangeHandler}
+                placeholder="你准备完成什么？"
+                required
+                maxLength={200}
+              />
+            </EditorField>
+            <EditorField id="task-editor-description" label="说明">
+              <Textarea
+                id="task-editor-description"
+                name="description"
+                value={draft.description}
+                onChange={textChangeHandler}
+                placeholder="目标、想法或需要注意的事…"
+                maxLength={10000}
+                rows={4}
+              />
+            </EditorField>
+            <div className={styles.twoColumns}>
+              <div className={formStyles.field}>
+                <Label htmlFor="task-editor-project">所属项目</Label>
+                <Select
+                  value={draft.projectId ?? 'none'}
+                  onValueChange={projectChangeHandler}
                 >
-                  <SelectItem value="none">个人事项</SelectItem>
-                  {data.projectList.map((project) => (
-                    <SelectItem key={project.id} value={project.id}>
-                      {project.name}
-                      {project.archived ? '（已归档）' : ''}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className={formStyles.field}>
-              <Label htmlFor="task-editor-section">项目阶段</Label>
-              <Select
-                value={draft.sectionId ?? 'none'}
-                onValueChange={sectionChangeHandler}
-                disabled={!draft.projectId}
-              >
-                <SelectTrigger id="task-editor-section">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent
-                  className={surfaceStyles.surface}
-                  position="popper"
-                  align="start"
-                  sideOffset={6}
-                >
-                  <SelectItem value="none">未分阶段</SelectItem>
-                  {data.sectionList
-                    .filter((section) => section.projectId === draft.projectId)
-                    .map((section) => (
-                      <SelectItem key={section.id} value={section.id}>
-                        {section.title}
+                  <SelectTrigger id="task-editor-project">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent
+                    className={surfaceStyles.surface}
+                    position="popper"
+                    align="start"
+                    sideOffset={6}
+                  >
+                    <SelectItem value="none">个人事项</SelectItem>
+                    {data.projectList.map((project) => (
+                      <SelectItem key={project.id} value={project.id}>
+                        {project.name}
+                        {project.archived ? '（已归档）' : ''}
                       </SelectItem>
                     ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-          <div className={styles.twoColumns}>
-            <div className={formStyles.field}>
-              <Label>准备在哪天做</Label>
-              <TaskDatePicker
-                label="计划日期"
-                value={draft.plannedDate}
-                onChange={plannedDateHandler}
-              />
-            </div>
-            <div className={formStyles.field}>
-              <Label>最晚在哪天完成</Label>
-              <TaskDatePicker
-                label="截止日期"
-                value={draft.deadlineDate}
-                onChange={deadlineDateHandler}
-              />
-            </div>
-          </div>
-          <div className={styles.twoColumns}>
-            <div className={formStyles.field}>
-              <Label htmlFor="task-editor-priority">优先级</Label>
-              <Select
-                value={draft.priority}
-                onValueChange={priorityChangeHandler}
-              >
-                <SelectTrigger id="task-editor-priority">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent
-                  className={surfaceStyles.surface}
-                  position="popper"
-                  align="start"
-                  sideOffset={6}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className={formStyles.field}>
+                <Label htmlFor="task-editor-section">项目阶段</Label>
+                <Select
+                  value={draft.sectionId ?? 'none'}
+                  onValueChange={sectionChangeHandler}
+                  disabled={!draft.projectId}
                 >
-                  {Object.entries(priorityLabelRecord).map(([value, label]) => (
-                    <SelectItem key={value} value={value}>
-                      {label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                  <SelectTrigger id="task-editor-section">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent
+                    className={surfaceStyles.surface}
+                    position="popper"
+                    align="start"
+                    sideOffset={6}
+                  >
+                    <SelectItem value="none">未分阶段</SelectItem>
+                    {data.sectionList
+                      .filter(
+                        (section) => section.projectId === draft.projectId,
+                      )
+                      .map((section) => (
+                        <SelectItem key={section.id} value={section.id}>
+                          {section.title}
+                        </SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
-            <div className={formStyles.field}>
-              <Label htmlFor="task-editor-status">状态</Label>
-              <Select value={draft.status} onValueChange={statusChangeHandler}>
-                <SelectTrigger id="task-editor-status">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent
-                  className={surfaceStyles.surface}
-                  position="popper"
-                  align="start"
-                  sideOffset={6}
+            <div className={styles.twoColumns}>
+              <div className={formStyles.field}>
+                <Label>准备在哪天做</Label>
+                <TaskDatePicker
+                  label="计划日期"
+                  value={draft.plannedDate}
+                  onChange={plannedDateHandler}
+                />
+              </div>
+              <div className={formStyles.field}>
+                <Label>最晚在哪天完成</Label>
+                <TaskDatePicker
+                  label="截止日期"
+                  value={draft.deadlineDate}
+                  onChange={deadlineDateHandler}
+                />
+              </div>
+            </div>
+            <div className={styles.twoColumns}>
+              <div className={formStyles.field}>
+                <Label htmlFor="task-editor-priority">优先级</Label>
+                <Select
+                  value={draft.priority}
+                  onValueChange={priorityChangeHandler}
                 >
-                  {Object.entries(statusLabelRecord).map(([value, label]) => (
-                    <SelectItem
-                      key={value}
-                      value={value}
-                      disabled={value === 'completed'}
-                    >
-                      {label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                  <SelectTrigger id="task-editor-priority">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent
+                    className={surfaceStyles.surface}
+                    position="popper"
+                    align="start"
+                    sideOffset={6}
+                  >
+                    {Object.entries(priorityLabelRecord).map(
+                      ([value, label]) => (
+                        <SelectItem key={value} value={value}>
+                          {label}
+                        </SelectItem>
+                      ),
+                    )}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className={formStyles.field}>
+                <Label htmlFor="task-editor-status">状态</Label>
+                <Select
+                  value={draft.status}
+                  onValueChange={statusChangeHandler}
+                >
+                  <SelectTrigger id="task-editor-status">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent
+                    className={surfaceStyles.surface}
+                    position="popper"
+                    align="start"
+                    sideOffset={6}
+                  >
+                    {Object.entries(statusLabelRecord).map(([value, label]) => (
+                      <SelectItem
+                        key={value}
+                        value={value}
+                        disabled={value === 'completed'}
+                      >
+                        {label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
-          </div>
-          <div className={styles.twoColumns}>
-            <div className={formStyles.field}>
-              <Label htmlFor="task-editor-estimate">预计用时（分钟）</Label>
-              <Input
-                id="task-editor-estimate"
-                type="number"
-                min={1}
-                max={1440}
-                step={1}
-                value={draft.estimateMinutes ?? ''}
-                onChange={estimateChangeHandler}
-                placeholder="例如 30"
-              />
+            <div className={styles.twoColumns}>
+              <div className={formStyles.field}>
+                <Label htmlFor="task-editor-estimate">预计用时（分钟）</Label>
+                <Input
+                  id="task-editor-estimate"
+                  type="number"
+                  min={1}
+                  max={1440}
+                  step={1}
+                  value={draft.estimateMinutes ?? ''}
+                  onChange={estimateChangeHandler}
+                  placeholder="例如 30"
+                />
+              </div>
+              <div className={formStyles.field}>
+                <Label htmlFor="task-editor-labels">标签</Label>
+                <Input
+                  id="task-editor-labels"
+                  value={labelsText}
+                  onChange={labelsChangeHandler}
+                  placeholder="设计, 学习"
+                />
+              </div>
             </div>
-            <div className={formStyles.field}>
-              <Label htmlFor="task-editor-labels">标签</Label>
-              <Input
-                id="task-editor-labels"
-                value={labelsText}
-                onChange={labelsChangeHandler}
-                placeholder="设计, 学习"
-              />
-            </div>
-          </div>
-        </form>
-        <section className={styles.steps}>
-          <h3>
-            拆成几个小步骤{' '}
-            <span>
-              {draft.subtasks.filter((step) => step.completed).length}/
-              {draft.subtasks.length}
-            </span>
-          </h3>
-          <TaskSubtaskList
-            subtasks={draft.subtasks}
-            onChange={stepsChangeHandler}
-          />
-        </section>
-        {saveError ? (
-          <p role="alert" className={styles.error}>
-            {saveError}
-          </p>
-        ) : null}
-        <DialogFooter className={formStyles.footer}>
-          <Button type="button" variant="outline" onClick={onClose}>
-            取消
-          </Button>
-          <Button type="submit" form="task-editor-form">
-            {task ? '保存任务' : '添加任务'}
-          </Button>
-        </DialogFooter>
+          </form>
+          <section className={styles.steps}>
+            <h3>
+              拆成几个小步骤{' '}
+              <span>
+                {draft.subtasks.filter((step) => step.completed).length}/
+                {draft.subtasks.length}
+              </span>
+            </h3>
+            <TaskSubtaskList
+              subtasks={draft.subtasks}
+              onChange={stepsChangeHandler}
+            />
+          </section>
+          {saveError ? (
+            <p role="alert" className={styles.error}>
+              {saveError}
+            </p>
+          ) : null}
+          <DialogFooter className={formStyles.footer}>
+            <Button type="button" variant="outline" onClick={onClose}>
+              取消
+            </Button>
+            <Button type="submit" form="task-editor-form">
+              {isSaving ? '保存中…' : task ? '保存任务' : '添加任务'}
+            </Button>
+          </DialogFooter>
+        </fieldset>
       </div>
     </TaskEditorFrame>
   )

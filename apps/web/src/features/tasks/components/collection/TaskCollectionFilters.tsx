@@ -181,7 +181,6 @@ export const TaskCollectionFilters = ({
                 sideOffset={6}
               >
                 <SelectItem value="all">全部项目</SelectItem>
-                <SelectItem value="personal">个人事项</SelectItem>
                 {projectList.map((project) => (
                   <SelectItem key={project.id} value={project.id}>
                     {project.name}

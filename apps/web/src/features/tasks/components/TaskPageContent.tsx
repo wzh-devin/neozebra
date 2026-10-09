@@ -6,7 +6,7 @@ import {
   ListTodo,
   Plus,
 } from 'lucide-react'
-import { lazy, Suspense, useEffect, useState } from 'react'
+import { lazy, Suspense, useEffect, useState, type MouseEvent } from 'react'
 import { Link } from 'react-router-dom'
 import {
   AlertDialog,
@@ -18,7 +18,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
   Empty,
@@ -104,12 +103,15 @@ export const TaskPageContent = () => {
 
   // 取消主任务完成确认。
   const completionOpenHandler = (open: boolean): void => {
-    if (!open) planner.setPendingCompletionId(null)
+    if (!open && !planner.isSaving) planner.setPendingCompletionId(null)
   }
 
   // 明确完成主任务及全部步骤。
-  const confirmCompletionHandler = (): void => {
-    if (pendingTask && planner.toggleTaskHandler(pendingTask.id, true))
+  const confirmCompletionHandler = async (
+    event: MouseEvent<HTMLButtonElement>,
+  ): Promise<void> => {
+    event.preventDefault()
+    if (pendingTask && (await planner.toggleTaskHandler(pendingTask.id, true)))
       restoreTaskFocusHandler()
   }
 
@@ -162,7 +164,7 @@ export const TaskPageContent = () => {
           <EmptyHeader>
             <EmptyTitle>暂时无法打开计划</EmptyTitle>
             <EmptyDescription>
-              已保留原数据，请检查浏览器存储后重试。
+              已保留原数据，请检查服务连接后重试。
             </EmptyDescription>
           </EmptyHeader>
           <Button variant="outline" onClick={planner.loadHandler}>
@@ -239,6 +241,7 @@ export const TaskPageContent = () => {
             disabled={
               planner.isLoading ||
               planner.isReadError ||
+              planner.isSaving ||
               (!!route.projectId && !project)
             }
           >
@@ -249,14 +252,6 @@ export const TaskPageContent = () => {
         {planner.error ? (
           <div className={styles.error} role="alert">
             {planner.error}
-          </div>
-        ) : null}
-        {planner.data.isDemo ? (
-          <div className={styles.demo}>
-            <Badge variant="outline">本地示例 · synthetic/local mock</Badge>
-            <Button variant="ghost" size="sm" onClick={planner.keepDemoHandler}>
-              保留为我的计划
-            </Button>
           </div>
         ) : null}
         <TabsContent value={route.view} className={styles.panel}>
@@ -325,8 +320,13 @@ export const TaskPageContent = () => {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>继续完成步骤</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmCompletionHandler}>
+            <AlertDialogCancel disabled={planner.isSaving}>
+              继续完成步骤
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmCompletionHandler}
+              disabled={planner.isSaving}
+            >
               完成任务和所有步骤
             </AlertDialogAction>
           </AlertDialogFooter>

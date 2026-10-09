@@ -69,6 +69,7 @@ export const TaskRow = ({
 }: Props) => {
   const {
     data,
+    isSaving,
     today,
     updateTaskHandler,
     toggleTaskHandler,
@@ -99,25 +100,27 @@ export const TaskRow = ({
   }
 
   // 切换完成状态。
-  const completeHandler = (): void => {
-    if (toggleTaskHandler(task.id)) restoreTaskFocusHandler()
+  const completeHandler = async (): Promise<void> => {
+    if (await toggleTaskHandler(task.id)) restoreTaskFocusHandler()
   }
 
   // 加入今天但保留截止日期。
-  const todayHandler = (): void => {
-    if (updateTaskHandler(task.id, { plannedDate: today }))
+  const todayHandler = async (): Promise<void> => {
+    if (await updateTaskHandler(task.id, { plannedDate: today }))
       restoreTaskFocusHandler()
   }
 
   // 改期到明天。
-  const tomorrowHandler = (): void => {
-    if (updateTaskHandler(task.id, { plannedDate: addDays(today, 1) }))
+  const tomorrowHandler = async (): Promise<void> => {
+    if (await updateTaskHandler(task.id, { plannedDate: addDays(today, 1) }))
       restoreTaskFocusHandler()
   }
 
   // 取消安排。
-  const unscheduleHandler = (): void => {
-    if (updateTaskHandler(task.id, { plannedDate: null, isPinned: false }))
+  const unscheduleHandler = async (): Promise<void> => {
+    if (
+      await updateTaskHandler(task.id, { plannedDate: null, isPinned: false })
+    )
       restoreTaskFocusHandler()
   }
 
@@ -127,9 +130,9 @@ export const TaskRow = ({
    * @param 无参数
    * @returns 无返回值；更新置顶与安排
    */
-  const pinHandler = (): void => {
+  const pinHandler = async (): Promise<void> => {
     if (
-      updateTaskHandler(task.id, {
+      await updateTaskHandler(task.id, {
         isPinned: !task.isPinned,
         plannedDate: task.isPinned ? task.plannedDate : today,
       })
@@ -144,21 +147,27 @@ export const TaskRow = ({
    * @returns 无返回值；更新状态
    */
   const progressHandler = (): void => {
-    updateTaskHandler(task.id, {
+    void updateTaskHandler(task.id, {
       status: task.status === 'inProgress' ? 'todo' : 'inProgress',
     })
   }
 
   // 删除当前任务。
-  const deleteHandler = (): void => {
-    if (deleteTaskHandler(task.id)) restoreTaskFocusHandler()
+  const deleteHandler = async (): Promise<boolean> => {
+    const saved = await deleteTaskHandler(task.id)
+    if (saved) restoreTaskFocusHandler()
+    return saved
   }
 
   // 上移任务。
-  const upHandler = (): void => moveTaskHandler(siblingIdList, task.id, -1)
+  const upHandler = (): void => {
+    void moveTaskHandler(siblingIdList, task.id, -1)
+  }
 
   // 下移任务。
-  const downHandler = (): void => moveTaskHandler(siblingIdList, task.id, 1)
+  const downHandler = (): void => {
+    void moveTaskHandler(siblingIdList, task.id, 1)
+  }
 
   /**
    * 保存子任务并在需要时重新打开主任务。
@@ -166,9 +175,9 @@ export const TaskRow = ({
    * @param steps - 新步骤
    * @returns 是否保存成功
    */
-  const stepsChangeHandler = (steps: TaskSubtask[]): boolean => {
+  const stepsChangeHandler = async (steps: TaskSubtask[]): Promise<boolean> => {
     const shouldReopen = isCompleted && steps.some((step) => !step.completed)
-    const saved = updateTaskHandler(task.id, {
+    const saved = await updateTaskHandler(task.id, {
       subtasks: steps,
       ...(shouldReopen ? { status: 'todo', completedAt: null } : {}),
     })
@@ -220,6 +229,7 @@ export const TaskRow = ({
         <Checkbox
           className={styles.checkbox}
           checked={isCompleted}
+          disabled={isSaving}
           aria-label={`${isCompleted ? '重新打开' : '完成'}任务：${task.title}`}
           onCheckedChange={completeHandler}
         />
@@ -373,6 +383,7 @@ export const TaskRow = ({
                 <CollapsibleContent className={styles.stepContent}>
                   <TaskSubtaskList
                     subtasks={task.subtasks}
+                    disabled={isSaving}
                     onChange={stepsChangeHandler}
                   />
                 </CollapsibleContent>

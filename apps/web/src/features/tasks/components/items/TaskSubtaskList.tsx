@@ -15,7 +15,8 @@ import styles from '@/features/tasks/components/items/TaskRow.module.css'
 
 type Props = {
   subtasks: TaskSubtask[]
-  onChange: (steps: TaskSubtask[]) => boolean
+  onChange: (steps: TaskSubtask[]) => boolean | Promise<boolean>
+  disabled?: boolean
 }
 
 /**
@@ -24,7 +25,11 @@ type Props = {
  * @param props - 步骤与保存操作
  * @returns 步骤清单 JSX
  */
-export const TaskSubtaskList = ({ subtasks, onChange }: Props) => {
+export const TaskSubtaskList = ({
+  subtasks,
+  onChange,
+  disabled = false,
+}: Props) => {
   const [title, setTitle] = useState('')
 
   // 更新新增步骤输入。
@@ -37,14 +42,16 @@ export const TaskSubtaskList = ({ subtasks, onChange }: Props) => {
    * @param event - 表单事件
    * @returns 无返回值；添加步骤
    */
-  const addStepHandler = (event: FormEvent<HTMLFormElement>): void => {
+  const addStepHandler = async (
+    event: FormEvent<HTMLFormElement>,
+  ): Promise<void> => {
     event.preventDefault()
     if (
       title.trim() &&
-      onChange([
+      (await onChange([
         ...subtasks,
         { id: crypto.randomUUID(), title: title.trim(), completed: false },
-      ])
+      ]))
     )
       setTitle('')
   }
@@ -139,12 +146,14 @@ export const TaskSubtaskList = ({ subtasks, onChange }: Props) => {
       >
         <Checkbox
           checked={step.completed}
+          disabled={disabled}
           aria-label={`完成步骤：${step.title}`}
           onCheckedChange={checkedChangeHandler}
         />
         <Input
           key={`${step.id}:${step.title}`}
           defaultValue={step.title}
+          disabled={disabled}
           maxLength={200}
           aria-label="步骤标题"
           onBlur={renameHandler}
@@ -155,7 +164,7 @@ export const TaskSubtaskList = ({ subtasks, onChange }: Props) => {
           variant="ghost"
           size="icon-sm"
           aria-label="上移步骤"
-          disabled={index === 0}
+          disabled={disabled || index === 0}
           onClick={upHandler}
         >
           <ArrowUp aria-hidden="true" />
@@ -165,7 +174,7 @@ export const TaskSubtaskList = ({ subtasks, onChange }: Props) => {
           variant="ghost"
           size="icon-sm"
           aria-label="下移步骤"
-          disabled={index === subtasks.length - 1}
+          disabled={disabled || index === subtasks.length - 1}
           onClick={downHandler}
         >
           <ArrowDown aria-hidden="true" />
@@ -175,6 +184,7 @@ export const TaskSubtaskList = ({ subtasks, onChange }: Props) => {
           variant="ghost"
           size="icon-sm"
           aria-label={`删除步骤：${step.title}`}
+          disabled={disabled}
           onClick={deleteHandler}
         >
           <Trash2 aria-hidden="true" />
@@ -191,6 +201,7 @@ export const TaskSubtaskList = ({ subtasks, onChange }: Props) => {
           value={title}
           maxLength={200}
           aria-label="新增步骤"
+          disabled={disabled}
           placeholder="添加一个步骤…"
           onChange={titleChangeHandler}
         />
@@ -198,7 +209,7 @@ export const TaskSubtaskList = ({ subtasks, onChange }: Props) => {
           type="submit"
           size="sm"
           variant="ghost"
-          disabled={!title.trim()}
+          disabled={disabled || !title.trim()}
         >
           添加
         </Button>

@@ -15,10 +15,10 @@ try {
     .where(eq(emailAccounts.provider, 'gmail'))
   const changed = await migrateImapAccounts(db, accountList)
   console.info(`IMAP credential cleanup: ${changed} account(s)`)
-  console.info('Inbox Drizzle migration complete')
+  console.info('Neozebra Drizzle migration complete')
 } catch {
   console.error(
-    'Inbox migration failed. Check PostgreSQL configuration and migration history.',
+    'Neozebra migration failed. Check PostgreSQL configuration and migration history.',
   )
   process.exitCode = 1
 } finally {

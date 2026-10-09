@@ -43,11 +43,11 @@ export const TaskCollectionView = ({
   const rawSort = params.get('sort')
   const filters: FilterValues = {
     query: params.get('q') ?? '',
-    project:
-      data.projectList.some((entry) => entry.id === params.get('project')) ||
-      params.get('project') === 'personal'
-        ? params.get('project')!
-        : 'all',
+    project: data.projectList.some(
+      (entry) => entry.id === params.get('project'),
+    )
+      ? params.get('project')!
+      : 'all',
     status: completed
       ? 'completed'
       : rawStatus === 'todo' ||
@@ -87,10 +87,7 @@ export const TaskCollectionView = ({
     filters.label === null &&
     (filters.status === 'all' || filters.status === 'todo') &&
     (!date || filters.schedule === 'all')
-  const projectId =
-    filters.project === 'all' || filters.project === 'personal'
-      ? null
-      : filters.project
+  const projectId = filters.project === 'all' ? null : filters.project
   const completedDateList = [
     ...new Set(
       visibleTaskList

@@ -1,18 +1,19 @@
 import { useEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
 
-import { buildDemoPlannerData } from '@/features/tasks/data/demo-planner'
 import {
   buildEmptyPlannerData,
   getLocalDate,
   isPlannerData,
   moveTaskList,
-  readPlannerStorage,
   removeProject,
-  taskPlannerStorageKey,
   updateTaskCompletion,
-  writePlannerStorage,
 } from '@/features/tasks/data/task-planner'
+import {
+  getTaskPlanner,
+  saveTaskPlanner,
+  TaskRequestError,
+} from '@/services/task'
 import type {
   TaskItem,
   TaskPlannerData,
@@ -21,7 +22,7 @@ import type {
 } from '@/features/tasks/types'
 
 /**
- * 管理唯一规划状态、本地保存与可撤销操作。
+ * 管理唯一规划状态、服务端保存与可撤销操作。
  *
  * @param 无参数
  * @returns 规划状态和业务操作
@@ -29,7 +30,14 @@ import type {
 export const useTaskPlanner = () => {
   const [data, setData] = useState<TaskPlannerData>(buildEmptyPlannerData)
   const dataRef = useRef(data)
-  const rawRef = useRef<string | null>(null)
+  const revisionRef = useRef<number | null>(null)
+  const loadedRef = useRef(false)
+  const loadingRef = useRef(false)
+  const savingRef = useRef(false)
+  const activeRef = useRef(false)
+  const generationRef = useRef(0)
+  const channelRef = useRef<BroadcastChannel | null>(null)
+  const [isSaving, setIsSaving] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [isReadError, setIsReadError] = useState(false)
   const [error, setError] = useState('')
@@ -39,38 +47,69 @@ export const useTaskPlanner = () => {
   )
 
   /**
-   * 读取并校验存储，异常时保留原数据。
+   * 读取服务端计划，不自动导入浏览器旧数据。
    *
    * @param 无参数
-   * @returns 无返回值；更新状态与错误提示
+   * @returns 无返回值；更新状态，失败保留原数据
    */
-  const loadHandler = (): void => {
+  const loadHandler = async (): Promise<void> => {
+    if (loadingRef.current || savingRef.current) return
+    loadingRef.current = true
+    if (!loadedRef.current) setIsLoading(true)
+    const generation = ++generationRef.current
     try {
-      const { raw, data: next } = readPlannerStorage(localStorage)
-      rawRef.current = raw
-      dataRef.current = next
-      setData(next)
+      const response = await getTaskPlanner()
+      if (!isPlannerData(response.data))
+        throw new Error('计划响应格式无效，原数据已保留。')
+      if (!activeRef.current || generation !== generationRef.current) return
+      if (revisionRef.current !== response.revision) {
+        dataRef.current = response.data
+        setData(response.data)
+        revisionRef.current = response.revision
+      }
+      loadedRef.current = true
       setError('')
       setIsReadError(false)
-    } catch {
-      setIsReadError(true)
-      setError('无法读取本地计划，原数据未被覆盖。请检查浏览器存储后重试。')
+    } catch (cause) {
+      if (!activeRef.current || generation !== generationRef.current) return
+      setIsReadError(!loadedRef.current)
+      setError(
+        cause instanceof Error
+          ? cause.message
+          : '无法读取计划，原数据已保留，请重试。',
+      )
     } finally {
-      setIsLoading(false)
+      if (activeRef.current && generation === generationRef.current) {
+        loadingRef.current = false
+        setIsLoading(false)
+      }
     }
   }
 
   useEffect(() => {
-    // oxlint-disable-next-line react/set-state-in-effect -- 挂载后同步浏览器存储及读取错误，不在渲染期间执行持久化副作用。
-    loadHandler()
+    activeRef.current = true
+    loadingRef.current = false
 
-    // 同步其他标签页，避免写入过时状态。
-    const storageChangeHandler = (event: StorageEvent): void => {
-      if (event.key === taskPlannerStorageKey || event.key === null)
-        loadHandler()
+    // oxlint-disable-next-line react/set-state-in-effect -- 挂载后读取服务端数据，异步请求不能在渲染期间执行。
+    void loadHandler()
+    const channel =
+      typeof BroadcastChannel === 'undefined'
+        ? null
+        : new BroadcastChannel('neozebra.task-planner')
+    channelRef.current = channel
+
+    // 后台标签页保存后重新读取；忙碌时由版本校验阻止过期写入。
+    const refreshHandler = (): void => {
+      void loadHandler()
     }
-    window.addEventListener('storage', storageChangeHandler)
-    return () => window.removeEventListener('storage', storageChangeHandler)
+    channel?.addEventListener('message', refreshHandler)
+    window.addEventListener('focus', refreshHandler)
+    return () => {
+      activeRef.current = false
+      channel?.close()
+      channelRef.current = null
+      window.removeEventListener('focus', refreshHandler)
+    }
   }, [])
 
   useEffect(() => {
@@ -92,41 +131,51 @@ export const useTaskPlanner = () => {
    * @param allowUndo - 是否允许撤销
    * @returns 是否保存成功
    */
-  const commitHandler = (
+  const commitHandler = async (
     next: TaskPlannerData,
     message: string,
     allowUndo = false,
-  ): boolean => {
-    if (isLoading || isReadError) return false
+  ): Promise<boolean> => {
+    if (
+      loadingRef.current ||
+      savingRef.current ||
+      revisionRef.current === null ||
+      isReadError
+    ) {
+      toast.info('计划正在读取或保存，请稍后重试。')
+      return false
+    }
     if (!isPlannerData(next)) {
       toast.error('请检查标题、日期、预计用时和项目关联。')
       return false
     }
     const previous = dataRef.current
+    savingRef.current = true
+    setIsSaving(true)
     try {
-      const raw = writePlannerStorage(localStorage, rawRef.current, next)
-      if (raw === null) {
-        loadHandler()
-        toast.error('计划已在其他标签页更新，请核对后重新保存。')
-        return false
-      }
-      rawRef.current = raw
-      dataRef.current = next
-      setData(next)
+      const response = await saveTaskPlanner(next, revisionRef.current)
+      if (!isPlannerData(response.data))
+        throw new Error('保存响应无效，请重新读取核对，草稿已保留。')
+      revisionRef.current = response.revision
+      dataRef.current = response.data
+      if (!activeRef.current) return true
+      setData(response.data)
       setError('')
+      channelRef.current?.postMessage(response.revision)
+      const savedData = response.data
 
       /**
-       * 仅撤销最近更改，避免覆盖后续编辑。
+       * 仅撤销最近更改，服务端版本检查保护其他页面的更新。
        *
        * @param 无参数
        * @returns 无返回值；恢复上次数据或提示无法撤销
        */
       const undoHandler = (): void => {
-        if (dataRef.current !== next) {
+        if (dataRef.current !== savedData) {
           toast.info('已有后续更改，无法直接撤销这次操作。')
           return
         }
-        commitHandler(previous, '已撤销')
+        void commitHandler(previous, '已撤销')
       }
       toast.success(message, {
         id: 'task-planner-change',
@@ -134,12 +183,22 @@ export const useTaskPlanner = () => {
         action: allowUndo ? { label: '撤销', onClick: undoHandler } : undefined,
       })
       return true
-    } catch {
-      setError(
-        '本地保存失败，改动尚未保存。输入已保留，请释放存储空间后重试刚才的操作。',
-      )
-      toast.error('保存失败，请重试；原计划未改变。')
+    } catch (cause) {
+      if (!activeRef.current) return false
+      const message =
+        cause instanceof Error
+          ? cause.message
+          : '保存未确认，请重新读取核对；草稿已保留。'
+      setError(message)
+      toast.error(message)
+      if (cause instanceof TaskRequestError && cause.status === 409) {
+        savingRef.current = false
+        await loadHandler()
+      }
       return false
+    } finally {
+      savingRef.current = false
+      if (activeRef.current) setIsSaving(false)
     }
   }
 
@@ -149,7 +208,7 @@ export const useTaskPlanner = () => {
    * @param task - 完整任务
    * @returns 是否成功
    */
-  const saveTaskHandler = (task: TaskItem): boolean => {
+  const saveTaskHandler = (task: TaskItem): Promise<boolean> => {
     const current = dataRef.current
     const exists = current.taskList.some((entry) => entry.id === task.id)
     return commitHandler(
@@ -166,7 +225,10 @@ export const useTaskPlanner = () => {
   }
 
   // 更新任务字段。
-  const updateTaskHandler = (id: string, patch: Partial<TaskItem>): boolean => {
+  const updateTaskHandler = async (
+    id: string,
+    patch: Partial<TaskItem>,
+  ): Promise<boolean> => {
     const task = dataRef.current.taskList.find((entry) => entry.id === id)
     return task ? saveTaskHandler({ ...task, ...patch }) : false
   }
@@ -178,10 +240,10 @@ export const useTaskPlanner = () => {
    * @param dates - 校验后的本地计划与截止日期
    * @returns 是否成功；失败时保留原计划并显示现有错误提示
    */
-  const rescheduleTaskHandler = (
+  const rescheduleTaskHandler = async (
     id: string,
     dates: Pick<TaskItem, 'plannedDate' | 'deadlineDate'>,
-  ): boolean => {
+  ): Promise<boolean> => {
     const current = dataRef.current
     const task = current.taskList.find((entry) => entry.id === id)
     if (!task) return false
@@ -209,7 +271,10 @@ export const useTaskPlanner = () => {
    * @param includeSteps - 是否已确认完成所有步骤
    * @returns 是否成功或正在等待确认
    */
-  const toggleTaskHandler = (id: string, includeSteps = false): boolean => {
+  const toggleTaskHandler = async (
+    id: string,
+    includeSteps = false,
+  ): Promise<boolean> => {
     const current = dataRef.current
     const task = current.taskList.find((entry) => entry.id === id)
     if (!task) return false
@@ -222,7 +287,7 @@ export const useTaskPlanner = () => {
       return false
     }
     const next = updateTaskCompletion(task, task.status !== 'completed')
-    const saved = commitHandler(
+    const saved = await commitHandler(
       {
         ...current,
         taskList: current.taskList.map((entry) =>
@@ -242,7 +307,7 @@ export const useTaskPlanner = () => {
    * @param id - 标识
    * @returns 是否成功
    */
-  const deleteTaskHandler = (id: string): boolean =>
+  const deleteTaskHandler = (id: string): Promise<boolean> =>
     commitHandler(
       {
         ...dataRef.current,
@@ -258,16 +323,21 @@ export const useTaskPlanner = () => {
    * @param ids - 当前组
    * @param id - 目标
    * @param direction - 方向
-   * @returns 无返回值；保存顺序
+   * @returns 是否保存成功；成功后更新顺序
    */
-  const moveTaskHandler = (
+  const moveTaskHandler = async (
     ids: string[],
     id: string,
     direction: number,
-  ): void => {
+  ): Promise<boolean> => {
     const next = moveTaskList(dataRef.current.taskList, ids, id, direction)
     if (next !== dataRef.current.taskList)
-      commitHandler({ ...dataRef.current, taskList: next }, '顺序已调整', true)
+      return commitHandler(
+        { ...dataRef.current, taskList: next },
+        '顺序已调整',
+        true,
+      )
+    return false
   }
 
   /**
@@ -276,7 +346,7 @@ export const useTaskPlanner = () => {
    * @param project - 项目
    * @returns 是否成功
    */
-  const saveProjectHandler = (project: TaskProject): boolean => {
+  const saveProjectHandler = (project: TaskProject): Promise<boolean> => {
     const current = dataRef.current
     const exists = current.projectList.some((entry) => entry.id === project.id)
     return commitHandler(
@@ -299,7 +369,10 @@ export const useTaskPlanner = () => {
    * @param deleteTasks - 是否删除任务
    * @returns 是否成功
    */
-  const deleteProjectHandler = (id: string, deleteTasks: boolean): boolean =>
+  const deleteProjectHandler = (
+    id: string,
+    deleteTasks: boolean,
+  ): Promise<boolean> =>
     commitHandler(
       removeProject(dataRef.current, id, deleteTasks),
       '项目已删除',
@@ -312,7 +385,7 @@ export const useTaskPlanner = () => {
    * @param section - 阶段
    * @returns 是否成功
    */
-  const saveSectionHandler = (section: TaskSection): boolean => {
+  const saveSectionHandler = (section: TaskSection): Promise<boolean> => {
     const current = dataRef.current
     const exists = current.sectionList.some((entry) => entry.id === section.id)
     return commitHandler(
@@ -335,7 +408,10 @@ export const useTaskPlanner = () => {
    * @param direction - 方向
    * @returns 无返回值；保存阶段顺序
    */
-  const moveSectionHandler = (id: string, direction: -1 | 1): void => {
+  const moveSectionHandler = async (
+    id: string,
+    direction: -1 | 1,
+  ): Promise<void> => {
     const current = dataRef.current
     const section = current.sectionList.find((entry) => entry.id === id)
     if (!section) return
@@ -352,24 +428,18 @@ export const useTaskPlanner = () => {
       next[target],
       next[positions[position]],
     ]
-    commitHandler({ ...current, sectionList: next }, '阶段顺序已调整', true)
-  }
-
-  // 主动加载标注的本地示例，仅用于空工作区。
-  const loadDemoHandler = (): void => {
-    if (!dataRef.current.taskList.length && !dataRef.current.projectList.length)
-      commitHandler(buildDemoPlannerData(today), '已加载本地示例计划')
-  }
-
-  // 将演示计划保留为自己的计划。
-  const keepDemoHandler = (): void => {
-    commitHandler({ ...dataRef.current, isDemo: false }, '已保留为你的计划')
+    await commitHandler(
+      { ...current, sectionList: next },
+      '阶段顺序已调整',
+      true,
+    )
   }
 
   return {
     data,
     today,
     isLoading,
+    isSaving,
     isReadError,
     error,
     pendingCompletionId,
@@ -385,8 +455,6 @@ export const useTaskPlanner = () => {
     deleteProjectHandler,
     saveSectionHandler,
     moveSectionHandler,
-    loadDemoHandler,
-    keepDemoHandler,
   }
 }
 

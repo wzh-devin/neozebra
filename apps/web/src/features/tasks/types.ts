@@ -40,5 +40,4 @@ export type TaskPlannerData = {
   taskList: TaskItem[]
   projectList: TaskProject[]
   sectionList: TaskSection[]
-  isDemo: boolean
 }

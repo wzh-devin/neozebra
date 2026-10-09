@@ -36,7 +36,7 @@ packages/assets/src/            # 独立 Assets 菜单组后端
 
 复用已有中间件，不创建 Compose 或容器。开发验证已在项目独立的 neozebra_inbox 数据库/角色及现有 Redis 完成。用户当前 apps/server/.env 的 neozebra 数据库配置保持不变，增量迁移已执行成功。其他环境从 .env.example 配置连接串。
 
-业务表统一以 nm_ 开头，目前为 nm_email_accounts、nm_email_messages。每表均有 bigint identity 主键 id、TIMESTAMPTZ created_at / updated_at。API 将 bigint ID 序列化为十进制字符串，前端不要转换为 Number。
+业务表统一以 nm_ 开头，包括 nm_email_accounts、nm_email_messages，以及 Task 的 nm_task_workspaces、nm_task_projects、nm_task_sections、nm_tasks、nm_task_subtasks。每表均有 bigint identity 主键 id、TIMESTAMPTZ created_at / updated_at；其他日期字段也使用 TIMESTAMPTZ。Inbox API 将 bigint ID 序列化为十进制字符串，Task 保留现有 UUID 业务标识，数据库 bigint 主键仅用于内部存储。
 
 模型不定义外键、枚举、CHECK 或业务唯一约束，只有主键和普通查询索引。账号去重使用 Redis 锁；邮件去重、关联删除通过事务与账号行锁执行；updated_at 由 Drizzle 更新逻辑维护。所有业务读写使用 Drizzle API，迁移文件由 Drizzle Kit 生成，代码中不手写 SQL。
 
@@ -60,6 +60,16 @@ pnpm --filter @neozebra/server start
 Gmail 的 OAuth 发起/回调、客户端配置和 Google SDK 已删除。共用业务表没有独立 OAuth 表或专用 token 列；credentials 只保存加密的 IMAP password，cursor 仅包含 uidValidity/uid。db:migrate 还会通过 ORM 清理旧 Gmail 凭据和游标，标记为需要应用密码重新绑定，保留邮箱 ID、邮件、已读与归档。清理幂等并比较凭据版本，避免覆盖同时重新绑定的账号。Gmail IMAP 的稳定 X-GM-MSGID 转为原 Gmail 邮件 ID，重连同步继续复用已有邮件；历史 .sql 迁移不重写。
 
 默认后端 127.0.0.1:3000、前端 localhost:5174。APP_ORIGIN 必须和浏览器实际地址一致；修改后端端口时设置 API_GATEWAY_TARGET 以调整 Vite 代理。生产由反向代理将 /api 转发到 Node。SIGINT / SIGTERM 停止监听并等待请求，10 秒后关闭残留连接。
+
+## Task 行为与接口
+
+Task 保留现有任务、项目、阶段、步骤、排序、归档、日历及甘特图界面。首次访问为空计划，没有示例或种子数据；浏览器旧 localStorage 不再读取或自动导入，原文保留。保存成功后才更新界面并关闭编辑器；失败保留输入，最近一次完成、删除、排序或日期调整支持撤销。
+
+GET `/api/task/planner` 返回 `{data, revision}`。PUT 同一路径接受该结构，在工作区行锁和事务内保存变化行，revision 不匹配返回 409 并保护已有数据。data 为 `{version:1, taskList:[], projectList:[], sectionList:[]}`，实体结构与前端 Task 类型一致。首次初始化使用 Redis `neozebra:task:init:` 锁；之后读取使用一致快照，关联和去重由代码维护。
+
+计划/截止日期 API 保持 YYYY-MM-DD，后端按 UTC 午夜写入 TIMESTAMPTZ，并按 UTC 原日读取；createdAt/completedAt 使用 ISO 时间。请求最多 2 MiB、1000 个任务、100 个项目、500 个阶段，每任务最多 100 个步骤。独立签名 HttpOnly/SameSite cookie 识别个人工作区，写请求校验 APP_ORIGIN。清除 Task cookie 或更换浏览器会进入新的空工作区，目前没有登录及跨设备恢复。
+
+执行 `pnpm db:migrate` 应用 Drizzle Kit 生成的 0002 Task 迁移。真实存储验证：在 apps/server 执行 `node --env-file=.env --conditions=development --test checks/task.test.ts checks/task.integration.test.ts`；夹具为 synthetic 专属会话，结束时只清理测试拥有的数据。
 
 ## 邮箱连接
 
