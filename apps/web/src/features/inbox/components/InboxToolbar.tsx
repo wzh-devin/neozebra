@@ -9,6 +9,8 @@ import {
   Search,
   SlidersHorizontal,
   X,
+  RefreshCw,
+  Settings2,
 } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
@@ -44,6 +46,11 @@ type InboxToolbarProps = Pick<
   | 'sourceChangeHandler'
   | 'markAllReadHandler'
   | 'resetFiltersHandler'
+  | 'accountList'
+  | 'openAccountsHandler'
+  | 'refreshHandler'
+  | 'isSyncing'
+  | 'isMutating'
 >
 
 /**
@@ -62,6 +69,11 @@ const InboxToolbar = ({
   sourceChangeHandler,
   markAllReadHandler,
   resetFiltersHandler,
+  accountList,
+  openAccountsHandler,
+  refreshHandler,
+  isSyncing,
+  isMutating,
 }: InboxToolbarProps) => {
   const { isMobile, state } = useSidebar()
   const [isSearchOpen, setIsSearchOpen] = useState(false)
@@ -94,6 +106,10 @@ const InboxToolbar = ({
     tabChangeHandler(activeTab === 'archived' ? 'all' : 'archived')
   }
 
+  const refreshClickHandler = () => {
+    void refreshHandler()
+  }
+
   return (
     <>
       <header className={styles['toolbar']}>
@@ -115,8 +131,12 @@ const InboxToolbar = ({
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start" className={styles['menu']}>
+              <DropdownMenuItem onSelect={openAccountsHandler}>
+                <Settings2 aria-hidden="true" />
+                Manage mailboxes
+              </DropdownMenuItem>
               <DropdownMenuItem
-                disabled={!unreadCount}
+                disabled={!unreadCount || isMutating}
                 onSelect={markAllReadHandler}
               >
                 <CheckCheck aria-hidden="true" />
@@ -130,6 +150,24 @@ const InboxToolbar = ({
           </DropdownMenu>
         </div>
         <div className={styles['toolbar-actions']}>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                aria-label="Sync mailboxes"
+                aria-busy={isSyncing}
+                className={styles['icon-button']}
+                onClick={refreshClickHandler}
+                size="icon-sm"
+                variant="ghost"
+              >
+                <RefreshCw
+                  aria-hidden="true"
+                  className={isSyncing ? 'motion-safe:animate-spin' : undefined}
+                />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Sync mailboxes</TooltipContent>
+          </Tooltip>
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
@@ -209,14 +247,23 @@ const InboxToolbar = ({
                 onValueChange={sourceChangeHandler}
               >
                 <DropdownMenuRadioItem value="all">
-                  All sources
+                  All messages
                 </DropdownMenuRadioItem>
                 <DropdownMenuRadioItem value="email">
-                  Email
+                  All email
                 </DropdownMenuRadioItem>
-                <DropdownMenuRadioItem value="notification">
-                  Workspace updates
+                <DropdownMenuRadioItem
+                  value="system"
+                  disabled
+                  title="Not available yet"
+                >
+                  System notifications
                 </DropdownMenuRadioItem>
+                {accountList.map((account) => (
+                  <DropdownMenuRadioItem key={account.id} value={account.id}>
+                    {account.email}
+                  </DropdownMenuRadioItem>
+                ))}
               </DropdownMenuRadioGroup>
               <DropdownMenuSeparator />
               <DropdownMenuLabel>

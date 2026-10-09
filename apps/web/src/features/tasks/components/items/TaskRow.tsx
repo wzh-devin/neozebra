@@ -12,7 +12,6 @@ import {
 } from 'lucide-react'
 import { useSearchParams } from 'react-router-dom'
 import { toast } from 'sonner'
-import { taskToastOptions } from '@/features/tasks/utils/task-toast'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import {
@@ -181,7 +180,6 @@ export const TaskRow = ({
       task.subtasks.some((step) => !step.completed)
     )
       toast.success('所有步骤已完成，可以完成主任务了', {
-        ...taskToastOptions,
         duration: 8000,
       })
     return saved

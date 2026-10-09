@@ -1,6 +1,5 @@
 import { useState, type ChangeEvent, type FormEvent } from 'react'
 import { toast } from 'sonner'
-import { taskToastOptions } from '@/features/tasks/utils/task-toast'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -190,7 +189,7 @@ export const TaskEditor = ({
       onClose()
     else {
       setSaveError('保存未成功，草稿已保留，请检查后重试。')
-      toast.error('任务草稿仍在此处', taskToastOptions)
+      toast.error('任务草稿仍在此处')
     }
   }
   return (

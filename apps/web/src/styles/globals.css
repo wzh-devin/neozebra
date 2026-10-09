@@ -59,3 +59,30 @@
 #root {
   min-height: 100svh;
 }
+
+/* 全应用键盘焦点使用细灰线，取消默认光圈和边框提亮。 */
+:focus-visible:not([aria-invalid='true']) {
+  --tw-ring-shadow: 0 0 #0000;
+  --tw-ring-offset-shadow: 0 0 #0000;
+  outline: 1px solid var(--ring);
+  outline-offset: 2px;
+}
+
+:focus-visible:not([aria-invalid='true'])[class~='border-transparent'] {
+  border-color: transparent;
+}
+
+:focus-visible:not([aria-invalid='true'])[class~='border-input'] {
+  border-color: var(--input);
+}
+
+:focus-visible:not([aria-invalid='true'])[class~='border-border'] {
+  border-color: var(--border);
+}
+
+[data-slot='input-group']:has(
+    [data-slot='input-group-control']:focus-visible
+  ):not(:has([aria-invalid='true'])) {
+  border-color: var(--input);
+  box-shadow: none;
+}

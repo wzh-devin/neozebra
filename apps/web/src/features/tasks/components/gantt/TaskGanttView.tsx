@@ -2,7 +2,6 @@ import { addDays, differenceInCalendarDays } from 'date-fns'
 import { zhCN } from 'date-fns/locale'
 import { useSearchParams } from 'react-router-dom'
 import { toast } from 'sonner'
-import { taskToastOptions } from '@/features/tasks/utils/task-toast'
 import {
   GanttFeatureItem,
   GanttFeatureList,
@@ -150,8 +149,7 @@ export const TaskGanttView = () => {
    */
   const moveHandler = (id: string, startAt: Date, endAt: Date | null): void => {
     const patch = buildTaskGanttDatePatch(startAt, endAt)
-    if (!patch)
-      toast.error('截止日期不能早于计划日期，已恢复原位置。', taskToastOptions)
+    if (!patch) toast.error('截止日期不能早于计划日期，已恢复原位置。')
     else rescheduleTaskHandler(id, patch)
   }
 

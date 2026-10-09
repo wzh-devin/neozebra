@@ -2,26 +2,53 @@
   --normal-bg: var(--card);
   --normal-text: var(--foreground);
   --normal-border: var(--border);
-  padding: 12px 14px;
-  gap: 10px;
+  padding: 14px 16px;
+  gap: 12px;
   border-radius: 12px;
   box-shadow: none;
+  font-size: 13px;
 }
+
 .notification[data-sonner-toast][data-styled='true'] [data-icon] {
+  align-self: flex-start;
+  margin-top: 2px;
   color: var(--muted-foreground);
 }
+
+.notification[data-sonner-toast][data-styled='true'] [data-content] {
+  min-width: 0;
+  gap: 4px;
+  overflow-wrap: anywhere;
+}
+
+.notification[data-sonner-toast][data-styled='true'] [data-title] {
+  font-weight: 550;
+  line-height: 1.5;
+}
+
+.notification[data-sonner-toast][data-styled='true'] [data-description] {
+  color: var(--muted-foreground);
+  font-size: 12px;
+  line-height: 1.6;
+  white-space: pre-line;
+}
+
 .notification[data-sonner-toast][data-styled='true'] [data-button] {
-  height: 28px;
+  flex-shrink: 0;
+  height: 30px;
   padding: 0 10px;
   border: 1px solid var(--input);
-  border-radius: 7px;
+  border-radius: 8px;
   background: var(--secondary);
   color: var(--foreground);
+  font-size: 12px;
   font-weight: 500;
 }
+
 .notification[data-sonner-toast][data-styled='true'] [data-button]:hover {
   background: var(--accent);
 }
+
 .notification[data-sonner-toast][data-styled='true']
   [data-button]:focus-visible {
   outline: 1px solid var(--ring);

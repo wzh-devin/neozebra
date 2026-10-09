@@ -1,0 +1,42 @@
+.accounts {
+  display: grid;
+  gap: 12px;
+  padding: 20px 24px 0;
+  max-height: 220px;
+  overflow-y: auto;
+}
+.account {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 10px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+}
+.copy {
+  display: grid;
+  flex: 1;
+  min-width: 0;
+  gap: 4px;
+  font-size: 13px;
+}
+.copy strong {
+  overflow-wrap: anywhere;
+  font-weight: 500;
+}
+.copy span,
+.hint {
+  color: var(--muted-foreground);
+  font-size: 12px;
+  line-height: 1.6;
+}
+.error {
+  color: #ef9393;
+  font-size: 12px;
+  line-height: 1.6;
+}
+@media (max-width: 420px) {
+  .accounts {
+    padding-inline: 16px;
+  }
+}

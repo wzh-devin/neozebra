@@ -3,11 +3,16 @@
   "private": true,
   "packageManager": "pnpm@11.1.2",
   "scripts": {
-    "dev": "pnpm --filter @neozebra/web dev",
-    "build": "pnpm --filter @neozebra/web build",
-    "lint": "pnpm --filter @neozebra/web lint",
+    "dev": "pnpm --parallel --filter @neozebra/web --filter @neozebra/server dev",
+    "dev:web": "pnpm --filter @neozebra/web dev",
+    "dev:server": "pnpm --filter @neozebra/server dev",
+    "build": "pnpm -r build",
+    "lint": "pnpm -r lint",
+    "test:server": "pnpm --filter @neozebra/server test",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "db:migrate": "pnpm --filter @neozebra/server db:migrate",
+    "test:inbox": "pnpm --filter @neozebra/server test:integration"
   },
   "devDependencies": {
     "oxlint": "latest",

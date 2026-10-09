@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
-import { taskToastOptions } from '@/features/tasks/utils/task-toast'
 
 import { buildDemoPlannerData } from '@/features/tasks/data/demo-planner'
 import {
@@ -100,7 +99,7 @@ export const useTaskPlanner = () => {
   ): boolean => {
     if (isLoading || isReadError) return false
     if (!isPlannerData(next)) {
-      toast.error('请检查标题、日期、预计用时和项目关联。', taskToastOptions)
+      toast.error('请检查标题、日期、预计用时和项目关联。')
       return false
     }
     const previous = dataRef.current
@@ -108,10 +107,7 @@ export const useTaskPlanner = () => {
       const raw = writePlannerStorage(localStorage, rawRef.current, next)
       if (raw === null) {
         loadHandler()
-        toast.error(
-          '计划已在其他标签页更新，请核对后重新保存。',
-          taskToastOptions,
-        )
+        toast.error('计划已在其他标签页更新，请核对后重新保存。')
         return false
       }
       rawRef.current = raw
@@ -127,13 +123,12 @@ export const useTaskPlanner = () => {
        */
       const undoHandler = (): void => {
         if (dataRef.current !== next) {
-          toast.info('已有后续更改，无法直接撤销这次操作。', taskToastOptions)
+          toast.info('已有后续更改，无法直接撤销这次操作。')
           return
         }
         commitHandler(previous, '已撤销')
       }
       toast.success(message, {
-        ...taskToastOptions,
         id: 'task-planner-change',
         duration: allowUndo ? 12000 : 4000,
         action: allowUndo ? { label: '撤销', onClick: undoHandler } : undefined,
@@ -143,7 +138,7 @@ export const useTaskPlanner = () => {
       setError(
         '本地保存失败，改动尚未保存。输入已保留，请释放存储空间后重试刚才的操作。',
       )
-      toast.error('保存失败，请重试；原计划未改变。', taskToastOptions)
+      toast.error('保存失败，请重试；原计划未改变。')
       return false
     }
   }

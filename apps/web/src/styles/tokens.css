@@ -57,7 +57,7 @@
   --destructive: oklch(0.62 0.22 25);
   --border: oklch(1 0 0 / 9%);
   --input: oklch(1 0 0 / 12%);
-  --ring: oklch(0.74 0.08 205);
+  --ring: var(--muted-foreground);
   --sidebar: var(--background);
   --sidebar-foreground: oklch(0.86 0.01 260);
   --sidebar-primary: oklch(0.8 0.12 205);
@@ -65,7 +65,7 @@
   --sidebar-accent: oklch(0.21 0.013 260);
   --sidebar-accent-foreground: oklch(0.94 0.01 260);
   --sidebar-border: oklch(1 0 0 / 8%);
-  --sidebar-ring: oklch(0.74 0.08 205);
+  --sidebar-ring: var(--ring);
   --radius: 0.7rem;
   --project-purple: oklch(0.75 0.13 295);
   --project-blue: oklch(0.75 0.12 250);

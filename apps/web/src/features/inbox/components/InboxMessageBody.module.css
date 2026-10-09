@@ -1,0 +1,62 @@
+.body {
+  min-width: 0;
+}
+.html {
+  display: block;
+  width: 100%;
+  border: 0;
+  border-radius: 6px;
+  background: white;
+}
+.markdown {
+  overflow-wrap: anywhere;
+  color: var(--foreground);
+}
+.markdown :is(h1, h2, h3, h4) {
+  margin: 24px 0 12px;
+  font-size: 1.3em;
+  line-height: 1.4;
+}
+.markdown :is(ul, ol) {
+  margin: 16px 0;
+  padding-left: 24px;
+  list-style: revert;
+}
+.markdown :is(p, pre, blockquote, table) {
+  margin: 16px 0;
+}
+.markdown a {
+  color: var(--primary);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.markdown pre {
+  overflow-x: auto;
+  padding: 12px;
+  border-radius: var(--radius);
+  background: var(--muted);
+}
+.markdown code {
+  font-family: monospace;
+  font-size: 0.9em;
+}
+.markdown blockquote {
+  padding-left: 16px;
+  border-left: 2px solid var(--border);
+  color: var(--muted-foreground);
+}
+.markdown table {
+  display: block;
+  width: max-content;
+  max-width: 100%;
+  overflow-x: auto;
+  border-collapse: collapse;
+}
+.markdown :is(th, td) {
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+}
+.markdown img {
+  max-width: 100%;
+  height: auto;
+}

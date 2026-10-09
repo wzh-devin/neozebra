@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react'
 import { ThemeProvider } from 'next-themes'
 
-import { Toaster } from '@/components/ui/sonner'
+import { NotificationToaster } from '@/components/shared/notifications'
 import { TooltipProvider } from '@/components/ui/tooltip'
 
 type AppProvidersProps = {
@@ -18,7 +18,7 @@ const AppProviders = ({ children }: AppProvidersProps) => (
   <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
     <TooltipProvider>
       {children}
-      <Toaster position="bottom-right" />
+      <NotificationToaster />
     </TooltipProvider>
   </ThemeProvider>
 )
