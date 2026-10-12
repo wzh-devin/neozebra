@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { FileWarning } from 'lucide-react'
 
-import { Button } from '@/components/ui/button'
 import {
   Empty,
   EmptyDescription,
@@ -11,6 +10,7 @@ import {
 } from '@/components/ui/empty'
 import { Spinner } from '@/components/ui/spinner'
 import type { DriveFilePreview } from '@/features/drive/data/drive-file-preview'
+import { DriveOfficePreview } from './DriveOfficePreview'
 
 import styles from '@/features/drive/components/files/DriveFilePreviewDialog.module.css'
 
@@ -39,6 +39,9 @@ const DriveFilePreviewContent = ({
 
   // 处理媒体读取或解码失败。
   const mediaErrorHandler = (): void => setHasError(true)
+
+  if (preview.kind === 'office' && preview.office)
+    return <DriveOfficePreview preview={preview.office} name={name} />
 
   if (hasError)
     return (
@@ -71,45 +74,6 @@ const DriveFilePreviewContent = ({
         </EmptyHeader>
       </Empty>
     )
-  if (preview.kind === 'pdf') {
-    const fallback = (
-      <Empty className={styles.empty}>
-        <EmptyHeader>
-          <EmptyTitle>PDF preview is unavailable</EmptyTitle>
-          <EmptyDescription>
-            Open the PDF in your browser's viewer.
-          </EmptyDescription>
-        </EmptyHeader>
-        <Button variant="outline" asChild>
-          <a href={preview.url} target="_blank" rel="noopener noreferrer">
-            Open PDF
-          </a>
-        </Button>
-      </Empty>
-    )
-    if (
-      typeof navigator !== 'undefined' &&
-      navigator.pdfViewerEnabled === false
-    )
-      return fallback
-    return (
-      <div className={styles['pdf-container']}>
-        <iframe
-          className={styles.pdf}
-          src={preview.url}
-          title={`Preview of ${name}`}
-        />
-        <div className={styles['pdf-actions']}>
-          <span>Having trouble viewing this PDF?</span>
-          <Button size="sm" variant="ghost" asChild>
-            <a href={preview.url} target="_blank" rel="noopener noreferrer">
-              Open PDF
-            </a>
-          </Button>
-        </div>
-      </div>
-    )
-  }
 
   return (
     <div className={styles.media}>

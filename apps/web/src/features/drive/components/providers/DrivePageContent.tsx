@@ -5,6 +5,8 @@ import { DriveConnectionDialog } from '@/features/drive/components/providers/Dri
 import { DriveProviderCard } from '@/features/drive/components/providers/DriveProviderCard'
 import { DriveDeleteConnectionDialog } from '@/features/drive/components/providers/DriveDeleteConnectionDialog'
 import { useDriveConnections } from '@/features/drive/hooks/useDriveConnections'
+import { useDriveAuthorizationResult } from '@/features/drive/hooks/useDriveAuthorizationResult'
+import { Spinner } from '@/components/ui/spinner'
 import { Button } from '@/components/ui/button'
 import type { DriveProvider } from '@/features/drive/types'
 
@@ -17,7 +19,9 @@ import styles from '@/features/drive/components/providers/DrivePageContent.modul
  * @returns Provider 总览 JSX
  */
 const DrivePageContent = () => {
-  const { connectionList, loadError, retryLoadHandler } = useDriveConnections()
+  useDriveAuthorizationResult()
+  const { connectionList, loadError, retryLoadHandler, loading } =
+    useDriveConnections()
   const [connectionToDelete, setConnectionToDelete] =
     useState<DriveProvider | null>(null)
   const connectTriggerRef = useRef<HTMLButtonElement>(null)
@@ -59,6 +63,12 @@ const DrivePageContent = () => {
             <Button variant="outline" size="sm" onClick={retryLoadHandler}>
               Retry
             </Button>
+          </div>
+        ) : null}
+        {loading ? (
+          <div role="status" className="flex items-center gap-2">
+            <Spinner />
+            Loading drives…
           </div>
         ) : null}
         <ul className={styles.grid} aria-label="Storage providers">

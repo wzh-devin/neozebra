@@ -1,9 +1,5 @@
-import { isDriveProviderId } from '@/features/drive/data/drive-provider'
-import { driveProviderList } from '@/features/drive/data/mockDrive'
 import type {
   DriveConnectionDraft,
-  DriveMountOptions,
-  DriveProvider,
   DriveProviderId,
 } from '@/features/drive/types'
 
@@ -64,6 +60,7 @@ const validateDriveBucket = (value: string): string => {
 const buildDriveConnectionDraft = (
   providerId: DriveProviderId,
   formData: FormData,
+  isEditing = false,
 ): DriveConnectionDraft => {
   const getValue = (key: string): string => {
     const value = formData.get(key)
@@ -79,7 +76,11 @@ const buildDriveConnectionDraft = (
    */
   const getRequiredValue = (key: string, label: string): string => {
     const value = getValue(key)
-    if (!value.trim()) throw new Error(`${label} is required.`)
+    if (
+      !value.trim() &&
+      !(isEditing && ['accessKey', 'secretKey'].includes(key))
+    )
+      throw new Error(`${label} is required.`)
     return value
   }
   const name = getRequiredValue('name', 'Drive name').trim()
@@ -98,9 +99,6 @@ const buildDriveConnectionDraft = (
       sessionToken: getValue('sessionToken'),
     }
   }
-  const authMode = getValue('authMode')
-  if (authMode !== 'accessToken' && authMode !== 'refreshToken')
-    throw new Error('Choose an authorization method.')
   const rootPath = getValue('rootPath').trim() || '/'
   if (!rootPath.startsWith('/'))
     throw new Error('Root folder must be an absolute path beginning with /.')
@@ -109,30 +107,7 @@ const buildDriveConnectionDraft = (
     'providerId'
   > = {
     name,
-    authMode,
     rootPath,
-    accessToken:
-      authMode === 'accessToken'
-        ? getRequiredValue('accessToken', 'Access Token')
-        : '',
-    refreshToken:
-      authMode === 'refreshToken'
-        ? getRequiredValue('refreshToken', 'Refresh Token')
-        : '',
-    clientId:
-      authMode === 'refreshToken'
-        ? getRequiredValue(
-            'clientId',
-            providerId === 'baidu' ? 'AppKey' : 'Client ID',
-          ).trim()
-        : '',
-    clientSecret:
-      authMode === 'refreshToken'
-        ? getRequiredValue(
-            'clientSecret',
-            providerId === 'baidu' ? 'SecretKey' : 'Client Secret',
-          )
-        : '',
   }
   if (providerId === 'baidu') return { ...oauth, providerId }
   const driveType = getValue('driveType')
@@ -145,173 +120,4 @@ const buildDriveConnectionDraft = (
   return { ...oauth, providerId, driveType }
 }
 
-/**
- * 从已校验草稿投影可持久化参数，排除所有密钥和Token。
- *
- * @param draft - 连接草稿
- * @param id - 稳定的连接实例ID
- * @returns 无凭据的卡片和挂载元数据
- */
-const buildDriveConnection = (
-  draft: { name: string } & DriveMountOptions,
-  id: string,
-): DriveProvider => {
-  let options: DriveMountOptions
-  if (draft.providerId === 'minio') {
-    options = {
-      providerId: draft.providerId,
-      endpoint: draft.endpoint,
-      bucket: draft.bucket,
-      region: draft.region,
-      prefix: draft.prefix,
-    }
-  } else if (draft.providerId === 'aliyun') {
-    options = {
-      providerId: draft.providerId,
-      rootPath: draft.rootPath,
-      driveType: draft.driveType,
-    }
-  } else options = { providerId: draft.providerId, rootPath: draft.rootPath }
-  return {
-    id,
-    providerId: draft.providerId,
-    name: draft.name,
-    description:
-      driveProviderList.find((item) => item.providerId === draft.providerId)
-        ?.name ?? '',
-    status: 'configured',
-    lastSyncedAt: 'Never',
-    options,
-  }
-}
-
-// 检查缓存值是否为非空且非数组对象。
-const isRecord = (value: unknown): value is Record<string, unknown> =>
-  typeof value === 'object' && value !== null && !Array.isArray(value)
-
-type SavedDriveConnectionRecord = {
-  connectionList: DriveProvider[]
-  removedDefaultIds: DriveProviderId[]
-}
-
-/**
- * 校验缓存并重建公共配置与默认连接删除记录，兼容旧缓存且排除凭据。
- *
- * @param serialized - 浏览器保存的版本化连接JSON
- * @returns 已校验的连接和删除记录；损坏缓存抛出统一错误
- */
-const parseSavedDriveConnectionRecord = (
-  serialized: string | null,
-): SavedDriveConnectionRecord => {
-  if (!serialized) return { connectionList: [], removedDefaultIds: [] }
-  const data: unknown = JSON.parse(serialized)
-  if (!isRecord(data) || data.version !== 1 || !Array.isArray(data.connections))
-    throw new Error('Saved Drive configuration is invalid.')
-  const removedIds =
-    data.removedDefaultIds === undefined ? [] : data.removedDefaultIds
-  if (!Array.isArray(removedIds))
-    throw new Error('Saved Drive configuration is invalid.')
-  const removedDefaultIds: DriveProviderId[] = []
-  for (const id of removedIds) {
-    if (
-      typeof id !== 'string' ||
-      !isDriveProviderId(id) ||
-      removedDefaultIds.includes(id)
-    )
-      throw new Error('Saved Drive configuration is invalid.')
-    removedDefaultIds.push(id)
-  }
-  const idSet = new Set<string>()
-
-  /**
-   * 从单条缓存重建无凭据实例。
-   *
-   * @param item - 不可信连接对象
-   * @returns 安全实例；缺失或非法字段抛出错误
-   */
-  const parseConnection = (item: unknown): DriveProvider => {
-    if (
-      !isRecord(item) ||
-      typeof item.id !== 'string' ||
-      !/^[a-zA-Z0-9-]+$/.test(item.id) ||
-      idSet.has(item.id) ||
-      typeof item.providerId !== 'string' ||
-      !isDriveProviderId(item.providerId) ||
-      typeof item.name !== 'string' ||
-      !item.name.trim() ||
-      item.name.length > 100 ||
-      !isRecord(item.options) ||
-      item.options.providerId !== item.providerId
-    )
-      throw new Error('Saved Drive configuration is invalid.')
-    if (isDriveProviderId(item.id) && item.id !== item.providerId)
-      throw new Error('Saved Drive configuration is invalid.')
-    idSet.add(item.id)
-    const options = item.options
-    if (item.providerId === 'minio') {
-      if (
-        typeof options.endpoint !== 'string' ||
-        typeof options.bucket !== 'string' ||
-        typeof options.region !== 'string' ||
-        typeof options.prefix !== 'string'
-      )
-        throw new Error('Saved Drive configuration is invalid.')
-      return buildDriveConnection(
-        {
-          name: item.name.trim(),
-          providerId: 'minio',
-          endpoint: normalizeDriveEndpoint(options.endpoint),
-          bucket: validateDriveBucket(options.bucket),
-          region: options.region,
-          prefix: options.prefix,
-        },
-        item.id,
-      )
-    }
-    if (
-      typeof options.rootPath !== 'string' ||
-      !options.rootPath.startsWith('/')
-    )
-      throw new Error('Saved Drive configuration is invalid.')
-    if (item.providerId === 'baidu')
-      return buildDriveConnection(
-        {
-          name: item.name.trim(),
-          providerId: 'baidu',
-          rootPath: options.rootPath,
-        },
-        item.id,
-      )
-    if (
-      options.driveType !== 'default' &&
-      options.driveType !== 'resource' &&
-      options.driveType !== 'backup'
-    )
-      throw new Error('Saved Drive configuration is invalid.')
-    return buildDriveConnection(
-      {
-        name: item.name.trim(),
-        providerId: 'aliyun',
-        rootPath: options.rootPath,
-        driveType: options.driveType,
-      },
-      item.id,
-    )
-  }
-  const connectionList = data.connections.map(parseConnection)
-  if (removedDefaultIds.some((id) => idSet.has(id)))
-    throw new Error('Saved Drive configuration is invalid.')
-  return { connectionList, removedDefaultIds }
-}
-
-// 从已校验的公共配置中读取连接列表。
-const parseSavedDriveConnectionList = (
-  serialized: string | null,
-): DriveProvider[] => parseSavedDriveConnectionRecord(serialized).connectionList
-
-export {
-  buildDriveConnectionDraft,
-  buildDriveConnection,
-  parseSavedDriveConnectionList,
-  parseSavedDriveConnectionRecord,
-}
+export { buildDriveConnectionDraft }

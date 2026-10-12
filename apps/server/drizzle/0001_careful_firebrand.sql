@@ -1,1 +1,0 @@
-ALTER TABLE "nm_email_messages" ADD COLUMN "body_format" text;

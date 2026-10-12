@@ -69,3 +69,17 @@
     min-height: 44px;
   }
 }
+
+.spinning {
+  animation: drive-refresh 1s linear infinite;
+}
+@keyframes drive-refresh {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .spinning {
+    animation: none;
+  }
+}

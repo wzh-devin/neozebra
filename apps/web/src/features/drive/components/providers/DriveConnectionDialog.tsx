@@ -50,10 +50,10 @@ const DriveConnectionDialog = ({
     connection?.providerId ?? 'baidu',
   )
   const [error, setError] = useState<string | null>(null)
-  const { saveConnection, credentialsMap } = useDriveConnections()
+  const [saving, setSaving] = useState(false)
+  const { saveConnection, authorizeConnection } = useDriveConnections()
   const initialValues: Record<string, string> = {
     ...connection?.options,
-    ...credentialsMap[connection?.id ?? ''],
   }
 
   // 切换 Provider 专属字段并清除旧错误。
@@ -64,25 +64,41 @@ const DriveConnectionDialog = ({
 
   // 切换弹窗状态，打开时恢复 Provider，并清除旧错误。
   const openChangeHandler = (nextOpen: boolean): void => {
+    if (saving) return
     setOpen(nextOpen)
     if (nextOpen) setProviderId(connection?.providerId ?? 'baidu')
     setError(null)
   }
 
   /**
-   * 校验并保存独立连接，凭据只保留在会话内。
+   * 校验并保存独立连接，凭据仅在服务端加密保存。
    *
    * @param event - 表单提交事件
    * @returns 无返回值；保存成功更新卡片并关闭，失败保留输入并显示安全错误
    */
-  const saveConnectionHandler = (event: FormEvent<HTMLFormElement>): void => {
+  const saveConnectionHandler = async (
+    event: FormEvent<HTMLFormElement>,
+  ): Promise<void> => {
     event.preventDefault()
+    setSaving(true)
+    let redirecting = false
     try {
       const draft = buildDriveConnectionDraft(
         providerId,
         new FormData(event.currentTarget),
+        Boolean(connection),
       )
-      saveConnection(draft, connection?.id)
+      const submitter = (event.nativeEvent as SubmitEvent).submitter
+      if (
+        providerId !== 'minio' &&
+        (!connection || submitter?.getAttribute('value') === 'authorize')
+      ) {
+        const url = await authorizeConnection(draft, connection?.id)
+        window.location.assign(url)
+        redirecting = true
+        return
+      }
+      await saveConnection(draft, connection?.id)
       setOpen(false)
       setError(null)
       toast('Drive configuration saved')
@@ -92,6 +108,8 @@ const DriveConnectionDialog = ({
           ? cause.message
           : 'Unable to save this Drive. Try again.',
       )
+    } finally {
+      if (!redirecting) setSaving(false)
     }
   }
   return (
@@ -121,12 +139,29 @@ const DriveConnectionDialog = ({
         )}
       </DialogTrigger>
       <EditorDialogContent
-        title={connection ? 'Configure Drive' : 'Add a Drive'}
-        description="Name this Drive and enter the connection details for its provider."
+        title={
+          providerId === 'minio'
+            ? connection
+              ? 'Configure Drive'
+              : 'Add a Drive'
+            : connection
+              ? 'Configure account'
+              : 'Connect an account'
+        }
+        description={
+          providerId === 'minio'
+            ? 'Name this Drive and enter its S3 connection details.'
+            : connection
+              ? 'Changes apply only to this account. Reauthorize to switch its login.'
+              : 'Choose an account on the provider’s official page. Other connected accounts will be kept.'
+        }
       >
         <form className={formStyles.form} onSubmit={saveConnectionHandler}>
           <div className={formStyles.fields}>
-            <EditorField id="drive-name" label="Drive name">
+            <EditorField
+              id="drive-name"
+              label={providerId === 'minio' ? 'Drive name' : 'Account name'}
+            >
               <Input
                 id="drive-name"
                 name="name"
@@ -162,6 +197,7 @@ const DriveConnectionDialog = ({
               key={providerId}
               providerId={providerId}
               initialValues={initialValues}
+              isEditing={Boolean(connection)}
             />
           </div>
           {error ? (
@@ -171,11 +207,29 @@ const DriveConnectionDialog = ({
           ) : null}
           <DialogFooter className={formStyles.footer}>
             <DialogClose asChild>
-              <Button type="button" variant="outline">
+              <Button type="button" variant="outline" disabled={saving}>
                 Cancel
               </Button>
             </DialogClose>
-            <Button type="submit">Save connection</Button>
+            {connection && providerId !== 'minio' ? (
+              <Button
+                type="submit"
+                value="authorize"
+                variant="outline"
+                disabled={saving}
+              >
+                Reauthorize
+              </Button>
+            ) : null}
+            <Button type="submit" disabled={saving}>
+              {saving
+                ? 'Connecting…'
+                : providerId !== 'minio' && !connection
+                  ? providerId === 'baidu'
+                    ? 'Continue with Baidu'
+                    : 'Continue with Aliyun'
+                  : 'Save connection'}
+            </Button>
           </DialogFooter>
         </form>
       </EditorDialogContent>

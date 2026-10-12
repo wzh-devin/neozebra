@@ -36,4 +36,18 @@ tests/
 /apps/server/.env
 /apps/server/.env.*
 !/apps/server/.env.example
+checks
+!/apps/server/checks/
+/apps/server/checks/*
 !/apps/server/checks/*.test.ts
+!/apps/server/checks/imap-fixture.ts
+!/apps/server/checks/task-fixture.ts
+!/apps/server/checks/drive-upload-s3-fixture.ts
+!/apps/server/checks/run-integration.ts
+!/apps/server/checks/drive-performance.ts
+
+# Prisma generated client
+/packages/database/src/generated/
+**/.data/drive-uploads/
+**/.data/drive-previews/
+/deploy/office/.env

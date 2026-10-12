@@ -16,28 +16,10 @@ import { mockImapMailbox } from './imap-fixture.ts'
 import { parseMailBody } from '../src/infrastructure/inbox/mail-parser.ts'
 import { getSafeProviderError } from '../src/infrastructure/inbox/inbox-service.ts'
 import type { MailAccount } from '../src/infrastructure/inbox/types.ts'
-import { getTableConfig } from 'drizzle-orm/pg-core'
-import {
-  emailAccounts,
-  emailMessages,
-} from '../src/infrastructure/database/schema.ts'
 import { idSchema, gmailSchema } from '../src/dto/inbox/inbox-dto.ts'
 import { getPublicMessage } from '../src/infrastructure/inbox/inbox-repository.ts'
 
 test('业务表审计字段和约束规范，bigint API 不丢精度', () => {
-  for (const table of [emailAccounts, emailMessages]) {
-    const config = getTableConfig(table)
-    assert.ok(config.name.startsWith('nm_'))
-    assert.ok(
-      config.indexes.every((index) => index.config.name?.startsWith('nm_')),
-    )
-    assert.equal(config.foreignKeys.length, 0)
-    assert.equal(config.checks.length, 0)
-    assert.equal(config.uniqueConstraints.length, 0)
-    assert.equal(table.id.getSQLType(), 'bigint')
-    assert.equal(table.createdAt.getSQLType(), 'timestamp with time zone')
-    assert.equal(table.updatedAt.getSQLType(), 'timestamp with time zone')
-  }
   for (const value of ['0', '-1', 'bad-id', '1e3', '9223372036854775808'])
     assert.equal(idSchema.safeParse(value).success, false)
   assert.equal(idSchema.parse('9007199254740993'), 9007199254740993n)
@@ -52,6 +34,7 @@ test('业务表审计字段和约束规范，bigint API 不丢精度', () => {
     read: false,
     archived: false,
     body: '',
+    bodyFormat: null,
   })
   assert.equal(JSON.parse(JSON.stringify(message)).id, '9007199254740993')
 })

@@ -1,75 +1,64 @@
-import {
-  and,
-  asc,
-  count,
-  desc,
-  eq,
-  gt,
-  ilike,
-  inArray,
-  lte,
-  lt,
-  max,
-  or,
-  isNull,
-} from 'drizzle-orm'
+import { Prisma } from '@neozebra/database'
 import { HTTPException } from 'hono/http-exception'
 
 import type { Database } from '../database/database-client.ts'
-import { emailAccounts, emailMessages } from '../database/schema.ts'
+import { ignoreMissingRecord } from '../database/prisma-errors.ts'
 import type { MailFilterDto, MailPatchDto } from '../../dto/inbox/inbox-dto.ts'
 import type { MailAccount, MailBatch, MailBody, MailRecord } from './types.ts'
 
+const messageHeaderSelect = {
+  id: true,
+  accountId: true,
+  providerId: true,
+  title: true,
+  sender: true,
+  receivedAt: true,
+  summary: true,
+  read: true,
+  archived: true,
+} satisfies Prisma.EmailMessageSelect
+
 const getAccount = async (db: Database, owner: string, id: bigint) => {
-  const [account] = await db.store
-    .select()
-    .from(emailAccounts)
-    .where(and(eq(emailAccounts.id, id), eq(emailAccounts.ownerId, owner)))
+  const account = await db.store.emailAccount.findFirst({
+    where: { id, ownerId: owner },
+  })
   if (!account) throw new HTTPException(404, { message: 'Mailbox not found.' })
   return account
 }
 
 const getAccountList = (db: Database, owner: string) =>
-  db.store
-    .select()
-    .from(emailAccounts)
-    .where(eq(emailAccounts.ownerId, owner))
-    .orderBy(emailAccounts.createdAt)
-const getPublicAccountList = (db: Database, owner: string) =>
-  db.store
-    .select({
-      id: emailAccounts.id,
-      provider: emailAccounts.provider,
-      email: emailAccounts.email,
-      lastSyncedAt: emailAccounts.lastSyncedAt,
-      isInitialSync: isNull(emailAccounts.cursor),
-      error: emailAccounts.error,
-    })
-    .from(emailAccounts)
-    .where(eq(emailAccounts.ownerId, owner))
-    .orderBy(emailAccounts.createdAt)
-const getUnreadCount = async (db: Database, owner: string) => {
-  const [result] = await db.store
-    .select({ count: count() })
-    .from(emailMessages)
-    .innerJoin(emailAccounts, eq(emailMessages.accountId, emailAccounts.id))
-    .where(
-      and(
-        eq(emailAccounts.ownerId, owner),
-        eq(emailMessages.read, false),
-        eq(emailMessages.archived, false),
-      ),
-    )
-  return result.count
+  db.store.emailAccount.findMany({
+    where: { ownerId: owner },
+    orderBy: { createdAt: 'asc' },
+  })
+const getPublicAccountList = async (db: Database, owner: string) => {
+  const accountList = await db.store.emailAccount.findMany({
+    select: {
+      id: true,
+      provider: true,
+      email: true,
+      lastSyncedAt: true,
+      cursor: true,
+      error: true,
+    },
+    where: { ownerId: owner },
+    orderBy: { createdAt: 'asc' },
+  })
+  return accountList.map(({ cursor, ...account }) => ({
+    ...account,
+    isInitialSync: cursor === null,
+  }))
 }
+const getUnreadCount = (db: Database, owner: string) =>
+  db.store.emailMessage.count({
+    where: { account: { ownerId: owner }, read: false, archived: false },
+  })
 const getStoredMessage = async (db: Database, owner: string, id: bigint) => {
-  const [result] = await db.store
-    .select({ message: emailMessages })
-    .from(emailMessages)
-    .innerJoin(emailAccounts, eq(emailMessages.accountId, emailAccounts.id))
-    .where(and(eq(emailMessages.id, id), eq(emailAccounts.ownerId, owner)))
-  if (!result) throw new HTTPException(404, { message: 'Message not found.' })
-  return result.message
+  const message = await db.store.emailMessage.findFirst({
+    where: { id, account: { ownerId: owner } },
+  })
+  if (!message) throw new HTTPException(404, { message: 'Message not found.' })
+  return message
 }
 
 const getPublicMessage = (
@@ -104,47 +93,39 @@ const getMessagePage = async (
   const before = filter.before
     ? await getStoredMessage(db, owner, filter.before)
     : undefined
-  const search = `%${filter.query.trim().replace(/[\\%_]/g, '\\$&')}%`
-  const rows = await db.store
-    .select({
-      id: emailMessages.id,
-      accountId: emailMessages.accountId,
-      providerId: emailMessages.providerId,
-      title: emailMessages.title,
-      sender: emailMessages.sender,
-      receivedAt: emailMessages.receivedAt,
-      summary: emailMessages.summary,
-      read: emailMessages.read,
-      archived: emailMessages.archived,
-    })
-    .from(emailMessages)
-    .innerJoin(emailAccounts, eq(emailMessages.accountId, emailAccounts.id))
-    .where(
-      and(
-        eq(emailAccounts.ownerId, owner),
-        eq(emailMessages.archived, filter.tab === 'archived'),
-        filter.tab === 'unread' ? eq(emailMessages.read, false) : undefined,
-        filter.account === 'all' || filter.account === 'email'
-          ? undefined
-          : eq(emailAccounts.id, filter.account),
-        or(
-          ilike(emailMessages.title, search),
-          ilike(emailMessages.sender, search),
-          ilike(emailMessages.summary, search),
-        ),
-        before
-          ? or(
-              lt(emailMessages.receivedAt, before.receivedAt),
-              and(
-                eq(emailMessages.receivedAt, before.receivedAt),
-                lt(emailMessages.id, before.id),
-              ),
-            )
-          : undefined,
-      ),
-    )
-    .orderBy(desc(emailMessages.receivedAt), desc(emailMessages.id))
-    .limit(101)
+  const search = filter.query.trim().replace(/[\\%_]/g, '\\$&')
+  const rows = await db.store.emailMessage.findMany({
+    select: messageHeaderSelect,
+    where: {
+      account: { ownerId: owner },
+      archived: filter.tab === 'archived',
+      ...(filter.tab === 'unread' ? { read: false } : {}),
+      ...(filter.account === 'all' || filter.account === 'email'
+        ? {}
+        : { accountId: filter.account }),
+      AND: [
+        {
+          OR: [
+            { title: { contains: search, mode: 'insensitive' } },
+            { sender: { contains: search, mode: 'insensitive' } },
+            { summary: { contains: search, mode: 'insensitive' } },
+          ],
+        },
+        ...(before
+          ? [
+              {
+                OR: [
+                  { receivedAt: { lt: before.receivedAt } },
+                  { receivedAt: before.receivedAt, id: { lt: before.id } },
+                ],
+              },
+            ]
+          : []),
+      ],
+    },
+    orderBy: [{ receivedAt: 'desc' }, { id: 'desc' }],
+    take: 101,
+  })
   const itemList = rows
     .slice(0, 100)
     .map((row) => getPublicMessage({ ...row, body: null, bodyFormat: null }))
@@ -167,37 +148,19 @@ const getNewMessagePage = async (
   owner: string,
   after?: bigint,
 ) => {
-  const [snapshot] = await db.store
-    .select({ id: max(emailMessages.id) })
-    .from(emailMessages)
-    .innerJoin(emailAccounts, eq(emailMessages.accountId, emailAccounts.id))
-    .where(eq(emailAccounts.ownerId, owner))
-  const latest = snapshot.id ?? 0n
+  const snapshot = await db.store.emailMessage.aggregate({
+    _max: { id: true },
+    where: { account: { ownerId: owner } },
+  })
+  const latest = snapshot._max.id ?? 0n
   if (after === undefined || after >= latest)
     return { itemList: [], cursor: latest.toString(), hasMore: false }
-  const rows = await db.store
-    .select({
-      id: emailMessages.id,
-      accountId: emailMessages.accountId,
-      providerId: emailMessages.providerId,
-      title: emailMessages.title,
-      sender: emailMessages.sender,
-      receivedAt: emailMessages.receivedAt,
-      summary: emailMessages.summary,
-      read: emailMessages.read,
-      archived: emailMessages.archived,
-    })
-    .from(emailMessages)
-    .innerJoin(emailAccounts, eq(emailMessages.accountId, emailAccounts.id))
-    .where(
-      and(
-        eq(emailAccounts.ownerId, owner),
-        gt(emailMessages.id, after),
-        lte(emailMessages.id, latest),
-      ),
-    )
-    .orderBy(asc(emailMessages.id))
-    .limit(101)
+  const rows = await db.store.emailMessage.findMany({
+    select: messageHeaderSelect,
+    where: { account: { ownerId: owner }, id: { gt: after, lte: latest } },
+    orderBy: { id: 'asc' },
+    take: 101,
+  })
   const hasMore = rows.length > 100
   const itemList = rows
     .slice(0, 100)
@@ -219,53 +182,43 @@ const saveEncryptedAccount = (
   email: string,
   encrypted: string,
 ) =>
-  db.store.transaction(async (transaction) => {
+  db.store.$transaction(async (transaction) => {
     const address = email.toLowerCase()
-    const [existing] = await transaction
-      .select()
-      .from(emailAccounts)
-      .where(
-        and(
-          eq(emailAccounts.ownerId, owner),
-          eq(emailAccounts.provider, provider),
-          eq(emailAccounts.email, address),
-        ),
-      )
-      .for('update')
+    const existing = await transaction.emailAccount.findFirst({
+      where: { ownerId: owner, provider, email: address },
+    })
     if (existing) {
-      const [account] = await transaction
-        .update(emailAccounts)
-        .set({ credentials: encrypted, cursor: null, error: null })
-        .where(eq(emailAccounts.id, existing.id))
-        .returning()
-      return account
+      const account = await transaction.emailAccount
+        .update({
+          where: { id: existing.id },
+          data: { credentials: encrypted, cursor: Prisma.DbNull, error: null },
+        })
+        .catch(ignoreMissingRecord)
+      if (account) return account
     }
-    const [account] = await transaction
-      .insert(emailAccounts)
-      .values({
+    return transaction.emailAccount.create({
+      data: {
         ownerId: owner,
         provider,
         email: address,
         credentials: encrypted,
-      })
-      .returning()
-    return account
+      },
+    })
   })
 
-// 删除与同步取得同一账号行锁，关联清理由代码完成。
+// 条件更新取得账号行锁，与同步共享；关联清理由代码完成。
 const deleteAccount = (db: Database, owner: string, id: bigint) =>
-  db.store.transaction(async (transaction) => {
-    const [account] = await transaction
-      .select({ id: emailAccounts.id })
-      .from(emailAccounts)
-      .where(and(eq(emailAccounts.id, id), eq(emailAccounts.ownerId, owner)))
-      .for('update')
+  db.store.$transaction(async (transaction) => {
+    const account = await transaction.emailAccount
+      .update({
+        where: { id, ownerId: owner },
+        data: { updatedAt: new Date() },
+      })
+      .catch(ignoreMissingRecord)
     if (!account)
       throw new HTTPException(404, { message: 'Mailbox not found.' })
-    await transaction
-      .delete(emailMessages)
-      .where(eq(emailMessages.accountId, id))
-    await transaction.delete(emailAccounts).where(eq(emailAccounts.id, id))
+    await transaction.emailMessage.deleteMany({ where: { accountId: id } })
+    await transaction.emailAccount.delete({ where: { id } })
   })
 
 const patchMessage = async (
@@ -274,37 +227,19 @@ const patchMessage = async (
   id: bigint,
   patch: MailPatchDto,
 ) => {
-  const ownedAccounts = db.store
-    .select({ id: emailAccounts.id })
-    .from(emailAccounts)
-    .where(eq(emailAccounts.ownerId, owner))
-  const result = await db.store
-    .update(emailMessages)
-    .set(patch)
-    .where(
-      and(
-        eq(emailMessages.id, id),
-        inArray(emailMessages.accountId, ownedAccounts),
-      ),
-    )
-    .returning({ id: emailMessages.id })
-  if (!result.length)
-    throw new HTTPException(404, { message: 'Message not found.' })
+  const result = await db.store.emailMessage
+    .update({
+      where: { id, account: { ownerId: owner } },
+      data: patch,
+    })
+    .catch(ignoreMissingRecord)
+  if (!result) throw new HTTPException(404, { message: 'Message not found.' })
 }
 const markAllRead = async (db: Database, owner: string) => {
-  const ownedAccounts = db.store
-    .select({ id: emailAccounts.id })
-    .from(emailAccounts)
-    .where(eq(emailAccounts.ownerId, owner))
-  await db.store
-    .update(emailMessages)
-    .set({ read: true })
-    .where(
-      and(
-        inArray(emailMessages.accountId, ownedAccounts),
-        eq(emailMessages.archived, false),
-      ),
-    )
+  await db.store.emailMessage.updateMany({
+    where: { account: { ownerId: owner }, archived: false },
+    data: { read: true },
+  })
 }
 
 /**
@@ -322,31 +257,23 @@ const saveSyncedBatch = (
   batch: MailBatch,
   credentials: string,
 ) =>
-  db.store.transaction(async (transaction) => {
-    const current = await transaction
-      .select({ id: emailAccounts.id })
-      .from(emailAccounts)
-      .where(
-        and(
-          eq(emailAccounts.id, account.id),
-          eq(emailAccounts.credentials, account.credentials),
-        ),
-      )
-      .for('update')
-    if (!current.length) return false
+  db.store.$transaction(async (transaction) => {
+    // 更新原时间取得行锁；等待期间凭据改变时 PostgreSQL 会重新检查条件。
+    const current = await transaction.emailAccount
+      .update({
+        where: { id: account.id, credentials: account.credentials },
+        data: { updatedAt: account.updatedAt },
+      })
+      .catch(ignoreMissingRecord)
+    if (!current) return false
     if (batch.messageList.length) {
       const providerIdList = [
         ...new Set(batch.messageList.map((message) => message.providerId)),
       ]
-      const storedList = await transaction
-        .select({ providerId: emailMessages.providerId })
-        .from(emailMessages)
-        .where(
-          and(
-            eq(emailMessages.accountId, account.id),
-            inArray(emailMessages.providerId, providerIdList),
-          ),
-        )
+      const storedList = await transaction.emailMessage.findMany({
+        select: { providerId: true },
+        where: { accountId: account.id, providerId: { in: providerIdList } },
+      })
       const existingIdSet = new Set(
         storedList.map((message) => message.providerId),
       )
@@ -356,27 +283,23 @@ const saveSyncedBatch = (
         return true
       })
       if (newMessageList.length)
-        await transaction.insert(emailMessages).values(
-          newMessageList.map((message) => ({
+        await transaction.emailMessage.createMany({
+          data: newMessageList.map((message) => ({
+            ...message,
             accountId: account.id,
-            providerId: message.providerId,
-            title: message.title,
-            sender: message.sender,
             receivedAt: new Date(message.receivedAt),
-            summary: message.summary,
-            read: message.read,
           })),
-        )
+        })
     }
-    await transaction
-      .update(emailAccounts)
-      .set({
+    await transaction.emailAccount.update({
+      where: { id: account.id },
+      data: {
         cursor: batch.cursor,
         credentials,
         lastSyncedAt: new Date(),
         error: null,
-      })
-      .where(eq(emailAccounts.id, account.id))
+      },
+    })
     return true
   })
 
@@ -385,25 +308,19 @@ const saveAccountError = async (
   account: MailAccount,
   error: string,
 ) => {
-  await db.store
-    .update(emailAccounts)
-    .set({ error })
-    .where(
-      and(
-        eq(emailAccounts.id, account.id),
-        eq(emailAccounts.credentials, account.credentials),
-      ),
-    )
+  await db.store.emailAccount
+    .update({
+      where: { id: account.id, credentials: account.credentials },
+      data: { error },
+    })
+    .catch(ignoreMissingRecord)
 }
 const cacheMessageBody = async (
   db: Database,
   id: bigint,
   content: MailBody,
 ) => {
-  await db.store
-    .update(emailMessages)
-    .set(content)
-    .where(eq(emailMessages.id, id))
+  await db.store.emailMessage.updateMany({ where: { id }, data: content })
 }
 
 export {

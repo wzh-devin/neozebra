@@ -1,11 +1,13 @@
 import {
   ChevronDown,
   ChevronRight,
+  FolderInput,
   MoreHorizontal,
   Pencil,
   Plus,
   Trash2,
 } from 'lucide-react'
+import { useDraggable, useDroppable } from '@dnd-kit/core'
 
 import {
   Collapsible,
@@ -30,6 +32,7 @@ import {
 import { ScrollArea } from '@/components/ui/scroll-area'
 import type { DriveTreeNode } from '@/features/drive/types'
 import { DriveFolderIcon } from '@/features/drive/components/files/DriveFolderIcon'
+import { DriveEntryIcon } from '@/features/drive/components/files/DriveEntryIcon'
 
 import styles from '@/features/drive/components/files/DriveFileTree.module.css'
 import overlayStyles from '@/features/drive/styles/drive-overlays.module.css'
@@ -38,6 +41,7 @@ type DriveFileTreeProps = {
   rootNode: DriveTreeNode
   expandedSet: Set<string>
   selectedDirectoryId: string
+  busy: boolean
   onToggle: (nodeId: string) => void
   onSelect: (nodeId: string) => void
   onAction: (action: string, node: DriveTreeNode) => void
@@ -59,12 +63,29 @@ const DriveTreeNodeView = ({
   depth,
   expandedSet,
   selectedDirectoryId,
+  busy,
   onToggle,
   onSelect,
   onAction,
 }: DriveTreeNodeViewProps) => {
-  const isExpanded = expandedSet.has(node.id)
+  const isFolder = node.kind === 'folder'
+  const isExpanded = isFolder && expandedSet.has(node.id)
   const isSelected = selectedDirectoryId === node.id
+  const {
+    attributes,
+    listeners,
+    setNodeRef: setDragNodeRef,
+    isDragging,
+  } = useDraggable({
+    id: `tree-entry-${node.id}`,
+    data: { entry: node.entry },
+    disabled: busy || node.id === 'root' || !node.entry,
+  })
+  const { setNodeRef, isOver } = useDroppable({
+    id: `tree-folder-${node.id}`,
+    data: { directoryId: node.id },
+    disabled: !isFolder || busy,
+  })
 
   /**
    * 处理目录展开状态变化。
@@ -78,14 +99,20 @@ const DriveTreeNodeView = ({
     }
   }
 
-  // 选中当前目录。
-  const selectNodeHandler = (): void => onSelect(node.id)
+  // 目录进入文件列表，文件复用预览操作。
+  const selectNodeHandler = (): void => {
+    if (isFolder) onSelect(node.id)
+    else onAction('Preview', node)
+  }
 
-  // 新建本地目录。
+  // 新建远端目录。
   const createNodeHandler = (): void => onAction('New folder', node)
 
   // 请求目录重命名反馈。
   const renameNodeHandler = (): void => onAction('Rename', node)
+
+  // 文件与目录复用同一个移动目标选择弹窗。
+  const moveNodeHandler = (): void => onAction('Move', node)
 
   // 请求目录删除反馈。
   const deleteNodeHandler = (): void => onAction('Delete', node)
@@ -103,6 +130,7 @@ const DriveTreeNodeView = ({
       depth={depth + 1}
       expandedSet={expandedSet}
       selectedDirectoryId={selectedDirectoryId}
+      busy={busy}
       onToggle={onToggle}
       onSelect={onSelect}
       onAction={onAction}
@@ -114,6 +142,10 @@ const DriveTreeNodeView = ({
       <ContextMenu>
         <ContextMenuTrigger asChild>
           <div
+            ref={setNodeRef}
+            data-drive-drop-id={isFolder ? node.id : undefined}
+            data-drop-over={isOver || undefined}
+            data-dragging={isDragging || undefined}
             className={`${styles['tree-row']}${isSelected ? ` ${styles['tree-row-selected']}` : ''}`}
             style={{ paddingLeft: `${8 + depth * 15}px` }}
           >
@@ -136,21 +168,30 @@ const DriveTreeNodeView = ({
               <span className={styles['tree-toggle-spacer']} />
             )}
             <Button
+              ref={setDragNodeRef}
+              {...(node.entry ? attributes : {})}
+              {...listeners}
+              id={`drive-tree-entry-${node.id}`}
               className={styles['tree-label']}
               onClick={selectNodeHandler}
               aria-current={isSelected ? 'location' : undefined}
               variant="ghost"
             >
-              <DriveFolderIcon
-                name={node.name}
-                isOpen={isExpanded || isSelected}
-              />
+              {isFolder ? (
+                <DriveFolderIcon
+                  name={node.name}
+                  isOpen={isExpanded || isSelected}
+                />
+              ) : (
+                <DriveEntryIcon entry={node} />
+              )}
               <span>{node.name}</span>
             </Button>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
-                  aria-label={`Folder actions for ${node.name}`}
+                  id={`drive-tree-actions-${node.id}`}
+                  aria-label={`${isFolder ? 'Folder' : 'File'} actions for ${node.name}`}
                   className={styles['tree-more']}
                   size="icon-xs"
                   variant="ghost"
@@ -159,17 +200,30 @@ const DriveTreeNodeView = ({
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="start" className={overlayStyles.menu}>
-                <DropdownMenuItem onSelect={createNodeHandler}>
-                  <Plus aria-hidden="true" />
-                  New folder
-                </DropdownMenuItem>
-                <DropdownMenuItem onSelect={renameNodeHandler}>
+                {isFolder ? (
+                  <DropdownMenuItem onSelect={createNodeHandler}>
+                    <Plus aria-hidden="true" />
+                    New folder
+                  </DropdownMenuItem>
+                ) : null}
+                <DropdownMenuItem
+                  disabled={node.id === 'root'}
+                  onSelect={renameNodeHandler}
+                >
                   <Pencil aria-hidden="true" />
                   Rename
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  disabled={node.id === 'root' || busy}
+                  onSelect={moveNodeHandler}
+                >
+                  <FolderInput aria-hidden="true" />
+                  Move
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
                   variant="destructive"
+                  disabled={node.id === 'root'}
                   onSelect={deleteNodeHandler}
                 >
                   <Trash2 aria-hidden="true" />
@@ -180,16 +234,32 @@ const DriveTreeNodeView = ({
           </div>
         </ContextMenuTrigger>
         <ContextMenuContent className={overlayStyles.menu}>
-          <ContextMenuItem onSelect={createNodeHandler}>
-            <Plus aria-hidden="true" />
-            New folder
-          </ContextMenuItem>
-          <ContextMenuItem onSelect={renameNodeHandler}>
+          {isFolder ? (
+            <ContextMenuItem onSelect={createNodeHandler}>
+              <Plus aria-hidden="true" />
+              New folder
+            </ContextMenuItem>
+          ) : null}
+          <ContextMenuItem
+            disabled={node.id === 'root'}
+            onSelect={renameNodeHandler}
+          >
             <Pencil aria-hidden="true" />
             Rename
           </ContextMenuItem>
+          <ContextMenuItem
+            disabled={node.id === 'root' || busy}
+            onSelect={moveNodeHandler}
+          >
+            <FolderInput aria-hidden="true" />
+            Move
+          </ContextMenuItem>
           <ContextMenuSeparator />
-          <ContextMenuItem variant="destructive" onSelect={deleteNodeHandler}>
+          <ContextMenuItem
+            variant="destructive"
+            disabled={node.id === 'root'}
+            onSelect={deleteNodeHandler}
+          >
             <Trash2 aria-hidden="true" />
             Delete
           </ContextMenuItem>
@@ -214,6 +284,7 @@ const DriveFileTree = ({
   rootNode,
   expandedSet,
   selectedDirectoryId,
+  busy,
   onToggle,
   onSelect,
   onAction,
@@ -225,6 +296,7 @@ const DriveFileTree = ({
         depth={0}
         expandedSet={expandedSet}
         selectedDirectoryId={selectedDirectoryId}
+        busy={busy}
         onToggle={onToggle}
         onSelect={onSelect}
         onAction={onAction}

@@ -1,57 +1,4 @@
-import {
-  getDriveChildrenList,
-  getDriveEntryList,
-  getDriveRootNode,
-} from '@/features/drive/data/mockDrive'
-import type {
-  DriveEntry,
-  DriveProvider,
-  DriveTreeNode,
-} from '@/features/drive/types'
-
-/**
- * 构建实例的初始目录树；只有旧示例实例使用synthetic/local mock目录。
- *
- * @param connection - 连接实例
- * @returns 根名称与实例一致的独立目录树，新实例为空
- */
-const buildDriveRootNode = (connection: DriveProvider): DriveTreeNode => {
-  if (connection.id !== connection.providerId)
-    return {
-      id: 'root',
-      name: connection.name,
-      kind: 'folder',
-      hasChildren: false,
-      children: [],
-    }
-
-  /**
-   * 填充示例目录及文件列表中的子目录。
-   *
-   * @param node - 当前目录
-   * @returns 含独立子目录的节点
-   */
-  const buildNode = (node: DriveTreeNode): DriveTreeNode => {
-    const children =
-      node.children ?? getDriveChildrenList(connection.providerId, node.id)
-    const childMap = new Map(children.map((child) => [child.id, child]))
-    for (const entry of getDriveEntryList(connection.providerId, node.id)) {
-      if (entry.kind === 'folder' && !childMap.has(entry.id))
-        childMap.set(entry.id, {
-          id: entry.id,
-          name: entry.name,
-          kind: 'folder',
-          hasChildren: false,
-        })
-    }
-    const childList = [...childMap.values()].map(buildNode)
-    return { ...node, children: childList, hasChildren: childList.length > 0 }
-  }
-  return buildNode({
-    ...getDriveRootNode(connection.providerId),
-    name: connection.name,
-  })
-}
+import type { DriveEntry, DriveTreeNode } from '@/features/drive/types'
 
 /**
  * 查找从实例根目录到当前目录的完整路径。
@@ -70,40 +17,6 @@ const getDriveDirectoryPathList = (
     if (path.length) return [node, ...path]
   }
   return []
-}
-
-/**
- * 从同一目录树投影右侧子目录，条目数据仅提供文件和已有元信息。
- *
- * @param directory - 当前目录节点
- * @param entries - 当前目录的文件与条目元信息
- * @returns 与目录树一致的子文件夹和文件列表
- */
-const buildDriveDirectoryEntryList = (
-  directory: DriveTreeNode | undefined,
-  entries: DriveEntry[],
-): DriveEntry[] => {
-  if (!directory) return []
-  const metadataMap = new Map(entries.map((entry) => [entry.id, entry]))
-
-  /**
-   * 投影当前子目录并保留已有修改时间。
-   *
-   * @param child - 当前目录的子节点
-   * @returns 同一名称和父目录的文件夹条目
-   */
-  const buildFolderEntry = (child: DriveTreeNode): DriveEntry => ({
-    id: child.id,
-    name: child.name,
-    kind: 'folder',
-    size: '—',
-    updatedAt: metadataMap.get(child.id)?.updatedAt ?? '—',
-    parentId: directory.id,
-  })
-  return [
-    ...(directory.children ?? []).map(buildFolderEntry),
-    ...entries.filter((entry) => entry.kind === 'file'),
-  ]
 }
 
 /**
@@ -128,9 +41,33 @@ const updateDriveDirectoryNode = (
   }
 }
 
+/**
+ * 限制移动到同一连接内的其他目录，已知子孙路径在投放前拒绝。
+ *
+ * @param entry - 待移动条目
+ * @param parent - 目标目录ID
+ * @param root - 当前已加载文件树
+ * @param connectionId - 当前连接ID
+ * @returns 是否可以提交移动；未知路径交由用户先展开
+ */
+const canMoveDriveEntry = (
+  entry: DriveEntry,
+  parent: string,
+  root: DriveTreeNode,
+  connectionId: string,
+): boolean => {
+  const path = getDriveDirectoryPathList(root, parent)
+  return (
+    entry.id !== 'root' &&
+    entry.connectionId === connectionId &&
+    entry.parentId !== parent &&
+    path.at(-1)?.kind === 'folder' &&
+    !path.some((node) => node.id === entry.id)
+  )
+}
+
 export {
-  buildDriveRootNode,
-  buildDriveDirectoryEntryList,
   getDriveDirectoryPathList,
   updateDriveDirectoryNode,
+  canMoveDriveEntry,
 }

@@ -13,25 +13,29 @@
     "lint": "oxlint src checks",
     "test": "node --conditions=development --test checks/*.test.ts",
     "db:migrate": "node --env-file-if-exists=.env --conditions=development src/infrastructure/database/migrate.ts",
-    "test:integration": "node --env-file=.env --conditions=development --test checks/inbox.integration.test.ts",
-    "db:generate": "node --env-file-if-exists=.env node_modules/drizzle-kit/bin.cjs generate"
+    "test:integration": "node --env-file=.env --conditions=development checks/run-integration.ts",
+    "db:generate": "node --env-file-if-exists=.env ../../packages/database/node_modules/prisma/build/index.js generate --config ../../packages/database/prisma.config.ts",
+    "db:baseline": "node --env-file-if-exists=.env src/infrastructure/database/baseline.ts",
+    "db:diff": "node --env-file-if-exists=.env ../../packages/database/node_modules/prisma/build/index.js migrate dev --create-only --config ../../packages/database/prisma.config.ts",
+    "dev:worker": "node --env-file-if-exists=.env --conditions=development --watch src/drive-worker.ts",
+    "start:worker": "node --env-file-if-exists=.env dist/drive-worker.js"
   },
   "dependencies": {
     "@hono/node-server": "^2.1.4",
     "@neozebra/assets": "workspace:*",
-    "drizzle-orm": "^0.45.4",
     "hono": "^4.13.13",
     "imapflow": "^2.3.0",
     "mailparser": "^3.9.37",
     "pg": "^8.23.1",
     "redis": "^6.3.0",
-    "zod": "^3.25.76"
+    "zod": "^3.25.76",
+    "@neozebra/database": "workspace:*",
+    "@prisma/adapter-pg": "7.10.0"
   },
   "devDependencies": {
     "@types/mailparser": "^3.9.0",
     "@types/node": "^24.13.3",
     "@types/pg": "^8.23.1",
-    "drizzle-kit": "^0.31.11",
     "typescript": "~6.0.2"
   }
 }

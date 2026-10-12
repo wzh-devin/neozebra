@@ -1,4 +1,7 @@
+import { getDriveContentUrl, getDrivePreviewFile } from '@/services/drive'
+import type { DriveEntry } from '@/features/drive/types'
 import { useEffect, useState } from 'react'
+import { getDriveOfficePreview } from '@/services/drive-office'
 
 import {
   getDriveFilePreviewKind,
@@ -12,22 +15,26 @@ type PreviewState =
   | { status: 'error'; message: string }
 
 /**
- * 读取单个弹窗的文件内容并管理临时 URL 和过期异步结果。
+ * 文档与PDF统一使用ONLYOFFICE，媒体使用内容流，其余管理临时URL及过期结果。
  *
- * @param file - 可选本地文件；弹窗按条目 ID 独立挂载
+ * @param entry - 本地或远端文件；弹窗按条目 ID 独立挂载
  * @returns 加载、内容或失败状态
  */
-const useDriveFilePreview = (file?: File): PreviewState => {
+const useDriveFilePreview = (entry: DriveEntry): PreviewState => {
+  const file = entry.localFile
+  const remoteFile = new File([], entry.name, { type: entry.mimeType })
+  const kind = getDriveFilePreviewKind(file ?? remoteFile)
   const [state, setState] = useState<PreviewState>(
-    !file
-      ? { status: 'unavailable' }
-      : getDriveFilePreviewKind(file) === 'unsupported'
-        ? { status: 'unsupported' }
+    kind === 'unsupported'
+      ? { status: 'unsupported' }
+      : !file && !entry.connectionId
+        ? { status: 'unavailable' }
         : { status: 'loading' },
   )
 
   useEffect(() => {
-    if (!file || getDriveFilePreviewKind(file) === 'unsupported') return
+    if (kind === 'unsupported' || (!file && !entry.connectionId)) return
+    const controller = new AbortController()
     let isActive = true
     let url: string | undefined
 
@@ -39,13 +46,32 @@ const useDriveFilePreview = (file?: File): PreviewState => {
      */
     const loadPreview = async (): Promise<void> => {
       try {
-        const preview = await loadDriveFilePreview(file)
+        const preview: DriveFilePreview =
+          !file && kind === 'office'
+            ? {
+                kind,
+                office: await getDriveOfficePreview(entry, controller.signal),
+              }
+            : !file && (kind === 'audio' || kind === 'video')
+              ? { kind, url: getDriveContentUrl(entry) }
+              : await loadDriveFilePreview(
+                  file ??
+                    (await getDrivePreviewFile(
+                      entry,
+                      controller.signal,
+                      kind === 'text' ? 1024 * 1024 : undefined,
+                    )),
+                )
         if (!isActive) {
           if (preview.url) URL.revokeObjectURL(preview.url)
           return
         }
         url = preview.url
-        setState({ status: 'ready', preview })
+        setState(
+          preview.kind === 'unsupported'
+            ? { status: 'unsupported' }
+            : { status: 'ready', preview },
+        )
       } catch (error) {
         if (isActive)
           setState({
@@ -60,9 +86,10 @@ const useDriveFilePreview = (file?: File): PreviewState => {
     void loadPreview()
     return () => {
       isActive = false
+      controller.abort()
       if (url) URL.revokeObjectURL(url)
     }
-  }, [file])
+  }, [file, entry, kind])
 
   return state
 }

@@ -1,0 +1,26 @@
+{
+  "name": "@neozebra/database",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "exports": {
+    ".": {
+      "development": "./src/index.ts",
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "db:generate": "prisma generate",
+    "build": "pnpm db:generate && tsc -p tsconfig.json",
+    "lint": "oxlint src/index.ts prisma.config.ts"
+  },
+  "dependencies": {
+    "@prisma/client": "7.10.0"
+  },
+  "devDependencies": {
+    "@types/node": "^24.19.1",
+    "prisma": "7.10.0",
+    "typescript": "~6.0.2"
+  }
+}

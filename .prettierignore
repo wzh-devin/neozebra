@@ -2,3 +2,5 @@ node_modules
 dist
 *.lock
 pnpm-lock.yaml
+
+packages/database/src/generated

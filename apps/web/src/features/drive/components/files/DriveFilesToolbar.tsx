@@ -1,4 +1,4 @@
-import { Plus, Search } from 'lucide-react'
+import { Plus, Search, RefreshCw } from 'lucide-react'
 import { Fragment, type ChangeEvent } from 'react'
 import { Link } from 'react-router-dom'
 
@@ -27,8 +27,10 @@ type DriveFilesToolbarProps = Pick<
   | 'directoryPathList'
   | 'searchQuery'
   | 'setSearchQuery'
-  | 'createFolder'
->
+  | 'loading'
+  | 'busy'
+  | 'refresh'
+> & { onCreateFolder: () => void }
 
 /**
  * 渲染文件路径、搜索和新建目录工具栏。
@@ -41,7 +43,10 @@ const DriveFilesToolbar = ({
   directoryPathList,
   searchQuery,
   setSearchQuery,
-  createFolder,
+  onCreateFolder,
+  loading,
+  busy,
+  refresh,
 }: DriveFilesToolbarProps) => {
   // 更新文件搜索条件。
   const searchChangeHandler = (event: ChangeEvent<HTMLInputElement>): void =>
@@ -75,12 +80,28 @@ const DriveFilesToolbar = ({
 
   return (
     <header className={styles.toolbar}>
+      <span className="sr-only" role="status">
+        {loading ? 'Loading files…' : null}
+      </span>
       <Breadcrumb className={styles.breadcrumb}>
         <BreadcrumbList>
           {directoryPathList.map(renderBreadcrumbItem)}
         </BreadcrumbList>
       </Breadcrumb>
       <div className={styles.actions}>
+        <Button
+          variant="ghost"
+          size="icon-sm"
+          aria-label="Refresh folder"
+          aria-busy={loading || busy}
+          disabled={loading || busy}
+          onClick={refresh}
+        >
+          <RefreshCw
+            className={loading || busy ? styles.spinning : undefined}
+            aria-hidden="true"
+          />
+        </Button>
         <InputGroup className={styles.search}>
           <InputGroupAddon>
             <Search aria-hidden="true" />
@@ -95,7 +116,9 @@ const DriveFilesToolbar = ({
         <Button
           variant="ghost"
           size="sm"
-          onClick={createFolder}
+          id="drive-new-folder"
+          onClick={onCreateFolder}
+          disabled={busy}
           className={styles.create}
         >
           <Plus aria-hidden="true" />

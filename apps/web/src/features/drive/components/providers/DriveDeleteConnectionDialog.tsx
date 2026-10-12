@@ -35,11 +35,13 @@ const DriveDeleteConnectionDialog = ({
   onCloseAutoFocus,
 }: DriveDeleteConnectionDialogProps) => {
   const { deleteConnection } = useDriveConnections()
+  const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const isCloudAccount = connection?.providerId !== 'minio'
 
   // 关闭删除确认时清除错误，并恢复原入口焦点。
   const openChangeHandler = (open: boolean): void => {
-    if (!open) {
+    if (!open && !saving) {
       setError(null)
       onClose(false)
     }
@@ -51,20 +53,25 @@ const DriveDeleteConnectionDialog = ({
    * @param event - 删除确认点击事件
    * @returns 无返回值；删除连接或显示安全错误
    */
-  const confirmDeleteHandler = (event: MouseEvent<HTMLButtonElement>): void => {
+  const confirmDeleteHandler = async (
+    event: MouseEvent<HTMLButtonElement>,
+  ): Promise<void> => {
     event.preventDefault()
     if (!connection) return
+    setSaving(true)
     try {
-      deleteConnection(connection.id)
+      await deleteConnection(connection.id)
       setError(null)
       onClose(true)
-      toast('Drive deleted')
+      toast(isCloudAccount ? 'Account disconnected' : 'Drive deleted')
     } catch (cause) {
       setError(
         cause instanceof Error
           ? cause.message
-          : 'Unable to delete this Drive. Try again.',
+          : 'Unable to remove this connection. Try again.',
       )
+    } finally {
+      setSaving(false)
     }
   }
   return (
@@ -75,11 +82,12 @@ const DriveDeleteConnectionDialog = ({
       >
         <AlertDialogHeader>
           <AlertDialogTitle className={styles.title}>
-            Delete {connection?.name}?
+            {isCloudAccount ? 'Disconnect' : 'Delete'} {connection?.name}?
           </AlertDialogTitle>
           <AlertDialogDescription>
-            Remove this Drive’s configuration and files added in this session.
-            Files in remote storage and on your computer will be kept.
+            {isCloudAccount
+              ? 'Disconnect this account from Neozebra. Its cloud files and other connected accounts will be kept.'
+              : 'Remove this Drive’s saved connection configuration. Files in remote storage and on your computer will be kept.'}
           </AlertDialogDescription>
         </AlertDialogHeader>
         {error ? (
@@ -88,12 +96,17 @@ const DriveDeleteConnectionDialog = ({
           </p>
         ) : null}
         <AlertDialogFooter>
-          <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <AlertDialogCancel disabled={saving}>Cancel</AlertDialogCancel>
           <AlertDialogAction
+            disabled={saving}
             variant="destructive"
             onClick={confirmDeleteHandler}
           >
-            Delete Drive
+            {isCloudAccount
+              ? saving
+                ? 'Disconnecting…'
+                : 'Disconnect account'
+              : 'Delete Drive'}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

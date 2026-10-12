@@ -1,3 +1,6 @@
+import { Button } from '@/components/ui/button'
+import { Spinner } from '@/components/ui/spinner'
+import { DriveWorkspace } from '@/features/drive/components/DriveWorkspace'
 import { Navigate, useParams } from 'react-router-dom'
 
 import { DriveProviderPageContent } from '@/features/drive/components/files/DriveProviderPageContent'
@@ -28,8 +31,23 @@ const DriveConnectionFiles = ({
  */
 const DriveProviderWorkspace = () => {
   const { connectionId } = useParams()
-  const { connectionList } = useDriveConnections()
+  const { connectionList, loading, loadError, retryLoadHandler } =
+    useDriveConnections()
   const connection = connectionList.find((item) => item.id === connectionId)
+  if (loading || loadError)
+    return (
+      <DriveWorkspace>
+        <div className="p-6" role={loadError ? 'alert' : 'status'}>
+          {loadError ?? (
+            <>
+              <Spinner />
+              Loading Drive…
+            </>
+          )}
+          {loadError ? <Button onClick={retryLoadHandler}>Retry</Button> : null}
+        </div>
+      </DriveWorkspace>
+    )
   return connection ? (
     <DriveConnectionFiles key={connection.id} connection={connection} />
   ) : (

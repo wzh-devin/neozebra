@@ -8,6 +8,7 @@ export type DriveProvider = {
   description: string
   status: 'connected' | 'configured'
   lastSyncedAt: string
+  revision?: number
   options?: DriveMountOptions
 }
 
@@ -40,30 +41,21 @@ export type DriveConnectionDraft = { name: string } & (
   | {
       providerId: 'baidu'
       rootPath: string
-      authMode: 'accessToken' | 'refreshToken'
-      accessToken: string
-      refreshToken: string
-      clientId: string
-      clientSecret: string
     }
   | {
       providerId: 'aliyun'
       rootPath: string
       driveType: 'default' | 'resource' | 'backup'
-      authMode: 'accessToken' | 'refreshToken'
-      accessToken: string
-      refreshToken: string
-      clientId: string
-      clientSecret: string
     }
 )
 
 export type DriveTreeNode = {
   id: string
   name: string
-  kind: 'folder'
+  kind: DriveEntryKind
   hasChildren: boolean
   children?: DriveTreeNode[]
+  entry?: DriveEntry
 }
 
 export type DriveEntry = {
@@ -74,4 +66,7 @@ export type DriveEntry = {
   updatedAt: string
   parentId: string
   localFile?: File
+  connectionId?: string
+  mimeType?: string
+  sizeBytes?: number
 }

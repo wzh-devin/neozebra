@@ -8,8 +8,6 @@ API 网关采用 Hono 与官方 Node 适配器，运行于 Node 22.18+。开发�
 
 ```text
 apps/server/
-├── drizzle/                    # Drizzle Kit 生成的迁移及元数据
-├── drizzle.config.ts
 ├── checks/                     # Node 单元和 PostgreSQL / Redis 集成检查
 └── src/
     ├── main.ts                 # 监听、启动与优雅关闭
@@ -24,38 +22,52 @@ apps/server/
     ├── dto/inbox/              # 请求 schema 与类型
     └── infrastructure/
         ├── config/             # 环境校验
-        ├── database/           # Drizzle 模型、连接与迁移入口
+        ├── database/           # Prisma 连接、baseline 与迁移入口
         ├── security/           # AES-GCM 凭据加密
         └── inbox/              # 邮件服务、Repository、Gmail / QQ Provider
 packages/assets/src/            # 独立 Assets 菜单组后端
+packages/database/              # 共享 Prisma 模型、生成类型和迁移
 ```
 
 默认菜单后端按领域放在 apps/server。非默认菜单组各建一个 packages/<group> workspace，通过包的公开出口接入网关；Assets 内的 Drive 等业务继续放在同一组包中。开发通过 development 条件导入包源码，生产导入 dist，根构建自动按依赖顺序运行。
 
 ## PostgreSQL 与 Redis
 
-复用已有中间件，不创建 Compose 或容器。开发验证已在项目独立的 neozebra_inbox 数据库/角色及现有 Redis 完成。用户当前 apps/server/.env 的 neozebra 数据库配置保持不变，增量迁移已执行成功。其他环境从 .env.example 配置连接串。
+复用已有中间件，不创建 Compose 或容器。集成检查在配置的 PostgreSQL 内创建随机独立 schema，结束后删除；Redis 只清理 synthetic 会话键。用户 apps/server/.env 配置保持不变。其他环境从 .env.example 配置连接串。
 
-业务表统一以 nm_ 开头，包括 nm_email_accounts、nm_email_messages，以及 Task 的 nm_task_workspaces、nm_task_projects、nm_task_sections、nm_tasks、nm_task_subtasks。每表均有 bigint identity 主键 id、TIMESTAMPTZ created_at / updated_at；其他日期字段也使用 TIMESTAMPTZ。Inbox API 将 bigint ID 序列化为十进制字符串，Task 保留现有 UUID 业务标识，数据库 bigint 主键仅用于内部存储。
+业务表统一以 nm_ 开头，包括 nm_email_accounts、nm_email_messages，nm_drive_connections、nm_drive_directories、nm_drive_entries，以及 Task 的 nm_task_workspaces、nm_task_projects、nm_task_sections、nm_tasks、nm_task_subtasks。每表均有数据库自增的 BIGINT 主键 id，既有 identity 主键保持原样、TIMESTAMPTZ created_at / updated_at；其他日期字段也使用 TIMESTAMPTZ。Inbox API 将 bigint ID 序列化为十进制字符串，Task 保留现有 UUID 业务标识，数据库 bigint 主键仅用于内部存储。
 
-模型不定义外键、枚举、CHECK 或业务唯一约束，只有主键和普通查询索引。账号去重使用 Redis 锁；邮件去重、关联删除通过事务与账号行锁执行；updated_at 由 Drizzle 更新逻辑维护。所有业务读写使用 Drizzle API，迁移文件由 Drizzle Kit 生成，代码中不手写 SQL。
+模型不定义外键、枚举、CHECK 或业务唯一约束，只有主键和普通查询索引。账号去重使用 Redis 锁；邮件去重、关联删除通过事务与账号行锁执行；updated_at 由 Prisma @updatedAt 维护。所有业务读写使用 Prisma API，迁移文件由 Prisma Migrate 生成，业务代码不手写 SQL。relationMode=prisma 支持 Inbox 关系查询且不生成数据库外键；Task UUID 关联继续由代码维护。
 
 Redis 键前缀为 neozebra:inbox:，用于连接节流、同步锁及同步节流。同步锁 120 秒过期，每 30 秒续期，只有持有者可以释放；自动同步成功和失败均节流 8 秒；手动 force 刷新绕过节流，保留同步锁。凭据使用 MAIL_ENCRYPTION_KEY 加密，密钥须为 64 位十六进制并持久保存；更换或丢失后需重新连接邮箱。邮件正文和 HTML/Markdown 格式存入 PostgreSQL，数据库备份应按邮件数据保护。
 
 ```bash
-pnpm install
-pnpm db:migrate
+pnpm install                    # 自动生成 Prisma 客户端
+pnpm db:migrate                 # 新空库初始化；已有库见下面 baseline 步骤
 pnpm dev
 pnpm test:server                 # 无需中间件的单元检查
-pnpm test:inbox                  # 使用 .env 的真实 PostgreSQL / Redis 集成检查
-pnpm --filter @neozebra/server db:generate
+pnpm test:inbox                  # 隔离 schema 的数据库 / Inbox / Task / Drive 集成检查
+pnpm db:generate                # schema 变更后重新生成实体和查询类型
+pnpm db:diff --name change      # 生成待审查迁移，不应用业务库迁移
 pnpm format:check
 pnpm lint
 pnpm build
 pnpm --filter @neozebra/server start
+pnpm --filter @neozebra/server start:worker  # 独立 Drive 队列消费者
 ```
 
-修改模型后先生成、审查迁移，再执行 db:migrate。已发布迁移不要修改或重置；当前 0001 迁移仅新增可空 body_format，已有纯文本缓存和未展开 CID 的 HTML 缓存在下次阅读时重新解析，保留邮件和整理状态。集成检查使用 synthetic 夹具，仅清理本次拥有的记录和 Redis 键。
+Prisma 模型与迁移在 packages/database/prisma，生成出口为 @neozebra/database；pnpm install 和 pnpm build 自动生成客户端。可以直接 import type { TaskProject, TaskProjectSelect, TaskProjectWhereInput } from '@neozebra/database'，或用 Prisma.TaskProjectGetPayload 推导选择字段/关联后的结果。业务 JSON（IMAP 游标、Drive 挂载）通过现有 Zod 校验。
+
+既有数据库首次切换时运行：
+
+```bash
+pnpm db:baseline
+pnpm db:migrate
+```
+
+db:baseline 先比较现有表与固定的原始八模型 baseline（migrations/0000_baseline/schema.prisma），差异为零才登记 0000_baseline 为已应用；它不会创建、重置或修改业务表。空库直接 db:migrate。缺少表、索引或字段的已有库会拒绝 baseline，需要先制定 Prisma 增量迁移，不能跳过差异。不要重复 baseline 已登记的数据库。
+
+修改模型后重新 db:generate，使用 db:diff 生成并审查迁移，然后 db:migrate。db:diff 使用 Prisma migrate dev 的影子数据库，需要相应权限；发生 drift 或重置提示时停止，禁止 reset 有业务数据的库。已发布的 Prisma 迁移不要修改或重置。body_format 及既有正文缓存、整理状态保持。集成检查使用 synthetic 夹具，不执行真实 IMAP/云盘授权。
 
 Gmail 的 OAuth 发起/回调、客户端配置和 Google SDK 已删除。共用业务表没有独立 OAuth 表或专用 token 列；credentials 只保存加密的 IMAP password，cursor 仅包含 uidValidity/uid。db:migrate 还会通过 ORM 清理旧 Gmail 凭据和游标，标记为需要应用密码重新绑定，保留邮箱 ID、邮件、已读与归档。清理幂等并比较凭据版本，避免覆盖同时重新绑定的账号。Gmail IMAP 的稳定 X-GM-MSGID 转为原 Gmail 邮件 ID，重连同步继续复用已有邮件；历史 .sql 迁移不重写。
 
@@ -65,11 +77,11 @@ Gmail 的 OAuth 发起/回调、客户端配置和 Google SDK 已删除。共用
 
 Task 保留现有任务、项目、阶段、步骤、排序、归档、日历及甘特图界面。首次访问为空计划，没有示例或种子数据；浏览器旧 localStorage 不再读取或自动导入，原文保留。保存成功后才更新界面并关闭编辑器；失败保留输入，最近一次完成、删除、排序或日期调整支持撤销。
 
-GET `/api/task/planner` 返回 `{data, revision}`。PUT 同一路径接受该结构，在工作区行锁和事务内保存变化行，revision 不匹配返回 409 并保护已有数据。data 为 `{version:1, taskList:[], projectList:[], sectionList:[]}`，实体结构与前端 Task 类型一致。首次初始化使用 Redis `neozebra:task:init:` 锁；之后读取使用一致快照，关联和去重由代码维护。
+GET `/api/task/planner` 返回 `{data, revision}`。PUT 同一路径接受该结构，在事务中通过 revision 条件更新取得工作区写锁并保存变化行，revision 不匹配返回 409 并保护已有数据。data 为 `{version:1, taskList:[], projectList:[], sectionList:[]}`，实体结构与前端 Task 类型一致。首次初始化使用 Redis `neozebra:task:init:` 锁；之后读取使用一致快照，关联和去重由代码维护。
 
 计划/截止日期 API 保持 YYYY-MM-DD，后端按 UTC 午夜写入 TIMESTAMPTZ，并按 UTC 原日读取；createdAt/completedAt 使用 ISO 时间。请求最多 2 MiB、1000 个任务、100 个项目、500 个阶段，每任务最多 100 个步骤。独立签名 HttpOnly/SameSite cookie 识别个人工作区，写请求校验 APP_ORIGIN。清除 Task cookie 或更换浏览器会进入新的空工作区，目前没有登录及跨设备恢复。
 
-执行 `pnpm db:migrate` 应用 Drizzle Kit 生成的 0002 Task 迁移。真实存储验证：在 apps/server 执行 `node --env-file=.env --conditions=development --test checks/task.test.ts checks/task.integration.test.ts`；夹具为 synthetic 专属会话，结束时只清理测试拥有的数据。
+执行 `pnpm db:migrate` 应用 Prisma Migrate 的待执行迁移。真实存储验证执行 `pnpm test:inbox`，包含 Task 事务与并发保存回归；夹具为 synthetic 专属会话，运行器创建并最终删除独立 schema。
 
 ## 邮箱连接
 
@@ -77,7 +89,7 @@ Gmail：为 Google 账号开启两步验证，在 [应用专用密码](https://m
 
 QQ / Foxmail：在 QQ 邮箱设置开启 IMAP 并生成授权码，在 Manage mailboxes 选择 QQ / Foxmail，填写邮箱地址和授权码。服务端仅连接固定 imap.qq.com:993 TLS 主机并以只读模式访问 INBOX。
 
-参考：[Google 应用密码](https://support.google.com/accounts/answer/185833?hl=zh-Hans)、[Gmail IMAP](https://support.google.com/mail/answer/7126229?hl=zh-Hans)、[ImapFlow](https://imapflow.com/docs/api/imapflow-client/)、[Drizzle 迁移](https://orm.drizzle.team/docs/drizzle-kit-generate)。
+参考：[Google 应用密码](https://support.google.com/accounts/answer/185833?hl=zh-Hans)、[Gmail IMAP](https://support.google.com/mail/answer/7126229?hl=zh-Hans)、[ImapFlow](https://imapflow.com/docs/api/imapflow-client/)、[Prisma baseline](https://www.prisma.io/docs/orm/v7/prisma-migrate/workflows/baselining)。
 
 当前工作台以签名 HttpOnly cookie 识别邮箱所属会话，所有账号与邮件接口均校验所属会话；清除 cookie 或换浏览器需要重新连接。第一版适用于本地个人工作台，尚未引入用户登录及跨设备账号恢复。
 
@@ -103,3 +115,27 @@ QQ / Foxmail：在 QQ 邮箱设置开启 IMAP 并生成授权码，在 Manage ma
 | POST /api/inbox/sync                 | 触发账号同步；可传 {force:true} 绕过自动节流             |
 
 Inbox 接口不缓存，变更请求要求同源 Origin。输入错误返回 400，未知或跨会话对象返回 404，上游错误返回安全提示，配置/存储错误返回 503；凭据与连接串不返回前端。自动化检查使用隔离数据库和 synthetic fixtures，不读取私人邮件；Gmail / QQ 新邮件的真实投递延迟取决于上游。
+
+## Drive 后台元数据同步
+
+独立入口 `src/drive-worker.ts` 消费 BullMQ 队列，Assets 模块负责目录扫描、快照发布与补偿。`pnpm dev` 启动三个进程；单独启动 API 时还需运行 `pnpm dev:worker`。生产在进程管理器中分别运行 API 和 `start:worker`，SIGTERM 会等待当前任务结束，最长 30 秒后退出，未完成分页由下次任务恢复。
+
+HTTP 列表完全走 Prisma，无需 Redis 或上游网盘在线。写请求、同步激活及远端内容仍受现有会话、Origin、根目录边界与 Redis 租约保护。活跃租约 150 秒，可见页面每 60 秒续租；当前目录 60 秒、其他目录 10 分钟，15 秒恢复扫描和队列等待可能增加实际延迟。后台两并发且每连接串行，每任务至多 10 页，失败指数退避最多 5 次，再由数据库到期任务恢复。401/403 阻止自动重试，重新授权或修改根目录会切换 metadataVersion 隐藏旧数据。
+
+目录完整扫描才在短事务内发布新 generation；分页中断保留旧快照，写操作递增 requestedRevision 防止旧扫描覆盖。旧 generation 从被替换时起至少保留 5 分钟。稳定 ID 文件夹在外部移动时更新所属父目录并重扫子树；路径 ID 重命名/移动时退役旧子树。移除连接同时清理本地元数据，不删除远端内容。
+
+集成检查 `checks/drive-sync.integration.test.ts` 验证真实 PG/Redis 消费、漏投恢复、快照和游标、写操作、授权及版本隔离。性能夹具 `checks/drive-performance.ts` 在随机独立 schema 建立一万条 synthetic 元数据，JMeter 每接口一千条正式样本，读取期间断言零上游请求。
+
+## Drive 分片上传
+
+上传使用 `nm_drive_upload_tasks` / `nm_drive_upload_parts` 保存账号任务及分片确认，业务读写均为 Prisma。任务绑定 owner、connectionId 和 metadataVersion；账号/挂载变更后旧任务停止。应用没有固定单文件容量上限，每次 HTTP 分片最多 8MiB，同时最多接收4片；还需满足网盘协议限制和实际磁盘空间。
+
+配置 `DRIVE_UPLOAD_DIRECTORY`（默认当前工作目录的 `.data/drive-uploads`）。API和Worker必须使用相同绝对路径或工作目录，并以可读写该目录的同一用户挂载持久化卷。字节以0600权限保存，先校验SHA-256、落盘及同步文件，再在事务中确认分片。不要把这个目录挂到Web静态资源或使用临时容器层，否则重启后需要重新选择原文件补传。
+
+账号的 Uploads 入口打开居中Dialog弹窗，支持多文件排队、分阶段进度、速度、暂停/续传/取消/重试。切换页面不会停止当前浏览器任务；刷新后未收齐文件需重新选择原文件并校验指纹。系统收齐后由现有独立 `src/drive-worker.ts` 的上传消费者继续向网盘传输；PG保存加密远端会话及确认片。暂停/取消在远端分片边界生效，最终提交期间禁止撤回；已完成文件不因取消被删除。磁盘不足保留可用断点，未完成任务7天过期，完成及取消后清理暂存。百度的未完成云端分片由上游回收，本应用没有删除这些临时分片的API。
+
+接口：`GET/POST /api/assets/drive/connections/:id/uploads` 分页/创建；`GET/PATCH /:uploadId` 详情/控制（action为pause/resume/cancel/retry）；`PUT /:uploadId/parts/:partNumber` 原始分片正文与 `X-Part-SHA256`；`POST /:uploadId/complete` 校验完整指纹并入队。旧整文件 POST entries 入口已替换。任务、内部路径和远端凭据不跨账号共享；上传完成仅刷新目标已加载分支。
+
+## Office 预览
+
+Drive 的 Word、Excel、PowerPoint 预览使用自托管 ONLYOFFICE Docs，后台源快照由 Drive worker 准备。数据库迁移和环境变量见 [部署说明](../../deploy/office/README.md)。API 和 worker 需共享持久的 DRIVE_PREVIEW_DIRECTORY；预览为只读，不写回原文件。PDF 与 Office 使用同一只读预览引擎。

@@ -1,3 +1,4 @@
+import { z } from 'zod'
 import { ImapFlow } from 'imapflow'
 import { HTTPException } from 'hono/http-exception'
 import { maxMailBytes, limitedMailBody, parseMailBody } from './mail-parser.ts'
@@ -16,6 +17,14 @@ const getGmailMessageId = (value?: string): string => {
     throw new Error('Missing Gmail message ID')
   return BigInt(value).toString(16)
 }
+const mailProviderSchema = z.enum(['gmail', 'qq'])
+const mailCursorSchema = z
+  .object({
+    uidValidity: z.string().optional(),
+    uid: z.number().int().nonnegative().optional(),
+  })
+  .nullable()
+
 const unavailableMailBody: MailBody = {
   body: 'This message is no longer available in this mailbox.',
   bodyFormat: 'markdown',
@@ -82,16 +91,17 @@ const getImapBatch = async (
   credentials: MailCredentials,
 ): Promise<MailBatch> =>
   withImapMailbox(
-    account.provider,
+    mailProviderSchema.parse(account.provider),
     account.email,
     credentials.password,
     async (client) => {
       if (!client.mailbox) throw new Error('IMAP INBOX unavailable')
+      const cursor = mailCursorSchema.parse(account.cursor)
       const uidValidity = client.mailbox.uidValidity.toString()
-      const isInitial = account.cursor?.uidValidity !== uidValidity
+      const isInitial = cursor?.uidValidity !== uidValidity
       const range = isInitial
         ? `${Math.max(1, client.mailbox.exists - 99)}:*`
-        : `${(account.cursor?.uid ?? 0) + 1}:*`
+        : `${(cursor?.uid ?? 0) + 1}:*`
       const fetchedList = client.mailbox.exists
         ? await client.fetchAll(
             range,
@@ -100,9 +110,7 @@ const getImapBatch = async (
           )
         : []
       const messageList = fetchedList
-        .filter(
-          (message) => isInitial || message.uid > (account.cursor?.uid ?? 0),
-        )
+        .filter((message) => isInitial || message.uid > (cursor?.uid ?? 0))
         .map((message): MailHeader => ({
           providerId:
             account.provider === 'gmail'
@@ -130,9 +138,7 @@ const getImapBatch = async (
         cursor: {
           uidValidity,
           uid: Math.max(
-            account.cursor?.uidValidity === uidValidity
-              ? (account.cursor.uid ?? 0)
-              : 0,
+            cursor?.uidValidity === uidValidity ? (cursor.uid ?? 0) : 0,
             ...fetchedList.map((message) => message.uid),
           ),
         },
@@ -154,7 +160,7 @@ const getImapBody = async (
   id: string,
 ): Promise<MailBody> =>
   withImapMailbox(
-    account.provider,
+    mailProviderSchema.parse(account.provider),
     account.email,
     credentials.password,
     async (client) => {

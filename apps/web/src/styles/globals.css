@@ -60,7 +60,7 @@
   min-height: 100svh;
 }
 
-/* 全应用键盘焦点使用细灰线，取消默认光圈和边框提亮。 */
+/* 全应用键盘焦点使用细灰线，输入控件通过自身边框标识焦点。 */
 :focus-visible:not([aria-invalid='true']) {
   --tw-ring-shadow: 0 0 #0000;
   --tw-ring-offset-shadow: 0 0 #0000;
@@ -80,9 +80,23 @@
   border-color: var(--border);
 }
 
-[data-slot='input-group']:has(
-    [data-slot='input-group-control']:focus-visible
-  ):not(:has([aria-invalid='true'])) {
-  border-color: var(--input);
+:is(
+  [data-slot='input'],
+  [data-slot='textarea'],
+  [data-slot='input-group-control']
+):focus-visible {
+  outline: none;
   box-shadow: none;
+
+  &:not([aria-invalid='true']) {
+    border-color: var(--ring);
+  }
+}
+
+[data-slot='input-group']:has([data-slot='input-group-control']:focus-visible) {
+  box-shadow: none;
+
+  &:not(:has([aria-invalid='true'])) {
+    border-color: var(--ring);
+  }
 }

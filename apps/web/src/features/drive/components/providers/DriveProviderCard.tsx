@@ -1,4 +1,4 @@
-import { ArrowUpRight, Trash2 } from 'lucide-react'
+import { ArrowUpRight, Trash2, Unplug } from 'lucide-react'
 import type { MouseEvent } from 'react'
 import { Link } from 'react-router-dom'
 
@@ -12,7 +12,13 @@ import {
 import type { DriveProvider } from '@/features/drive/types'
 import { DriveProviderIcon } from '@/features/drive/components/DriveProviderIcon'
 import { DriveConnectionDialog } from '@/features/drive/components/providers/DriveConnectionDialog'
+import { DriveUploadTasks } from '@/features/drive/components/uploads/DriveUploadTasks'
 import { Button } from '@/components/ui/button'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
 
 import styles from '@/features/drive/components/providers/DriveProviderCard.module.css'
 
@@ -28,6 +34,10 @@ type DriveProviderCardProps = {
  * @returns Provider 卡片 JSX
  */
 const DriveProviderCard = ({ provider, onDelete }: DriveProviderCardProps) => {
+  const isCloudAccount = provider.providerId !== 'minio'
+  const removeLabel = isCloudAccount
+    ? 'Disconnect account'
+    : 'Delete connection'
   const requestDeleteHandler = (event: MouseEvent<HTMLButtonElement>): void =>
     onDelete(provider, event.currentTarget)
   return (
@@ -59,22 +69,36 @@ const DriveProviderCard = ({ provider, onDelete }: DriveProviderCardProps) => {
           </span>
           <span>
             {provider.status === 'connected'
-              ? `Synced ${provider.lastSyncedAt}`
+              ? `Checked ${new Date(provider.lastSyncedAt).toLocaleString()}`
               : 'Not synced'}
           </span>
         </CardContent>
       </Link>
       <DriveConnectionDialog connection={provider} />
-      <Button
-        variant="ghost"
-        size="icon-sm"
-        className={styles['delete-button']}
-        aria-label={`Delete ${provider.name}`}
-        aria-haspopup="dialog"
-        onClick={requestDeleteHandler}
-      >
-        <Trash2 aria-hidden="true" />
-      </Button>
+      <DriveUploadTasks
+        connection={provider}
+        compact
+        className={styles['tasks-button']}
+      />
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            className={styles['delete-button']}
+            aria-label={`${removeLabel}: ${provider.name}`}
+            aria-haspopup="dialog"
+            onClick={requestDeleteHandler}
+          >
+            {isCloudAccount ? (
+              <Unplug aria-hidden="true" />
+            ) : (
+              <Trash2 aria-hidden="true" />
+            )}
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>{removeLabel}</TooltipContent>
+      </Tooltip>
     </Card>
   )
 }

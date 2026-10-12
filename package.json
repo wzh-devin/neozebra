@@ -3,7 +3,8 @@
   "private": true,
   "packageManager": "pnpm@11.1.2",
   "scripts": {
-    "dev": "pnpm --parallel --filter @neozebra/web --filter @neozebra/server dev",
+    "postinstall": "pnpm --filter @neozebra/database db:generate",
+    "dev": "pnpm --parallel --filter @neozebra/web --filter @neozebra/server run '/^dev(:worker)?$/'",
     "dev:web": "pnpm --filter @neozebra/web dev",
     "dev:server": "pnpm --filter @neozebra/server dev",
     "build": "pnpm -r build",
@@ -12,7 +13,11 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "db:migrate": "pnpm --filter @neozebra/server db:migrate",
-    "test:inbox": "pnpm --filter @neozebra/server test:integration"
+    "test:inbox": "pnpm --filter @neozebra/server test:integration",
+    "db:generate": "pnpm --filter @neozebra/server db:generate",
+    "db:baseline": "pnpm --filter @neozebra/server db:baseline",
+    "db:diff": "pnpm --filter @neozebra/server db:diff",
+    "dev:worker": "pnpm --filter @neozebra/server dev:worker"
   },
   "devDependencies": {
     "oxlint": "latest",

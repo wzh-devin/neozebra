@@ -1,5 +1,3 @@
-import { useState } from 'react'
-
 import { EditorField } from '@/components/shared/editor-dialog'
 import { Input } from '@/components/ui/input'
 import {
@@ -22,6 +20,7 @@ type ConnectionField = {
 type DriveConnectionFieldsProps = {
   providerId: DriveProviderId
   initialValues: Record<string, string>
+  isEditing: boolean
 }
 const minioFieldList: ConnectionField[] = [
   {
@@ -73,14 +72,8 @@ const minioFieldList: ConnectionField[] = [
 const DriveConnectionFields = ({
   providerId,
   initialValues,
+  isEditing,
 }: DriveConnectionFieldsProps) => {
-  const [authMode, setAuthMode] = useState(
-    initialValues.authMode === 'refreshToken' ? 'refreshToken' : 'accessToken',
-  )
-
-  // 切换 Token 授权方式及对应字段。
-  const authModeChangeHandler = (value: string): void => setAuthMode(value)
-
   // 渲染带标签和校验规则的连接输入字段。
   const renderInputField = (field: ConnectionField) => (
     <EditorField
@@ -92,75 +85,27 @@ const DriveConnectionFields = ({
         id={`drive-${field.name}`}
         name={field.name}
         type={field.type ?? 'text'}
-        required={field.required}
+        required={
+          field.required &&
+          !(isEditing && ['accessKey', 'secretKey'].includes(field.name))
+        }
         defaultValue={
           initialValues[field.name] ?? (field.name === 'rootPath' ? '/' : '')
         }
-        placeholder={field.placeholder}
+        placeholder={
+          isEditing &&
+          ['accessKey', 'secretKey', 'sessionToken'].includes(field.name)
+            ? 'Leave blank to keep the saved credential'
+            : field.placeholder
+        }
         autoComplete="off"
         spellCheck={false}
       />
     </EditorField>
   )
   if (providerId === 'minio') return <>{minioFieldList.map(renderInputField)}</>
-  const tokenFieldList: ConnectionField[] =
-    authMode === 'accessToken'
-      ? [
-          {
-            name: 'accessToken',
-            label: 'Access Token',
-            placeholder: 'Enter OpenAPI access token',
-            type: 'password',
-            required: true,
-          },
-        ]
-      : [
-          {
-            name: 'refreshToken',
-            label: 'Refresh Token',
-            placeholder: 'Enter OpenAPI refresh token',
-            type: 'password',
-            required: true,
-          },
-          {
-            name: 'clientId',
-            label: providerId === 'baidu' ? 'AppKey' : 'Client ID',
-            placeholder: 'Enter your application ID',
-            required: true,
-          },
-          {
-            name: 'clientSecret',
-            label: providerId === 'baidu' ? 'SecretKey' : 'Client Secret',
-            placeholder: 'Enter your application secret',
-            type: 'password',
-            required: true,
-          },
-        ]
   return (
     <>
-      <EditorField id="drive-auth-mode" label="Authorization">
-        <Select
-          name="authMode"
-          value={authMode}
-          onValueChange={authModeChangeHandler}
-        >
-          <SelectTrigger id="drive-auth-mode">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent
-            className={surfaceStyles.surface}
-            position="popper"
-            align="start"
-            sideOffset={6}
-          >
-            <SelectItem value="accessToken">Access Token</SelectItem>
-            <SelectItem value="refreshToken">Refresh Token</SelectItem>
-          </SelectContent>
-        </Select>
-      </EditorField>
-      <div key={authMode} className="contents">
-        {tokenFieldList.map(renderInputField)}
-      </div>
       {providerId === 'aliyun' ? (
         <EditorField id="drive-type" label="Drive type">
           <Select

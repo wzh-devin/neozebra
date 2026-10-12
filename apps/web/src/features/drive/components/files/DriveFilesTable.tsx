@@ -1,4 +1,11 @@
-import { Archive, Download, MoreHorizontal, Pencil, Trash2 } from 'lucide-react'
+import {
+  Download,
+  FolderInput,
+  MoreHorizontal,
+  Pencil,
+  Trash2,
+} from 'lucide-react'
+import { useDraggable, useDroppable } from '@dnd-kit/core'
 
 import { Button } from '@/components/ui/button'
 import {
@@ -25,6 +32,7 @@ import overlayStyles from '@/features/drive/styles/drive-overlays.module.css'
 
 type DriveFileRowProps = {
   entry: DriveEntry
+  busy: boolean
   onSelect: (id: string) => void
   onAction: (action: string, entry: DriveEntry) => void
 }
@@ -35,20 +43,41 @@ type DriveFileRowProps = {
  * @param props - 条目数据、目录选择与条目操作
  * @returns 文件表格行 JSX
  */
-const DriveFileRow = ({ entry, onSelect, onAction }: DriveFileRowProps) => {
+const DriveFileRow = ({
+  entry,
+  busy,
+  onSelect,
+  onAction,
+}: DriveFileRowProps) => {
+  const {
+    attributes,
+    listeners,
+    setNodeRef: setDragNodeRef,
+    isDragging,
+  } = useDraggable({
+    id: `file-list-${entry.id}`,
+    data: { entry },
+    disabled: busy,
+  })
+  const { setNodeRef: setDropNodeRef, isOver } = useDroppable({
+    id: `list-folder-${entry.id}`,
+    data: { directoryId: entry.id },
+    disabled: entry.kind !== 'folder' || busy,
+  })
+
   // 进入目录或打开文件预览。
   const selectEntryHandler = (): void => {
     if (entry.kind === 'folder') onSelect(entry.id)
     else onAction('Preview', entry)
   }
 
-  // 请求下载本地 mock 条目。
+  // 请求下载条目。
   const downloadEntryHandler = (): void => onAction('Download', entry)
 
   // 请求重命名条目。
   const renameEntryHandler = (): void => onAction('Rename', entry)
 
-  // 请求移动本地 mock 条目。
+  // 请求选择条目的移动目标。
   const moveEntryHandler = (): void => onAction('Move', entry)
 
   // 请求删除条目。
@@ -65,9 +94,18 @@ const DriveFileRow = ({ entry, onSelect, onAction }: DriveFileRowProps) => {
   )
 
   return (
-    <TableRow className={styles.row}>
+    <TableRow
+      ref={setDropNodeRef}
+      className={styles.row}
+      data-drive-drop-id={entry.kind === 'folder' ? entry.id : undefined}
+      data-drop-over={isOver || undefined}
+      data-dragging={isDragging || undefined}
+    >
       <TableCell className={styles.name}>
         <button
+          ref={setDragNodeRef}
+          {...attributes}
+          {...listeners}
           id={`drive-entry-${entry.id}`}
           className={styles.entry}
           onClick={selectEntryHandler}
@@ -93,7 +131,10 @@ const DriveFileRow = ({ entry, onSelect, onAction }: DriveFileRowProps) => {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className={overlayStyles.menu}>
-            <DropdownMenuItem onSelect={downloadEntryHandler}>
+            <DropdownMenuItem
+              disabled={entry.kind === 'folder'}
+              onSelect={downloadEntryHandler}
+            >
               <Download aria-hidden="true" />
               Download
             </DropdownMenuItem>
@@ -101,8 +142,8 @@ const DriveFileRow = ({ entry, onSelect, onAction }: DriveFileRowProps) => {
               <Pencil aria-hidden="true" />
               Rename
             </DropdownMenuItem>
-            <DropdownMenuItem onSelect={moveEntryHandler}>
-              <Archive aria-hidden="true" />
+            <DropdownMenuItem disabled={busy} onSelect={moveEntryHandler}>
+              <FolderInput aria-hidden="true" />
               Move
             </DropdownMenuItem>
             <DropdownMenuSeparator />
@@ -122,6 +163,7 @@ const DriveFileRow = ({ entry, onSelect, onAction }: DriveFileRowProps) => {
 
 type DriveFilesTableProps = {
   entryList: DriveEntry[]
+  busy: boolean
   searchQuery: string
   onSelect: (id: string) => void
   onAction: (action: string, entry: DriveEntry) => void
@@ -137,6 +179,7 @@ type DriveFilesTableProps = {
  */
 const DriveFilesTable = ({
   entryList,
+  busy,
   searchQuery,
   onSelect,
   onAction,
@@ -153,6 +196,7 @@ const DriveFilesTable = ({
     <DriveFileRow
       key={entry.id}
       entry={entry}
+      busy={busy}
       onSelect={onSelect}
       onAction={onAction}
     />

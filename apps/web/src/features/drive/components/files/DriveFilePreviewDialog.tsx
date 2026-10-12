@@ -1,4 +1,5 @@
 import { FileWarning } from 'lucide-react'
+import { useRef } from 'react'
 
 import {
   Dialog,
@@ -17,6 +18,7 @@ import {
 import { Spinner } from '@/components/ui/spinner'
 import { DriveEntryIcon } from '@/features/drive/components/files/DriveEntryIcon'
 import { DriveFilePreviewContent } from '@/features/drive/components/files/DriveFilePreviewContent'
+import { restoreDriveActionFocus } from '@/features/drive/lib/drive-focus'
 import { useDriveFilePreview } from '@/features/drive/hooks/useDriveFilePreview'
 import type { DriveEntry } from '@/features/drive/types'
 
@@ -38,7 +40,8 @@ const DriveFilePreviewDialog = ({
   entry,
   onClose,
 }: DriveFilePreviewDialogProps) => {
-  const state = useDriveFilePreview(entry.localFile)
+  const state = useDriveFilePreview(entry)
+  const triggerRef = useRef(document.activeElement)
 
   // 响应 Esc、关闭按钮和遮罩关闭。
   const openChangeHandler = (open: boolean): void => {
@@ -48,7 +51,16 @@ const DriveFilePreviewDialog = ({
   // 将关闭后的键盘焦点恢复到文件按钮。
   const restoreFocusHandler = (event: Event): void => {
     event.preventDefault()
-    document.getElementById(`drive-entry-${entry.id}`)?.focus()
+    if (
+      triggerRef.current instanceof HTMLElement &&
+      triggerRef.current.isConnected
+    )
+      triggerRef.current.focus()
+    else {
+      const trigger = document.getElementById(`drive-entry-${entry.id}`)
+      if (trigger) trigger.focus()
+      else restoreDriveActionFocus(entry.id)
+    }
   }
 
   const message =

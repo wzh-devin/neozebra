@@ -5,12 +5,6 @@ import { ImapFlow } from 'imapflow'
 import { Readable } from 'node:stream'
 import { mockImapMailbox } from './imap-fixture.ts'
 import { migrateImapAccounts } from '../src/infrastructure/database/migrate-imap-accounts.ts'
-import { and, count, eq } from 'drizzle-orm'
-import {
-  emailAccounts,
-  emailMessages,
-} from '../src/infrastructure/database/schema.ts'
-
 import { createApp } from '../src/app.ts'
 import {
   getDatabase,
@@ -28,6 +22,7 @@ import {
   getAccount,
   deleteAccount,
   saveSyncedBatch,
+  saveAccountError,
 } from '../src/infrastructure/inbox/inbox-repository.ts'
 
 // 所有数据均为 synthetic integration fixtures，清理只针对本次生成的账号与 Redis 键。
@@ -46,10 +41,10 @@ test(
     context.after(async () => {
       try {
         if (owner) {
-          const accounts = await db.store
-            .select({ id: emailAccounts.id })
-            .from(emailAccounts)
-            .where(eq(emailAccounts.ownerId, owner))
+          const accounts = await db.store.emailAccount.findMany({
+            select: { id: true },
+            where: { ownerId: owner },
+          })
           for (const account of accounts) {
             if (db.redis.isReady)
               await db.redis.del([
@@ -91,28 +86,27 @@ test(
       { password: 'abcdefghijklmnop' },
       db.config.key,
     )
-    const [account, otherAccount] = await db.store
-      .insert(emailAccounts)
-      .values([
-        {
-          ownerId: owner,
-          provider: 'gmail',
-          email: 'synthetic@example.test',
-          credentials,
-        },
-        {
-          ownerId: owner,
-          provider: 'qq',
-          email: 'synthetic@qq.com',
-          credentials,
-        },
-      ])
-      .returning()
+    const [account, otherAccount] =
+      await db.store.emailAccount.createManyAndReturn({
+        data: [
+          {
+            ownerId: owner,
+            provider: 'gmail',
+            email: 'synthetic@example.test',
+            credentials,
+          },
+          {
+            ownerId: owner,
+            provider: 'qq',
+            email: 'synthetic@qq.com',
+            credentials,
+          },
+        ],
+      })
     const accountId = account.id
     const otherAccountId = otherAccount.id
-    const [message] = await db.store
-      .insert(emailMessages)
-      .values({
+    const message = await db.store.emailMessage.create({
+      data: {
         accountId,
         providerId: 'a1',
         title: 'Synthetic title',
@@ -121,8 +115,8 @@ test(
         summary: 'Synthetic preview',
         body: 'Synthetic body',
         bodyFormat: 'markdown',
-      })
-      .returning()
+      },
+    })
     const messageId = message.id
 
     await context.test('账号和正文按会话隔离，响应没有密文或凭据', async () => {
@@ -237,10 +231,10 @@ test(
         ).itemList.length,
         0,
       )
-      const [row] = await db.store
-        .select({ read: emailMessages.read, archived: emailMessages.archived })
-        .from(emailMessages)
-        .where(eq(emailMessages.id, messageId))
+      const row = await db.store.emailMessage.findUnique({
+        select: { read: true, archived: true },
+        where: { id: messageId },
+      })
       assert.deepEqual(row, { read: true, archived: true })
       await ownRequest(`/messages/${messageId}`, 'PATCH', {
         archived: false,
@@ -253,8 +247,8 @@ test(
       )
     })
     await context.test('分页和字面搜索覆盖 101 封以上邮件', async () => {
-      await db.store.insert(emailMessages).values(
-        Array.from({ length: 101 }, (_, index) => ({
+      await db.store.emailMessage.createMany({
+        data: Array.from({ length: 101 }, (_, index) => ({
           accountId: otherAccountId,
           providerId: `page-${index}`,
           title: index === 0 ? '100%_literal' : `Synthetic page ${index}`,
@@ -262,7 +256,7 @@ test(
           receivedAt: new Date(1700000000000 - index * 1000),
           body: 'Synthetic fixture',
         })),
-      )
+      })
       const page = await (await ownRequest('/messages')).json()
       assert.equal(page.itemList.length, 100)
       assert.ok(page.nextCursor)
@@ -281,9 +275,9 @@ test(
           .length,
         1,
       )
-      await db.store
-        .delete(emailMessages)
-        .where(eq(emailMessages.accountId, otherAccountId))
+      await db.store.emailMessage.deleteMany({
+        where: { accountId: otherAccountId },
+      })
     })
     await context.test(
       'Gmail IMAP 绑定保存加密应用密码，重连失败保留账号',
@@ -333,20 +327,18 @@ test(
           'legacy@example.test',
           { password: 'abcdefghijklmnop' },
         )
-        const [legacy] = await db.store
-          .update(emailAccounts)
-          .set({
+        const legacy = await db.store.emailAccount.update({
+          data: {
             credentials: encryptCredentials(
               { refresh_token: 'synthetic-legacy-token' },
               db.config.key,
             ),
             cursor: { uidValidity: '88', uid: 8 },
-          })
-          .where(eq(emailAccounts.id, old.id))
-          .returning()
-        const [cached] = await db.store
-          .insert(emailMessages)
-          .values({
+          },
+          where: { id: old.id },
+        })
+        const cached = await db.store.emailMessage.create({
+          data: {
             accountId: old.id,
             providerId: 'a1',
             title: 'Legacy cached',
@@ -356,8 +348,8 @@ test(
             bodyFormat: 'markdown',
             read: true,
             archived: true,
-          })
-          .returning()
+          },
+        })
         assert.equal(await migrateImapAccounts(db, [legacy]), 1)
         const cleaned = await getAccount(db, owner, old.id)
         assert.deepEqual(
@@ -367,10 +359,9 @@ test(
         assert.equal(cleaned.cursor, null)
         assert.match(cleaned.error, /app password/)
         assert.equal(await migrateImapAccounts(db, [cleaned]), 0)
-        const [body] = await db.store
-          .select()
-          .from(emailMessages)
-          .where(eq(emailMessages.id, cached.id))
+        const body = await db.store.emailMessage.findUniqueOrThrow({
+          where: { id: cached.id },
+        })
         assert.equal(body.body, 'Keep this body')
         assert.equal(body.read, true)
         assert.equal(body.archived, true)
@@ -405,15 +396,9 @@ test(
         }),
       ])
       assert.ok(attempts.some((result) => result.status === 'fulfilled'))
-      const stored = await db.store
-        .select()
-        .from(emailAccounts)
-        .where(
-          and(
-            eq(emailAccounts.ownerId, owner),
-            eq(emailAccounts.email, 'dedupe@example.test'),
-          ),
-        )
+      const stored = await db.store.emailAccount.findMany({
+        where: { ownerId: owner, email: 'dedupe@example.test' },
+      })
       assert.equal(stored.length, 1)
       assert.equal(stored[0].id, temporary.id)
       assert.ok(stored[0].updatedAt >= stored[0].createdAt)
@@ -433,19 +418,59 @@ test(
         saveSyncedBatch(db, stored[0], batch, stored[0].credentials),
         saveSyncedBatch(db, stored[0], batch, stored[0].credentials),
       ])
-      const messages = await db.store
-        .select()
-        .from(emailMessages)
-        .where(eq(emailMessages.accountId, temporary.id))
+      const messages = await db.store.emailMessage.findMany({
+        where: { accountId: temporary.id },
+      })
       assert.equal(messages.length, 1)
       await deleteAccount(db, owner, temporary.id)
       assert.equal(
         (
-          await db.store
-            .select()
-            .from(emailMessages)
-            .where(eq(emailMessages.accountId, temporary.id))
+          await db.store.emailMessage.findMany({
+            where: { accountId: temporary.id },
+          })
         ).length,
+        0,
+      )
+    })
+    await context.test('重新授权和并发解绑阻止旧同步与错误写回', async () => {
+      const old = await saveAccount(db, owner, 'gmail', 'stale@example.test', {
+        password: 'abcdefghijklmnop',
+      })
+      const current = await saveAccount(db, owner, 'gmail', old.email, {
+        password: 'ponmlkjihgfedcba',
+      })
+      const batch = {
+        messageList: [
+          {
+            providerId: 'stale',
+            title: 'Synthetic stale',
+            sender: 'Fixture',
+            receivedAt: new Date().toISOString(),
+            summary: '',
+            read: false,
+          },
+        ],
+        cursor: { uidValidity: '88', uid: 1 },
+      }
+      assert.equal(
+        await saveSyncedBatch(db, old, batch, old.credentials),
+        false,
+      )
+      await saveAccountError(db, old, 'Stale error')
+      const saved = await getAccount(db, owner, current.id)
+      assert.equal(saved.credentials, current.credentials)
+      assert.equal(saved.error, null)
+      assert.equal(saved.cursor, null)
+      assert.equal(
+        await db.store.emailMessage.count({ where: { accountId: current.id } }),
+        0,
+      )
+      await Promise.all([
+        saveSyncedBatch(db, current, batch, current.credentials),
+        deleteAccount(db, owner, current.id),
+      ])
+      assert.equal(
+        await db.store.emailMessage.count({ where: { accountId: current.id } }),
         0,
       )
     })
@@ -454,20 +479,18 @@ test(
       async () => {
         const baseline = await (await ownRequest('/messages/new')).json()
         assert.deepEqual(baseline.itemList, [])
-        const added = await db.store
-          .insert(emailMessages)
-          .values(
-            Array.from({ length: 105 }, (_, index) => ({
-              accountId: otherAccountId,
-              providerId: `arrival-${index}`,
-              title: 'Synthetic arrival',
-              sender: 'Fixture',
-              receivedAt: new Date('2000-01-01'),
-              body: '<p>secret body omitted</p>',
-              bodyFormat: 'html' as const,
-            })),
-          )
-          .returning({ id: emailMessages.id })
+        const added = await db.store.emailMessage.createManyAndReturn({
+          data: Array.from({ length: 105 }, (_, index) => ({
+            accountId: otherAccountId,
+            providerId: `arrival-${index}`,
+            title: 'Synthetic arrival',
+            sender: 'Fixture',
+            receivedAt: new Date('2000-01-01'),
+            body: '<p>secret body omitted</p>',
+            bodyFormat: 'html' as const,
+          })),
+          select: { id: true },
+        })
         const firstPage = await (
           await ownRequest(`/messages/new?after=${baseline.cursor}`)
         ).json()
@@ -517,10 +540,10 @@ test(
     await context.test(
       '旧纯文本缓存按需重新解析HTML，后续读取复用缓存',
       async (subcontext) => {
-        await db.store
-          .update(emailMessages)
-          .set({ bodyFormat: null })
-          .where(eq(emailMessages.id, messageId))
+        await db.store.emailMessage.update({
+          data: { bodyFormat: null },
+          where: { id: messageId },
+        })
         const upstream = mockImapMailbox(subcontext).download
         const response = await ownRequest(`/messages/${messageId}`)
         assert.equal(response.status, 200)
@@ -535,10 +558,10 @@ test(
     await context.test(
       '旧 CID 图片缓存重新解析，转换后的正文复用缓存',
       async (subcontext) => {
-        await db.store
-          .update(emailMessages)
-          .set({ bodyFormat: 'html', body: '<img src="cid:logo">' })
-          .where(eq(emailMessages.id, messageId))
+        await db.store.emailMessage.update({
+          data: { bodyFormat: 'html', body: '<img src="cid:logo">' },
+          where: { id: messageId },
+        })
         const raw = Buffer.from(
           [
             'Content-Type: multipart/related; boundary="cid-boundary"',
@@ -572,10 +595,10 @@ test(
         assert.equal(upstream.mock.calls.length, 1)
         assert.equal((await ownRequest(`/messages/${messageId}`)).status, 200)
         assert.equal(upstream.mock.calls.length, 1)
-        await db.store
-          .update(emailMessages)
-          .set({ body: '<img src="cid:logo">' })
-          .where(eq(emailMessages.id, messageId))
+        await db.store.emailMessage.update({
+          data: { body: '<img src="cid:logo">' },
+          where: { id: messageId },
+        })
         subcontext.mock.restoreAll()
         subcontext.mock.method(ImapFlow.prototype, 'connect', async () => {
           throw new Error('Synthetic unavailable provider')
@@ -597,21 +620,16 @@ test(
         mockImapMailbox(subcontext)
         assert.equal(await syncAccount(db, account), 'synced')
         assert.equal(
-          (
-            await db.store
-              .select({ count: count() })
-              .from(emailMessages)
-              .where(eq(emailMessages.accountId, accountId))
-          )[0].count,
+          await db.store.emailMessage.count({ where: { accountId } }),
           2,
         )
         assert.equal(
           (
-            await db.store
-              .select({ read: emailMessages.read })
-              .from(emailMessages)
-              .where(eq(emailMessages.id, messageId))
-          )[0].read,
+            await db.store.emailMessage.findUniqueOrThrow({
+              select: { read: true },
+              where: { id: messageId },
+            })
+          ).read,
           true,
         )
         assert.equal(await db.redis.get(lockKey), null)
@@ -637,12 +655,7 @@ test(
           'failed',
         )
         assert.equal(
-          (
-            await db.store
-              .select({ count: count() })
-              .from(emailMessages)
-              .where(eq(emailMessages.accountId, accountId))
-          )[0].count,
+          await db.store.emailMessage.count({ where: { accountId } }),
           2,
         )
         assert.match(
@@ -666,12 +679,7 @@ test(
         200,
       )
       assert.equal(
-        (
-          await db.store
-            .select({ count: count() })
-            .from(emailMessages)
-            .where(eq(emailMessages.accountId, accountId))
-        )[0].count,
+        await db.store.emailMessage.count({ where: { accountId } }),
         0,
       )
       assert.equal((await ownRequest(`/messages/${messageId}`)).status, 404)

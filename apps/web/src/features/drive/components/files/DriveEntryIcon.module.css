@@ -9,7 +9,8 @@
   color: var(--project-rose);
 }
 
-.icon[data-file-type='document'] {
+.icon[data-file-type='document'],
+.icon[data-file-type='shortcut'] {
   color: var(--project-blue);
 }
 

@@ -1,0 +1,31 @@
+name: neozebra-office
+services:
+  office:
+    image: onlyoffice/documentserver:9.4.0.1@sha256:3ab6ebc7c605e5a32b7ae3ff19daed4925090245acc8100ce2230bd766c88212
+    restart: unless-stopped
+    ports:
+      - '127.0.0.1:8088:80'
+    environment:
+      JWT_ENABLED: 'true'
+      JWT_SECRET: ${OFFICE_JWT_SECRET:?Set OFFICE_JWT_SECRET in deploy/office/.env}
+      ALLOW_PRIVATE_IP_ADDRESS: 'true'
+      ALLOW_META_IP_ADDRESS: 'false'
+    volumes:
+      - ./local-production-linux.json:/etc/onlyoffice/documentserver/local-production-linux.json:ro
+      - office-data:/var/www/onlyoffice/Data
+      - office-cache:/var/lib/onlyoffice
+      - office-db:/var/lib/postgresql
+      - office-logs:/var/log/onlyoffice
+    mem_limit: 4g
+    cpus: 2
+    healthcheck:
+      test: ['CMD', 'curl', '--fail', 'http://localhost/healthcheck']
+      interval: 15s
+      timeout: 5s
+      retries: 20
+      start_period: 90s
+volumes:
+  office-data:
+  office-cache:
+  office-db:
+  office-logs:

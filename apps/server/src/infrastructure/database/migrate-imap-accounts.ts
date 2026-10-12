@@ -1,6 +1,6 @@
-import { and, eq } from 'drizzle-orm'
+import { Prisma } from '@neozebra/database'
 import type { Database } from './database-client.ts'
-import { emailAccounts } from './schema.ts'
+import { ignoreMissingRecord } from './prisma-errors.ts'
 import type { MailAccount } from '../inbox/types.ts'
 import {
   decryptCredentials,
@@ -35,20 +35,16 @@ const migrateImapAccounts = async (
       account.error === error
     )
       continue
-    const result = await db.store
-      .update(emailAccounts)
-      .set({
-        credentials: encryptCredentials({ password }, db.config.key),
-        ...(!password ? { cursor: null, error } : {}),
+    const result = await db.store.emailAccount
+      .update({
+        where: { id: account.id, credentials: account.credentials },
+        data: {
+          credentials: encryptCredentials({ password }, db.config.key),
+          ...(!password ? { cursor: Prisma.DbNull, error } : {}),
+        },
       })
-      .where(
-        and(
-          eq(emailAccounts.id, account.id),
-          eq(emailAccounts.credentials, account.credentials),
-        ),
-      )
-      .returning({ id: emailAccounts.id })
-    changed += result.length
+      .catch(ignoreMissingRecord)
+    changed += result ? 1 : 0
   }
   return changed
 }

@@ -96,32 +96,6 @@
   width: min(480px, 100%);
 }
 
-.pdf {
-  display: block;
-  width: 100%;
-  flex: 1;
-  min-height: 0;
-  border: 0;
-}
-
-.pdf-container {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-}
-
-.pdf-actions {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  flex-wrap: wrap;
-  gap: 8px;
-  padding: 6px 16px;
-  border-top: 1px solid var(--border);
-  color: var(--muted-foreground);
-  font-size: 11px;
-}
-
 @media (max-width: 767px) {
   .dialog {
     height: calc(100svh - 32px);

@@ -17,10 +17,11 @@ type DriveFolderPanelProps = Pick<
   | 'selectedDirectoryId'
   | 'toggleDirectory'
   | 'selectDirectory'
+  | 'busy'
 > & { onAction: (action: string, node: DriveTreeNode) => void }
 
 /**
- * 组合 Provider 导航、目录树和连接说明。
+ * 组合 Provider 导航、文件树和连接说明。
  *
  * @param props - Provider、目录状态与目录操作
  * @returns 目录导航面板 JSX
@@ -30,11 +31,12 @@ const DriveFolderPanel = ({
   rootNode,
   expandedSet,
   selectedDirectoryId,
+  busy,
   toggleDirectory,
   selectDirectory,
   onAction,
 }: DriveFolderPanelProps) => (
-  <nav aria-label={`${provider.name} folders`} className={styles.panel}>
+  <nav aria-label={`${provider.name} file tree`} className={styles.panel}>
     <div className={styles.provider}>
       <Button asChild size="icon-sm" variant="ghost">
         <Link aria-label="Back to providers" to="/assets/drive">
@@ -51,6 +53,7 @@ const DriveFolderPanel = ({
       rootNode={rootNode}
       expandedSet={expandedSet}
       selectedDirectoryId={selectedDirectoryId}
+      busy={busy}
       onToggle={toggleDirectory}
       onSelect={selectDirectory}
       onAction={onAction}

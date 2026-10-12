@@ -1,24 +1,16 @@
 import { randomUUID } from 'node:crypto'
 import { setTimeout as delay } from 'node:timers/promises'
-import { and, asc, eq, inArray } from 'drizzle-orm'
+import { Prisma } from '@neozebra/database'
 import { HTTPException } from 'hono/http-exception'
 import type { Database } from '../database/database-client.ts'
-import {
-  taskWorkspaces,
-  taskProjects,
-  taskSections,
-  tasks,
-  taskSubtasks,
-} from '../database/task-schema.ts'
+import { ignoreMissingRecord } from '../database/prisma-errors.ts'
 import {
   plannerSchema,
   type TaskPlannerDto,
   type TaskSaveDto,
 } from '../../dto/task/task-dto.ts'
 
-type Transaction = Parameters<
-  Parameters<Database['store']['transaction']>[0]
->[0]
+type Transaction = Prisma.TransactionClient
 
 /**
  * 只在首次创建工作区时使用 Redis 锁，避免依赖业务唯一约束。
@@ -28,14 +20,8 @@ type Transaction = Parameters<
  * @returns 个人工作区；创建成功后释放本次锁
  */
 const ensureWorkspace = async (db: Database, owner: string) => {
-  const findWorkspace = async () =>
-    (
-      await db.store
-        .select()
-        .from(taskWorkspaces)
-        .where(eq(taskWorkspaces.ownerId, owner))
-        .limit(1)
-    )[0]
+  const findWorkspace = () =>
+    db.store.taskWorkspace.findFirst({ where: { ownerId: owner } })
   let workspace = await findWorkspace()
   if (workspace) return workspace
   await db.connectRedis()
@@ -47,12 +33,7 @@ const ensureWorkspace = async (db: Database, owner: string) => {
         workspace = await findWorkspace()
         return (
           workspace ??
-          (
-            await db.store
-              .insert(taskWorkspaces)
-              .values({ ownerId: owner })
-              .returning()
-          )[0]
+          (await db.store.taskWorkspace.create({ data: { ownerId: owner } }))
         )
       } finally {
         await db.redis
@@ -80,26 +61,22 @@ const ensureWorkspace = async (db: Database, owner: string) => {
  * @returns 项目、阶段、任务与步骤行
  */
 const getPlannerRowList = async (tx: Transaction, workspaceId: bigint) => {
-  const projectList = await tx
-    .select()
-    .from(taskProjects)
-    .where(eq(taskProjects.workspaceId, workspaceId))
-    .orderBy(asc(taskProjects.position))
-  const sectionList = await tx
-    .select()
-    .from(taskSections)
-    .where(eq(taskSections.workspaceId, workspaceId))
-    .orderBy(asc(taskSections.position))
-  const taskList = await tx
-    .select()
-    .from(tasks)
-    .where(eq(tasks.workspaceId, workspaceId))
-    .orderBy(asc(tasks.position))
-  const stepList = await tx
-    .select()
-    .from(taskSubtasks)
-    .where(eq(taskSubtasks.workspaceId, workspaceId))
-    .orderBy(asc(taskSubtasks.position))
+  const projectList = await tx.taskProject.findMany({
+    where: { workspaceId },
+    orderBy: { position: 'asc' },
+  })
+  const sectionList = await tx.taskSection.findMany({
+    where: { workspaceId },
+    orderBy: { position: 'asc' },
+  })
+  const taskList = await tx.task.findMany({
+    where: { workspaceId },
+    orderBy: { position: 'asc' },
+  })
+  const stepList = await tx.taskSubtask.findMany({
+    where: { workspaceId },
+    orderBy: { position: 'asc' },
+  })
   return { projectList, sectionList, taskList, stepList }
 }
 
@@ -170,23 +147,17 @@ const getTaskPlanner = async (
   owner: string,
 ): Promise<TaskSaveDto> => {
   const workspace = await ensureWorkspace(db, owner)
-  return db.store.transaction(
+  return db.store.$transaction(
     async (tx) => {
-      const [current] = await tx
-        .select()
-        .from(taskWorkspaces)
-        .where(
-          and(
-            eq(taskWorkspaces.id, workspace.id),
-            eq(taskWorkspaces.ownerId, owner),
-          ),
-        )
+      const current = await tx.taskWorkspace.findFirstOrThrow({
+        where: { id: workspace.id, ownerId: owner },
+      })
       return {
         revision: current.revision,
         data: buildPlannerData(await getPlannerRowList(tx, current.id)),
       }
     },
-    { isolationLevel: 'repeatable read', accessMode: 'read only' },
+    { isolationLevel: Prisma.TransactionIsolationLevel.RepeatableRead },
   )
 }
 
@@ -205,11 +176,15 @@ const isSameValue = (left: unknown, right: unknown): boolean =>
  * @param nextList - 下一份持久化字段
  * @returns 新增、更新和删除集合
  */
-const getEntryChanges = <T extends { key: string; taskKey?: string }>(
-  previousList: (T & { id: bigint })[],
+const getEntryChanges = <
+  T extends { key: string; taskKey?: string },
+  P extends { id: bigint; key: string; taskKey?: string },
+>(
+  previousList: P[],
   nextList: T[],
 ) => {
-  const getKey = (entry: T) => `${entry.taskKey ?? ''}\0${entry.key}`
+  const getKey = (entry: { key: string; taskKey?: string }) =>
+    `${entry.taskKey ?? ''}\0${entry.key}`
   const previousMap = new Map(
     previousList.map((entry) => [getKey(entry), entry]),
   )
@@ -223,7 +198,7 @@ const getEntryChanges = <T extends { key: string; taskKey?: string }>(
       const previous = previousMap.get(getKey(entry))
       return previous &&
         Object.entries(entry).some(
-          ([key, value]) => !isSameValue(value, previous[key as keyof T]),
+          ([key, value]) => !isSameValue(value, previous[key as keyof P]),
         )
         ? [{ id: previous.id, values: entry }]
         : []
@@ -244,14 +219,19 @@ const saveTaskPlanner = async (
   owner: string,
   input: TaskSaveDto,
 ): Promise<TaskSaveDto> =>
-  db.store.transaction(async (tx) => {
-    const [workspace] = await tx
-      .select()
-      .from(taskWorkspaces)
-      .where(eq(taskWorkspaces.ownerId, owner))
-      .limit(1)
-      .for('update')
-    if (!workspace || workspace.revision !== input.revision)
+  db.store.$transaction(async (tx) => {
+    const workspace = await tx.taskWorkspace.findFirst({
+      where: { ownerId: owner },
+    })
+    const updated =
+      workspace &&
+      (await tx.taskWorkspace
+        .update({
+          where: { id: workspace.id, ownerId: owner, revision: input.revision },
+          data: { revision: { increment: 1 } },
+        })
+        .catch(ignoreMissingRecord))
+    if (!workspace || !updated)
       throw new HTTPException(409, {
         message: '计划已在其他页面更新，请核对后重新保存。',
       })
@@ -327,53 +307,51 @@ const saveTaskPlanner = async (
       ),
     )
     if (stepChanges.deletedIdList.length)
-      await tx
-        .delete(taskSubtasks)
-        .where(inArray(taskSubtasks.id, stepChanges.deletedIdList))
+      await tx.taskSubtask.deleteMany({
+        where: { id: { in: stepChanges.deletedIdList } },
+      })
     if (taskChanges.deletedIdList.length)
-      await tx.delete(tasks).where(inArray(tasks.id, taskChanges.deletedIdList))
+      await tx.task.deleteMany({
+        where: { id: { in: taskChanges.deletedIdList } },
+      })
     if (sectionChanges.deletedIdList.length)
-      await tx
-        .delete(taskSections)
-        .where(inArray(taskSections.id, sectionChanges.deletedIdList))
+      await tx.taskSection.deleteMany({
+        where: { id: { in: sectionChanges.deletedIdList } },
+      })
     if (projectChanges.deletedIdList.length)
-      await tx
-        .delete(taskProjects)
-        .where(inArray(taskProjects.id, projectChanges.deletedIdList))
+      await tx.taskProject.deleteMany({
+        where: { id: { in: projectChanges.deletedIdList } },
+      })
     if (projectChanges.addedList.length)
-      await tx.insert(taskProjects).values(projectChanges.addedList)
+      await tx.taskProject.createMany({ data: projectChanges.addedList })
     if (sectionChanges.addedList.length)
-      await tx.insert(taskSections).values(sectionChanges.addedList)
+      await tx.taskSection.createMany({ data: sectionChanges.addedList })
     if (taskChanges.addedList.length)
-      await tx.insert(tasks).values(taskChanges.addedList)
+      await tx.task.createMany({ data: taskChanges.addedList })
 
     // 步骤允许跨多个任务批量导入，分批避免超过 PostgreSQL 参数数量上限。
     for (let offset = 0; offset < stepChanges.addedList.length; offset += 1000)
-      await tx
-        .insert(taskSubtasks)
-        .values(stepChanges.addedList.slice(offset, offset + 1000))
+      await tx.taskSubtask.createMany({
+        data: stepChanges.addedList.slice(offset, offset + 1000),
+      })
     for (const change of projectChanges.updatedList)
-      await tx
-        .update(taskProjects)
-        .set(change.values)
-        .where(eq(taskProjects.id, change.id))
+      await tx.taskProject.update({
+        where: { id: change.id },
+        data: change.values,
+      })
     for (const change of sectionChanges.updatedList)
-      await tx
-        .update(taskSections)
-        .set(change.values)
-        .where(eq(taskSections.id, change.id))
+      await tx.taskSection.update({
+        where: { id: change.id },
+        data: change.values,
+      })
     for (const change of taskChanges.updatedList)
-      await tx.update(tasks).set(change.values).where(eq(tasks.id, change.id))
+      await tx.task.update({ where: { id: change.id }, data: change.values })
     for (const change of stepChanges.updatedList)
-      await tx
-        .update(taskSubtasks)
-        .set(change.values)
-        .where(eq(taskSubtasks.id, change.id))
-    const revision = workspace.revision + 1
-    await tx
-      .update(taskWorkspaces)
-      .set({ revision })
-      .where(eq(taskWorkspaces.id, workspaceId))
+      await tx.taskSubtask.update({
+        where: { id: change.id },
+        data: change.values,
+      })
+    const revision = input.revision + 1
     return { revision, data }
   })
 

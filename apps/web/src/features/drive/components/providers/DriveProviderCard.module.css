@@ -57,6 +57,14 @@
   color: var(--muted-foreground);
 }
 
+.tasks-button {
+  position: absolute;
+  top: 24px;
+  right: 86px;
+  z-index: 1;
+  color: var(--muted-foreground);
+}
+
 .heading,
 .meta {
   padding: 0;
@@ -121,6 +129,12 @@
 }
 
 @media (max-width: 767px) {
+  .tasks-button {
+    top: 22px;
+    right: 110px;
+    width: 44px;
+    height: 44px;
+  }
   .delete-button {
     top: 22px;
     right: 66px;

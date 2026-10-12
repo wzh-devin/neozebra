@@ -15,9 +15,15 @@
     "lint": "oxlint src"
   },
   "dependencies": {
-    "hono": "^4.13.13"
+    "@neozebra/database": "workspace:*",
+    "bullmq": "6.3.12",
+    "hono": "^4.13.13",
+    "minio": "^8.0.7",
+    "redis": "^6.3.0",
+    "zod": "^3.25.76"
   },
   "devDependencies": {
+    "@types/node": "^24.19.1",
     "typescript": "~6.0.2"
   }
 }

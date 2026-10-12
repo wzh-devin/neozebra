@@ -1,0 +1,11 @@
+{
+  "FileConverter": {
+    "converter": {
+      "maxDownloadBytes": 0,
+      "downloadTimeout": {
+        "connectionAndInactivity": "2m",
+        "wholeCycle": "10m"
+      }
+    }
+  }
+}

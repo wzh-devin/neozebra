@@ -1,10 +1,19 @@
+import type { DriveOfficePreview } from '@/services/drive-office'
+
 export type DriveFilePreviewKind =
-  'image' | 'pdf' | 'text' | 'audio' | 'video' | 'unsupported'
+  'image' | 'text' | 'audio' | 'video' | 'office' | 'unsupported'
 export type DriveFilePreview = {
   kind: DriveFilePreviewKind
   url?: string
   text?: string
+  office?: DriveOfficePreview
 }
+
+const officeExtensionSet = new Set(
+  'doc docx docm dot dotx dotm odt ott rtf xls xlsx xlsm xlsb xlt xltx xltm ods ots csv ppt pptx pptm pps ppsx ppsm pot potx potm odp otp pdf'.split(
+    ' ',
+  ),
+)
 
 const previewMimeRecord: Record<string, string> = {
   png: 'image/png',
@@ -61,8 +70,12 @@ const textExtensionSet = new Set([
  * @returns 预览使用的 MIME
  */
 const getDriveFileMime = (file: File): string => {
-  const mime = file.type.toLowerCase()
-  if (mime && mime !== 'application/octet-stream') return mime
+  const mime = file.type.toLowerCase().split(';')[0].trim()
+  if (
+    mime &&
+    !['application/octet-stream', 'binary/octet-stream'].includes(mime)
+  )
+    return mime
   const extension = file.name.toLowerCase().split('.').at(-1) ?? ''
   return Object.hasOwn(previewMimeRecord, extension)
     ? previewMimeRecord[extension]
@@ -78,9 +91,11 @@ const getDriveFileMime = (file: File): string => {
  * @returns 预览类型或不支持类型
  */
 export const getDriveFilePreviewKind = (file: File): DriveFilePreviewKind => {
+  if (officeExtensionSet.has(file.name.toLowerCase().split('.').at(-1) ?? ''))
+    return 'office'
   const mime = getDriveFileMime(file)
   if (mime.startsWith('image/')) return 'image'
-  if (mime === 'application/pdf') return 'pdf'
+  if (mime === 'application/pdf') return 'office'
   if (mime.startsWith('audio/')) return 'audio'
   if (mime.startsWith('video/')) return 'video'
   if (mime.startsWith('text/') || /(?:json|xml|javascript|yaml)$/.test(mime))
@@ -98,14 +113,15 @@ export const loadDriveFilePreview = async (
   file: File,
 ): Promise<DriveFilePreview> => {
   const kind = getDriveFilePreviewKind(file)
+  if (kind === 'office')
+    throw new Error(
+      'Upload this Office file to a connected Drive before previewing it.',
+    )
   if (kind === 'unsupported') return { kind }
   if (kind === 'text') {
     if (file.size > 1024 * 1024)
       throw new Error('Text preview is limited to 1 MB.')
     return { kind, text: await file.text() }
-  }
-  if (kind === 'pdf' && (await file.slice(0, 5).text()) !== '%PDF-') {
-    throw new Error('This file could not be read as a PDF.')
   }
   return {
     kind,

@@ -1,21 +1,30 @@
 import { resolve } from 'node:path'
-import { migrate } from 'drizzle-orm/node-postgres/migrator'
+import { spawnSync } from 'node:child_process'
 import { getDatabase, closeDatabase } from './database-client.ts'
-import { emailAccounts } from './schema.ts'
 import { migrateImapAccounts } from './migrate-imap-accounts.ts'
-import { eq } from 'drizzle-orm'
 
-// 表结构使用 Drizzle 版本文件；认证数据清理通过 ORM 保留业务记录。
+// Prisma Migrate 管理表结构；认证数据清理通过 ORM 保留业务记录。
 try {
   const db = getDatabase()
-  await migrate(db.store, { migrationsFolder: resolve('drizzle') })
-  const accountList = await db.store
-    .select()
-    .from(emailAccounts)
-    .where(eq(emailAccounts.provider, 'gmail'))
+  const result = spawnSync(
+    process.execPath,
+    [
+      resolve('../../packages/database/node_modules/prisma/build/index.js'),
+      'migrate',
+      'deploy',
+      '--config',
+      resolve('../../packages/database/prisma.config.ts'),
+    ],
+    { stdio: 'inherit' },
+  )
+  if (result.error || result.status !== 0)
+    throw new Error('Prisma migration failed')
+  const accountList = await db.store.emailAccount.findMany({
+    where: { provider: 'gmail' },
+  })
   const changed = await migrateImapAccounts(db, accountList)
   console.info(`IMAP credential cleanup: ${changed} account(s)`)
-  console.info('Neozebra Drizzle migration complete')
+  console.info('Neozebra Prisma migration complete')
 } catch {
   console.error(
     'Neozebra migration failed. Check PostgreSQL configuration and migration history.',

@@ -22,6 +22,17 @@
   background: var(--secondary);
 }
 
+.tree-row[data-drop-over] {
+  outline: 1px solid var(--ring);
+  outline-offset: -1px;
+  color: var(--foreground);
+  background: var(--accent);
+}
+
+.tree-row[data-dragging] {
+  opacity: 0.45;
+}
+
 .tree-toggle,
 .tree-toggle-spacer {
   width: 20px;

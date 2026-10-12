@@ -33,19 +33,7 @@
   ) {
   background: transparent;
 }
-.surface
-  :is(
-    [data-slot='input'],
-    [data-slot='textarea'],
-    [data-slot='select-trigger']
-  ):focus-visible:not([aria-invalid='true']) {
-  border-color: var(--input);
-  box-shadow: none;
-}
-.surface
-  [data-slot='input-group']:has(
-    [data-slot='input-group-control']:focus-visible
-  ):not(:has([aria-invalid='true'])) {
+.surface [data-slot='select-trigger']:focus-visible:not([aria-invalid='true']) {
   border-color: var(--input);
   box-shadow: none;
 }

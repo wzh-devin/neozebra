@@ -8,6 +8,7 @@ import {
   FileImage,
   FilePenLine,
   FileSpreadsheet,
+  FileSymlink,
   FileText,
   FileVideoCamera,
   type LucideIcon,
@@ -32,6 +33,7 @@ const fileTypeList: FileTypeConfig[] = [
     icon: FilePenLine,
   },
   { type: 'text', extensions: ['txt', 'md', 'mdx', 'log'], icon: FileText },
+  { type: 'shortcut', extensions: ['url'], icon: FileSymlink },
   {
     type: 'spreadsheet',
     extensions: ['xls', 'xlsx', 'csv', 'tsv', 'ods'],

@@ -1,9 +1,15 @@
+import { createHash } from 'node:crypto'
+import {
+  closeDriveQueues,
+  closeDriveUploadQueues,
+  closeDrivePreviewQueues,
+} from '@neozebra/assets'
 import { Pool } from 'pg'
 import { createClient } from 'redis'
+import { PrismaClient } from '@neozebra/database'
+import { PrismaPg } from '@prisma/adapter-pg'
 
 import { getInboxConfig } from '../config/inbox-config.ts'
-import { drizzle } from 'drizzle-orm/node-postgres'
-import * as schema from './schema.ts'
 
 const createDatabase = () => {
   const config = getInboxConfig()
@@ -32,11 +38,27 @@ const createDatabase = () => {
     await connecting
   }
   const close = async () => {
+    await closeDriveQueues(redis)
+    await closeDriveUploadQueues(redis)
+    await closeDrivePreviewQueues(redis)
     if (redis.isOpen) redis.destroy()
+    await store.$disconnect()
     await pool.end()
   }
-  const store = drizzle({ client: pool, schema })
-  return { store, redis, config, connectRedis, close }
+  const schema =
+    new URL(config.databaseUrl).searchParams.get('schema') ?? 'public'
+  const store = new PrismaClient({
+    adapter: new PrismaPg(pool, { schema }),
+    transactionOptions: { maxWait: 5000, timeout: 30_000 },
+  })
+  const url = new URL(config.databaseUrl)
+  const syncNamespace =
+    'neozebra-' +
+    createHash('sha256')
+      .update(`${url.hostname}:${url.port}${url.pathname}:${schema}`)
+      .digest('hex')
+      .slice(0, 16)
+  return { pool, store, redis, config, connectRedis, close, syncNamespace }
 }
 
 type Database = ReturnType<typeof createDatabase>

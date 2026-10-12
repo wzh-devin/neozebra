@@ -1,0 +1,151 @@
+generator client {
+  provider               = "prisma-client"
+  output                 = "../src/generated/prisma"
+  moduleFormat           = "esm"
+  generatedFileExtension = "ts"
+  importFileExtension    = "ts"
+}
+
+datasource db {
+  provider     = "postgresql"
+  relationMode = "prisma"
+}
+
+model EmailAccount {
+  id           BigInt         @id @default(autoincrement())
+  createdAt    DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime       @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  ownerId      String         @map("owner_id")
+  provider     String
+  email        String
+  credentials  String
+  cursor       Json?
+  lastSyncedAt DateTime?      @map("last_synced_at") @db.Timestamptz(6)
+  error        String?
+  messages     EmailMessage[]
+
+  @@index([ownerId, provider, email], map: "nm_email_accounts_owner_provider_email")
+  @@map("nm_email_accounts")
+}
+
+model EmailMessage {
+  id         BigInt       @id @default(autoincrement())
+  createdAt  DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt  DateTime     @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  accountId  BigInt       @map("account_id")
+  providerId String       @map("provider_id")
+  title      String
+  sender     String
+  receivedAt DateTime     @map("received_at") @db.Timestamptz(6)
+  summary    String       @default("")
+  body       String?
+  bodyFormat String?      @map("body_format")
+  read       Boolean      @default(false)
+  archived   Boolean      @default(false)
+  account    EmailAccount @relation(fields: [accountId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+
+  @@index([accountId, providerId], map: "nm_email_messages_account_provider")
+  @@index([accountId, receivedAt(sort: Desc), id], map: "nm_email_messages_account_date")
+  @@map("nm_email_messages")
+}
+
+model TaskWorkspace {
+  id        BigInt   @id @default(autoincrement())
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  ownerId   String   @map("owner_id")
+  revision  Int      @default(0)
+
+  @@index([ownerId], map: "nm_task_workspaces_owner")
+  @@map("nm_task_workspaces")
+}
+
+model TaskProject {
+  id           BigInt    @id @default(autoincrement())
+  createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  workspaceId  BigInt    @map("workspace_id")
+  key          String    @map("business_key")
+  position     Int
+  name         String
+  description  String
+  color        String
+  icon         String
+  deadlineDate DateTime? @map("deadline_date") @db.Timestamptz(6)
+  archived     Boolean
+
+  @@index([workspaceId, key], map: "nm_task_projects_workspace_key")
+  @@map("nm_task_projects")
+}
+
+model TaskSection {
+  id          BigInt   @id @default(autoincrement())
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  workspaceId BigInt   @map("workspace_id")
+  key         String   @map("business_key")
+  position    Int
+  projectKey  String   @map("project_key")
+  title       String
+
+  @@index([workspaceId, key], map: "nm_task_sections_workspace_key")
+  @@map("nm_task_sections")
+}
+
+model Task {
+  id              BigInt    @id @default(autoincrement())
+  createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  workspaceId     BigInt    @map("workspace_id")
+  key             String    @map("business_key")
+  position        Int
+  title           String
+  description     String
+  status          String
+  priority        String
+  plannedDate     DateTime? @map("planned_date") @db.Timestamptz(6)
+  deadlineDate    DateTime? @map("deadline_date") @db.Timestamptz(6)
+  projectKey      String?   @map("project_key")
+  sectionKey      String?   @map("section_key")
+  labels          Json
+  estimateMinutes Int?      @map("estimate_minutes")
+  isPinned        Boolean   @map("is_pinned")
+  source          String
+  completedAt     DateTime? @map("completed_at") @db.Timestamptz(6)
+
+  @@index([workspaceId, key], map: "nm_tasks_workspace_key")
+  @@map("nm_tasks")
+}
+
+model TaskSubtask {
+  id          BigInt   @id @default(autoincrement())
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  workspaceId BigInt   @map("workspace_id")
+  key         String   @map("business_key")
+  position    Int
+  taskKey     String   @map("task_key")
+  title       String
+  completed   Boolean
+
+  @@index([workspaceId, taskKey, key], map: "nm_task_subtasks_workspace_task_key")
+  @@map("nm_task_subtasks")
+}
+
+model DriveConnection {
+  id                   BigInt    @id @default(autoincrement())
+  ownerId              String    @map("owner_id")
+  publicId             String    @map("public_id")
+  provider             String
+  name                 String
+  mountOptions         Json      @map("mount_options")
+  encryptedCredentials String    @map("encrypted_credentials")
+  revision             Int       @default(1)
+  lastCheckedAt        DateTime  @map("last_checked_at") @db.Timestamptz(6)
+  tokenExpiresAt       DateTime? @map("token_expires_at") @db.Timestamptz(6)
+  createdAt            DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt            DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@index([ownerId, publicId], map: "nm_drive_connections_owner_idx")
+  @@map("nm_drive_connections")
+}

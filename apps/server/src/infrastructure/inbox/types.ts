@@ -1,7 +1,9 @@
-import type { emailAccounts, emailMessages } from '../database/schema.ts'
+import type {
+  EmailAccount as MailAccount,
+  EmailMessage as MailRecord,
+} from '@neozebra/database'
 type MailProvider = 'gmail' | 'qq'
 type MailCredentials = { password: string }
-type MailAccount = typeof emailAccounts.$inferSelect
 type MailHeader = {
   providerId: string
   title: string
@@ -10,7 +12,6 @@ type MailHeader = {
   summary: string
   read: boolean
 }
-type MailRecord = typeof emailMessages.$inferSelect
 type MailBody = {
   body: string
   bodyFormat: 'html' | 'markdown'
@@ -18,7 +19,7 @@ type MailBody = {
 }
 type MailBatch = {
   messageList: MailHeader[]
-  cursor: NonNullable<MailAccount['cursor']>
+  cursor: { uidValidity?: string; uid?: number }
 }
 
 export type {

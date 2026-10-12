@@ -1,0 +1,271 @@
+generator client {
+  provider               = "prisma-client"
+  output                 = "../src/generated/prisma"
+  moduleFormat           = "esm"
+  generatedFileExtension = "ts"
+  importFileExtension    = "ts"
+}
+
+datasource db {
+  provider     = "postgresql"
+  relationMode = "prisma"
+}
+
+model EmailAccount {
+  id           BigInt         @id @default(autoincrement())
+  createdAt    DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime       @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  ownerId      String         @map("owner_id")
+  provider     String
+  email        String
+  credentials  String
+  cursor       Json?
+  lastSyncedAt DateTime?      @map("last_synced_at") @db.Timestamptz(6)
+  error        String?
+  messages     EmailMessage[]
+
+  @@index([ownerId, provider, email], map: "nm_email_accounts_owner_provider_email")
+  @@map("nm_email_accounts")
+}
+
+model EmailMessage {
+  id         BigInt       @id @default(autoincrement())
+  createdAt  DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt  DateTime     @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  accountId  BigInt       @map("account_id")
+  providerId String       @map("provider_id")
+  title      String
+  sender     String
+  receivedAt DateTime     @map("received_at") @db.Timestamptz(6)
+  summary    String       @default("")
+  body       String?
+  bodyFormat String?      @map("body_format")
+  read       Boolean      @default(false)
+  archived   Boolean      @default(false)
+  account    EmailAccount @relation(fields: [accountId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+
+  @@index([accountId, providerId], map: "nm_email_messages_account_provider")
+  @@index([accountId, receivedAt(sort: Desc), id], map: "nm_email_messages_account_date")
+  @@map("nm_email_messages")
+}
+
+model TaskWorkspace {
+  id        BigInt   @id @default(autoincrement())
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  ownerId   String   @map("owner_id")
+  revision  Int      @default(0)
+
+  @@index([ownerId], map: "nm_task_workspaces_owner")
+  @@map("nm_task_workspaces")
+}
+
+model TaskProject {
+  id           BigInt    @id @default(autoincrement())
+  createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  workspaceId  BigInt    @map("workspace_id")
+  key          String    @map("business_key")
+  position     Int
+  name         String
+  description  String
+  color        String
+  icon         String
+  deadlineDate DateTime? @map("deadline_date") @db.Timestamptz(6)
+  archived     Boolean
+
+  @@index([workspaceId, key], map: "nm_task_projects_workspace_key")
+  @@map("nm_task_projects")
+}
+
+model TaskSection {
+  id          BigInt   @id @default(autoincrement())
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  workspaceId BigInt   @map("workspace_id")
+  key         String   @map("business_key")
+  position    Int
+  projectKey  String   @map("project_key")
+  title       String
+
+  @@index([workspaceId, key], map: "nm_task_sections_workspace_key")
+  @@map("nm_task_sections")
+}
+
+model Task {
+  id              BigInt    @id @default(autoincrement())
+  createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  workspaceId     BigInt    @map("workspace_id")
+  key             String    @map("business_key")
+  position        Int
+  title           String
+  description     String
+  status          String
+  priority        String
+  plannedDate     DateTime? @map("planned_date") @db.Timestamptz(6)
+  deadlineDate    DateTime? @map("deadline_date") @db.Timestamptz(6)
+  projectKey      String?   @map("project_key")
+  sectionKey      String?   @map("section_key")
+  labels          Json
+  estimateMinutes Int?      @map("estimate_minutes")
+  isPinned        Boolean   @map("is_pinned")
+  source          String
+  completedAt     DateTime? @map("completed_at") @db.Timestamptz(6)
+
+  @@index([workspaceId, key], map: "nm_tasks_workspace_key")
+  @@map("nm_tasks")
+}
+
+model TaskSubtask {
+  id          BigInt   @id @default(autoincrement())
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  workspaceId BigInt   @map("workspace_id")
+  key         String   @map("business_key")
+  position    Int
+  taskKey     String   @map("task_key")
+  title       String
+  completed   Boolean
+
+  @@index([workspaceId, taskKey, key], map: "nm_task_subtasks_workspace_task_key")
+  @@map("nm_task_subtasks")
+}
+
+model DriveConnection {
+  id                   BigInt    @id @default(autoincrement())
+  ownerId              String    @map("owner_id")
+  publicId             String    @map("public_id")
+  provider             String
+  name                 String
+  mountOptions         Json      @map("mount_options")
+  encryptedCredentials String    @map("encrypted_credentials")
+  revision             Int       @default(1)
+  metadataVersion      Int       @default(1) @map("metadata_version")
+  syncActiveUntil      DateTime? @map("sync_active_until") @db.Timestamptz(6)
+  lastCheckedAt        DateTime  @map("last_checked_at") @db.Timestamptz(6)
+  tokenExpiresAt       DateTime? @map("token_expires_at") @db.Timestamptz(6)
+  createdAt            DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt            DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@index([ownerId, publicId], map: "nm_drive_connections_owner_idx")
+  @@map("nm_drive_connections")
+}
+
+model DriveDirectory {
+  id                  BigInt    @id @default(autoincrement())
+  createdAt           DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt           DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  connectionId        BigInt    @map("connection_id")
+  connectionVersion   Int       @map("connection_version")
+  remoteId            String    @map("remote_id")
+  parentRemoteId      String    @map("parent_remote_id")
+  path                Json
+  publishedGeneration String?   @map("published_generation")
+  scanGeneration      String?   @map("scan_generation")
+  scanCursor          String?   @map("scan_cursor")
+  requestedRevision   Int       @default(0) @map("requested_revision")
+  scanRevision        Int       @default(0) @map("scan_revision")
+  state               String    @default("pending")
+  lastSyncedAt        DateTime? @map("last_synced_at") @db.Timestamptz(6)
+  nextSyncAt          DateTime  @default(now()) @map("next_sync_at") @db.Timestamptz(6)
+  activeUntil         DateTime? @map("active_until") @db.Timestamptz(6)
+  removedAt           DateTime? @map("removed_at") @db.Timestamptz(6)
+  error               String?
+
+  @@index([connectionId, connectionVersion, remoteId], map: "nm_drive_directories_connection_remote")
+  @@index([connectionId, connectionVersion, parentRemoteId], map: "nm_drive_directories_parent")
+  @@index([state, nextSyncAt], map: "nm_drive_directories_due")
+  @@map("nm_drive_directories")
+}
+
+model DriveEntry {
+  id                BigInt    @id @default(autoincrement())
+  createdAt         DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  connectionId      BigInt    @map("connection_id")
+  connectionVersion Int       @map("connection_version")
+  directoryId       BigInt    @map("directory_id")
+  remoteId          String    @map("remote_id")
+  parentRemoteId    String    @map("parent_remote_id")
+  generation        String
+  name              String
+  kind              String
+  sizeBytes         BigInt    @map("size_bytes")
+  remoteModifiedAt  DateTime? @map("remote_modified_at") @db.Timestamptz(6)
+  mimeType          String?   @map("mime_type")
+
+  @@index([directoryId, generation, name, id], map: "nm_drive_entries_listing")
+  @@index([connectionId, connectionVersion, remoteId], map: "nm_drive_entries_remote")
+  @@map("nm_drive_entries")
+}
+
+model DriveUploadTask {
+  id                     BigInt    @id @default(autoincrement())
+  createdAt              DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt              DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  ownerId                String    @map("owner_id")
+  connectionId           BigInt    @map("connection_id")
+  connectionVersion      Int       @map("connection_version")
+  publicId               String    @map("public_id")
+  parentRemoteId         String    @map("parent_remote_id")
+  directoryName          String    @map("directory_name")
+  directoryPath          Json      @default("[]") @map("directory_path")
+  resolvedParentRemoteId String?   @map("resolved_parent_remote_id")
+  name                   String
+  mimeType               String    @map("mime_type")
+  sizeBytes              BigInt    @map("size_bytes")
+  fingerprint            String
+  partSize               Int       @map("part_size")
+  partCount              Int       @map("part_count")
+  receivedBytes          BigInt    @default(0) @map("received_bytes")
+  transferredBytes       BigInt    @default(0) @map("transferred_bytes")
+  status                 String    @default("receiving")
+  phase                  String    @default("receiving")
+  encryptedCheckpoint    String?   @map("encrypted_checkpoint")
+  error                  String?
+  revision               Int       @default(0)
+  expiresAt              DateTime  @map("expires_at") @db.Timestamptz(6)
+  completedAt            DateTime? @map("completed_at") @db.Timestamptz(6)
+
+  @@index([ownerId, connectionId, id(sort: Desc)], map: "nm_drive_upload_tasks_account")
+  @@index([ownerId, connectionId, publicId], map: "nm_drive_upload_tasks_public")
+  @@index([status, expiresAt], map: "nm_drive_upload_tasks_cleanup")
+  @@map("nm_drive_upload_tasks")
+}
+
+model DriveUploadPart {
+  id         BigInt   @id @default(autoincrement())
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt  DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  taskId     BigInt   @map("task_id")
+  partNumber Int      @map("part_number")
+  sizeBytes  Int      @map("size_bytes")
+  sha256     String
+
+  @@index([taskId, partNumber], map: "nm_drive_upload_parts_task")
+  @@map("nm_drive_upload_parts")
+}
+
+model DrivePreviewTask {
+  id                BigInt   @id @default(autoincrement())
+  createdAt         DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  ownerId           String   @map("owner_id")
+  connectionId      BigInt   @map("connection_id")
+  connectionVersion Int      @map("connection_version")
+  publicId          String   @map("public_id")
+  remoteId          String   @map("remote_id")
+  name              String
+  fileType          String   @map("file_type")
+  documentType      String   @map("document_type")
+  status            String   @default("queued")
+  contentHash       String?  @map("content_hash")
+  sizeBytes         BigInt   @default(0) @map("size_bytes")
+  error             String?
+  expiresAt         DateTime @map("expires_at") @db.Timestamptz(6)
+
+  @@index([ownerId, connectionId, publicId], map: "nm_drive_preview_tasks_owner")
+  @@index([status, expiresAt], map: "nm_drive_preview_tasks_cleanup")
+  @@map("nm_drive_preview_tasks")
+}

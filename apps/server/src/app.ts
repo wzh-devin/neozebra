@@ -1,8 +1,9 @@
-import { assetsRoutes } from '@neozebra/assets'
+import { createAssetsRouter } from '@neozebra/assets'
 import { Hono } from 'hono'
 import type { ErrorHandler, NotFoundHandler } from 'hono'
 import { HTTPException } from 'hono/http-exception'
 
+import { getAssetsDependencies } from './infrastructure/drive/assets-dependencies.ts'
 import { createApiRouter } from './router/index.ts'
 
 // 未知异常只记录在服务端，避免将内部信息写入 API 响应。
@@ -41,7 +42,7 @@ const createApp = () => {
   app.onError(errorHandler)
   app.notFound(notFoundHandler)
   app.route('/api', createApiRouter())
-  app.route('/api/assets', assetsRoutes)
+  app.route('/api/assets', createAssetsRouter(getAssetsDependencies()))
 
   return app
 }
