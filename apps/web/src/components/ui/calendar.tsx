@@ -1,5 +1,7 @@
 'use client'
 
+import { useI18n } from '@/lib/i18n'
+
 import * as React from 'react'
 import { cn } from 'cn'
 import {
@@ -25,10 +27,12 @@ function Calendar({
   locale,
   formatters,
   components,
+  labels,
   ...props
 }: React.ComponentProps<typeof DayPicker> & {
   buttonVariant?: React.ComponentProps<typeof Button>['variant']
 }) {
+  const { t } = useI18n()
   const defaultClassNames = getDefaultClassNames()
 
   return (
@@ -42,6 +46,13 @@ function Calendar({
       )}
       captionLayout={captionLayout}
       locale={locale}
+      labels={{
+        labelNext: () => t('下个月'),
+        labelPrevious: () => t('上个月'),
+        labelMonthDropdown: () => t('选择月份'),
+        labelYearDropdown: () => t('选择年份'),
+        ...labels,
+      }}
       formatters={{
         formatMonthDropdown: (date) =>
           date.toLocaleString(locale?.code, { month: 'short' }),

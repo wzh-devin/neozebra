@@ -1,3 +1,4 @@
+import { useI18n } from '@/lib/i18n'
 import { NavLink } from 'react-router-dom'
 
 import {
@@ -31,6 +32,8 @@ const NavigationLinks = ({
   variant = 'primary',
   label,
 }: NavigationLinksProps) => {
+  const { t } = useI18n()
+
   const isSubmenu = variant === 'submenu'
   const Menu = isSubmenu ? SidebarMenuSub : SidebarMenu
   const MenuItem = isSubmenu ? SidebarMenuSubItem : SidebarMenuItem
@@ -44,9 +47,9 @@ const NavigationLinks = ({
   const renderNavigationItem = (item: NavigationItem) => {
     const Icon = item.icon
     const link = (
-      <NavLink to={item.path} aria-label={item.label} onClick={onNavigate}>
+      <NavLink to={item.path} aria-label={t(item.label)} onClick={onNavigate}>
         <Icon aria-hidden="true" />
-        <span className={styles['sidebar-nav-label']}>{item.label}</span>
+        <span className={styles['sidebar-nav-label']}>{t(item.label)}</span>
       </NavLink>
     )
 
@@ -62,7 +65,7 @@ const NavigationLinks = ({
         ) : (
           <SidebarMenuButton
             asChild
-            tooltip={variant === 'primary' ? item.label : undefined}
+            tooltip={variant === 'primary' ? t(item.label) : undefined}
             className={styles['sidebar-nav-button']}
           >
             {link}
@@ -74,7 +77,7 @@ const NavigationLinks = ({
 
   return items.length === 0 ? (
     <p className={styles['empty-menu']} role="status">
-      No menu items
+      {t('No menu items')}
     </p>
   ) : (
     <Menu

@@ -1,3 +1,4 @@
+import { useI18n } from '@/lib/i18n'
 import { LayoutDashboard, Plus } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
@@ -19,21 +20,23 @@ import surfaceStyles from '@/components/shared/workbench-surface/WorkbenchSurfac
  * @returns Dashboard 工作区 JSX
  */
 const DashboardPageContent = () => {
+  const { t } = useI18n()
+
   const { isMobile, state } = useSidebar()
   return (
     <main className={`${styles.workspace} ${surfaceStyles.surface}`}>
       <header className={styles.toolbar}>
         <div className={styles.brand}>
           {isMobile || state === 'collapsed' ? (
-            <SidebarTrigger aria-label="Expand sidebar" />
+            <SidebarTrigger aria-label={t('Expand sidebar')} />
           ) : null}
           <LayoutDashboard aria-hidden="true" />
-          <h1>Dashboard</h1>
+          <h1>{t('Dashboard')}</h1>
         </div>
         <Button asChild size="sm" className={styles.create}>
           <Link to="/task?new=1">
             <Plus aria-hidden="true" />
-            New task
+            {t('New task')}
           </Link>
         </Button>
       </header>

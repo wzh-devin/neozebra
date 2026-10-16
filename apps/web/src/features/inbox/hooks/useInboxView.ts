@@ -1,3 +1,4 @@
+import { useI18n, t } from '@/lib/i18n'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { toast } from 'sonner'
@@ -16,7 +17,9 @@ import {
 import type { Mailbox } from '@/services/inbox'
 
 const getErrorMessage = (error: unknown) =>
-  error instanceof Error ? error.message : 'Unable to update Inbox. Try again.'
+  error instanceof Error
+    ? t(error.message)
+    : t('Unable to update Inbox. Try again.')
 
 /**
  * 管理真实邮箱列表、按需正文、应用层同步及服务器持久化整理操作。
@@ -25,6 +28,8 @@ const getErrorMessage = (error: unknown) =>
  * @returns Inbox 状态与交互；请求取消、错误和重复提交在此处理
  */
 const useInboxView = () => {
+  const { t } = useI18n()
+
   const { itemId } = useParams()
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
@@ -264,7 +269,7 @@ const useInboxView = () => {
             ? { ...current, read: !item.read }
             : current,
         )
-        toast(item.read ? 'Marked as unread' : 'Marked as read')
+        toast(item.read ? t('Marked as unread') : t('Marked as read'))
       },
     )
   }
@@ -278,13 +283,13 @@ const useInboxView = () => {
           `/inbox${source === 'all' ? '' : `?account=${encodeURIComponent(source)}`}`,
           { replace: true },
         )
-        toast(item.archived ? 'Moved to inbox' : 'Message archived')
+        toast(item.archived ? t('Moved to inbox') : t('Message archived'))
       },
     )
   }
   const markAllReadHandler = () => {
     void mutateHandler(markAllMailRead, () =>
-      toast('All messages marked as read'),
+      toast(t('All messages marked as read')),
     )
   }
   const retryBodyHandler = () => setBodyRevision((current) => current + 1)
@@ -299,13 +304,15 @@ const useInboxView = () => {
   ) => {
     await connectImapMailbox(provider, email, password)
     await reloadHandler()
-    toast.success(`${provider === 'gmail' ? 'Gmail' : 'QQ'} mailbox connected`)
+    toast.success(
+      t('{0} mailbox connected', provider === 'gmail' ? 'Gmail' : 'QQ'),
+    )
   }
   const disconnectHandler = async (id: string) => {
     await disconnectMailbox(id)
     navigate('/inbox', { replace: true })
     await reloadHandler()
-    toast('Mailbox disconnected')
+    toast(t('Mailbox disconnected'))
   }
 
   return {

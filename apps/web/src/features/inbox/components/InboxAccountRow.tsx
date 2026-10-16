@@ -1,3 +1,4 @@
+import { useI18n, getLocale } from '@/lib/i18n'
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import {
@@ -28,6 +29,8 @@ const InboxAccountRow = ({
   account: Mailbox
   disconnectHandler: (id: string) => Promise<void>
 }) => {
+  const { t } = useI18n()
+
   const [open, setOpen] = useState(false)
   const [isBusy, setIsBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -45,7 +48,7 @@ const InboxAccountRow = ({
       setError(
         cause instanceof Error
           ? cause.message
-          : 'Unable to disconnect mailbox.',
+          : t('Unable to disconnect mailbox.'),
       )
     } finally {
       setIsBusy(false)
@@ -58,37 +61,47 @@ const InboxAccountRow = ({
         <span>
           {account.provider === 'gmail' ? 'Gmail' : 'QQ'} ·{' '}
           {account.lastSyncedAt
-            ? `Synced ${new Date(account.lastSyncedAt).toLocaleTimeString()}`
-            : 'Waiting for first sync'}
+            ? t(
+                'Synced {0}',
+                new Date(account.lastSyncedAt).toLocaleTimeString(getLocale()),
+              )
+            : t('Waiting for first sync')}
         </span>
-        {account.error ? <p className={styles.error}>{account.error}</p> : null}
+        {account.error ? (
+          <p className={styles.error}>{t(account.error)}</p>
+        ) : null}
       </div>
       <AlertDialog open={open} onOpenChange={setOpen}>
         <AlertDialogTrigger asChild>
           <Button size="sm" variant="ghost">
-            Disconnect
+            {t('Disconnect')}
           </Button>
         </AlertDialogTrigger>
         <AlertDialogContent className={surfaceStyles.surface}>
           <AlertDialogHeader>
-            <AlertDialogTitle>Disconnect {account.email}?</AlertDialogTitle>
+            <AlertDialogTitle>
+              {t('Disconnect')} {account.email}?
+            </AlertDialogTitle>
             <AlertDialogDescription>
-              This removes its cached mail and local read/archive state from
-              Neozebra. Your original mailbox is unchanged.
+              {t(
+                '这将移除 Neozebra 中缓存的邮件和本地已读／归档状态，原邮箱不会改变。',
+              )}
             </AlertDialogDescription>
           </AlertDialogHeader>
           {error ? (
             <p role="alert" className={styles.error}>
-              {error}
+              {t(error)}
             </p>
           ) : null}
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={isBusy}>Cancel</AlertDialogCancel>
+            <AlertDialogCancel disabled={isBusy}>
+              {t('Cancel')}
+            </AlertDialogCancel>
             <AlertDialogAction
               disabled={isBusy}
               onClick={disconnectClickHandler}
             >
-              {isBusy ? 'Disconnecting…' : 'Disconnect'}
+              {isBusy ? t('Disconnecting…') : t('Disconnect')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

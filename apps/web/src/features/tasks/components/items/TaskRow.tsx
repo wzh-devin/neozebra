@@ -1,3 +1,4 @@
+import { useI18n } from '@/lib/i18n'
 import {
   ArrowDown,
   ArrowUp,
@@ -67,6 +68,8 @@ export const TaskRow = ({
   dragOffset,
   shiftOffset,
 }: Props) => {
+  const { t } = useI18n()
+
   const {
     data,
     isSaving,
@@ -188,7 +191,7 @@ export const TaskRow = ({
       steps.every((step) => step.completed) &&
       task.subtasks.some((step) => !step.completed)
     )
-      toast.success('所有步骤已完成，可以完成主任务了', {
+      toast.success(t('所有步骤已完成，可以完成主任务了'), {
         duration: 8000,
       })
     return saved
@@ -218,8 +221,8 @@ export const TaskRow = ({
             variant="ghost"
             size="icon-sm"
             className={styles.dragHandle}
-            aria-label={`拖动排序：${task.title}`}
-            aria-description="按住上下拖动，或使用上下方向键调整顺序"
+            aria-label={t('拖动排序：{0}', task.title)}
+            aria-description={t('按住上下拖动，或使用上下方向键调整顺序')}
             data-task-drag-id={task.id}
             {...dragHandlers}
           >
@@ -230,7 +233,11 @@ export const TaskRow = ({
           className={styles.checkbox}
           checked={isCompleted}
           disabled={isSaving}
-          aria-label={`${isCompleted ? '重新打开' : '完成'}任务：${task.title}`}
+          aria-label={
+            isCompleted
+              ? t('重新打开任务：{0}', task.title)
+              : t('完成任务：{0}', task.title)
+          }
           onCheckedChange={completeHandler}
         />
         <div className={styles.rowBody}>
@@ -243,10 +250,10 @@ export const TaskRow = ({
         </div>
         <div className={styles.actions}>
           {task.isPinned ? (
-            <Pin aria-label="已置顶" className={styles.pin} />
+            <Pin aria-label={t('已置顶')} className={styles.pin} />
           ) : null}
           {task.subtasks.length ? (
-            <span className={styles.stepCount} aria-label="已完成步骤数量">
+            <span className={styles.stepCount} aria-label={t('已完成步骤数量')}>
               {completedStepCount}/{task.subtasks.length}
             </span>
           ) : null}
@@ -255,31 +262,33 @@ export const TaskRow = ({
               <Button
                 size="icon-sm"
                 variant="ghost"
-                aria-label={`任务操作：${task.title}`}
+                aria-label={t('任务操作：{0}', task.title)}
               >
                 <MoreHorizontal aria-hidden="true" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className={surfaceStyles.surface}>
               <DropdownMenuItem onSelect={openHandler}>
-                编辑任务
+                {t('编辑任务')}
               </DropdownMenuItem>
               {!isCompleted ? (
                 <>
                   <DropdownMenuItem onSelect={todayHandler}>
-                    加入今天
+                    {t('加入今天')}
                   </DropdownMenuItem>
                   <DropdownMenuItem onSelect={tomorrowHandler}>
-                    安排到明天
+                    {t('安排到明天')}
                   </DropdownMenuItem>
                   <DropdownMenuItem onSelect={unscheduleHandler}>
-                    取消安排
+                    {t('取消安排')}
                   </DropdownMenuItem>
                   <DropdownMenuItem onSelect={pinHandler}>
-                    {task.isPinned ? '取消重点标记' : '标记为重点'}
+                    {task.isPinned ? t('取消重点标记') : t('标记为重点')}
                   </DropdownMenuItem>
                   <DropdownMenuItem onSelect={progressHandler}>
-                    {task.status === 'inProgress' ? '设为待办' : '开始进行'}
+                    {task.status === 'inProgress'
+                      ? t('设为待办')
+                      : t('开始进行')}
                   </DropdownMenuItem>
                 </>
               ) : null}
@@ -288,20 +297,20 @@ export const TaskRow = ({
                   <DropdownMenuSeparator />
                   <DropdownMenuItem disabled={index <= 0} onSelect={upHandler}>
                     <ArrowUp aria-hidden="true" />
-                    上移
+                    {t('上移')}
                   </DropdownMenuItem>
                   <DropdownMenuItem
                     disabled={index < 0 || index === siblingIdList.length - 1}
                     onSelect={downHandler}
                   >
                     <ArrowDown aria-hidden="true" />
-                    下移
+                    {t('下移')}
                   </DropdownMenuItem>
                 </>
               ) : null}
               <DropdownMenuSeparator />
               <DropdownMenuItem disabled>
-                优先级：{priorityLabelRecord[task.priority]}
+                {t('优先级：{0}', t(priorityLabelRecord[task.priority]))}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -328,26 +337,28 @@ export const TaskRow = ({
               ) : (
                 <span>
                   <Sun aria-hidden="true" />
-                  个人事项
+                  {t('个人事项')}
                 </span>
               )}
               {task.status === 'inProgress' ? (
-                <span className={styles.inProgress}>进行中</span>
+                <span className={styles.inProgress}>{t('进行中')}</span>
               ) : null}
               {task.priority === 'high' ? (
-                <span className={styles.high}>高优先级</span>
+                <span className={styles.high}>{t('高优先级')}</span>
               ) : task.priority === 'low' ? (
-                <span>低优先级</span>
+                <span>{t('低优先级')}</span>
               ) : null}
               {task.deadlineDate ? (
                 <span data-overdue={isOverdue}>
                   <CalendarDays aria-hidden="true" />
-                  {isOverdue ? '截止逾期 · ' : ''}
-                  {formatTaskDate(task.deadlineDate, today)}截止
+                  {isOverdue ? t('截止逾期 ·') + ' ' : ''}
+                  {t('{0} 截止', formatTaskDate(task.deadlineDate, today))}
                 </span>
               ) : null}
               {task.plannedDate && task.plannedDate !== today ? (
-                <span>安排于{formatTaskDate(task.plannedDate, today)}</span>
+                <span>
+                  {t('安排于 {0}', formatTaskDate(task.plannedDate, today))}
+                </span>
               ) : null}
               {task.estimateMinutes ? (
                 <span>
@@ -372,11 +383,12 @@ export const TaskRow = ({
                     size="sm"
                     variant="ghost"
                     className={styles.stepToggle}
-                    aria-label={`展开 ${task.title} 的步骤`}
+                    aria-label={t('展开 {0} 的步骤', task.title)}
                   >
                     <ChevronRight aria-hidden="true" />
                     <span>
-                      步骤 {completedStepCount}/{task.subtasks.length}
+                      {t('步骤')}
+                      {completedStepCount}/{task.subtasks.length}
                     </span>
                   </Button>
                 </CollapsibleTrigger>

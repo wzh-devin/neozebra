@@ -1,3 +1,4 @@
+import { useI18n } from '@/lib/i18n'
 import {
   useCallback,
   useEffect,
@@ -23,6 +24,8 @@ import { InboxSyncContext } from '@/features/inbox/hooks/inbox-sync-context'
  * @returns 全局邮件同步与通知 Provider JSX
  */
 const InboxSyncProvider = ({ children }: { children: ReactNode }) => {
+  const { t } = useI18n()
+
   const navigate = useNavigate()
   const navigateRef = useRef(navigate)
   const location = useLocation()
@@ -46,108 +49,115 @@ const InboxSyncProvider = ({ children }: { children: ReactNode }) => {
     visibleAccountRef.current = account
   }, [])
 
-  const syncHandler = useCallback(async (force = false): Promise<void> => {
-    if (disposedRef.current) return
-    while (jobRef.current) {
-      const active = jobRef.current
-      if (!force || active.force) return active.promise
-      await active.promise.catch(() => {})
+  const syncHandler = useCallback(
+    async (force = false): Promise<void> => {
       if (disposedRef.current) return
-    }
-    const controller = new AbortController()
-    const performSyncHandler = async () => {
-      setIsSyncing(true)
-      try {
-        const { accountList } = await getMailAccounts(controller.signal)
-        if (controller.signal.aborted) return
-        if (cursorRef.current === undefined) {
-          const baseline = await getNewMailMessages(
-            undefined,
-            controller.signal,
-          )
-          cursorRef.current = baseline.cursor
-        }
-        const result = accountList.length
-          ? await syncMailboxes(controller.signal, force)
-          : { statusList: [] }
-        let hasMore = true
-        while (hasMore && !controller.signal.aborted) {
-          const page = await getNewMailMessages(
-            cursorRef.current,
-            controller.signal,
-          )
-          if (controller.signal.aborted) return
-          cursorRef.current = page.cursor
-          hasMore = page.hasMore
-          for (const account of accountList) {
-            if (account.isInitialSync) continue
-            const messageList = page.itemList.filter(
-              (message) =>
-                message.accountId === account.id && !message.archived,
-            )
-            const message = messageList.at(-1)
-            const visible = visibleAccountRef.current
-            if (
-              !message ||
-              (locationRef.current.startsWith('/inbox') &&
-                (visible === 'all' ||
-                  visible === 'email' ||
-                  visible === account.id))
-            )
-              continue
-            toast.message(
-              messageList.length === 1
-                ? 'New email'
-                : `${messageList.length} new emails`,
-              {
-                id: `mail-${account.id}-${message.id}`,
-                description: `${account.email} · ${message.sender}\n${message.title}`,
-                duration: 8000,
-                action: {
-                  label: 'Open',
-                  onClick: () =>
-                    navigateRef.current(
-                      `/inbox/${message.id}?account=${account.id}`,
-                    ),
-                },
-              },
-            )
-          }
-        }
-        if (controller.signal.aborted) return
-        setRevision((current) => current + 1)
-        const failed = result.statusList.some(
-          (account) =>
-            account.status === 'failed' || account.status === 'changed',
-        )
-        const busy =
-          force &&
-          result.statusList.some((account) => account.status === 'busy')
-        if (failed || busy)
-          throw new Error(
-            busy
-              ? 'A mailbox is syncing in another tab. Try refreshing again shortly.'
-              : 'Some mailboxes could not sync. Check their status in Manage mailboxes.',
-          )
-        setSyncError(null)
-      } catch (cause) {
-        if (!controller.signal.aborted) {
-          setSyncError(
-            cause instanceof Error
-              ? cause.message
-              : 'Unable to sync mailboxes.',
-          )
-          throw cause
-        }
-      } finally {
-        if (jobRef.current?.controller === controller) jobRef.current = null
-        if (!controller.signal.aborted) setIsSyncing(false)
+      while (jobRef.current) {
+        const active = jobRef.current
+        if (!force || active.force) return active.promise
+        await active.promise.catch(() => {})
+        if (disposedRef.current) return
       }
-    }
-    const promise = performSyncHandler()
-    jobRef.current = { promise, controller, force }
-    return promise
-  }, [])
+      const controller = new AbortController()
+      const performSyncHandler = async () => {
+        setIsSyncing(true)
+        try {
+          const { accountList } = await getMailAccounts(controller.signal)
+          if (controller.signal.aborted) return
+          if (cursorRef.current === undefined) {
+            const baseline = await getNewMailMessages(
+              undefined,
+              controller.signal,
+            )
+            cursorRef.current = baseline.cursor
+          }
+          const result = accountList.length
+            ? await syncMailboxes(controller.signal, force)
+            : { statusList: [] }
+          let hasMore = true
+          while (hasMore && !controller.signal.aborted) {
+            const page = await getNewMailMessages(
+              cursorRef.current,
+              controller.signal,
+            )
+            if (controller.signal.aborted) return
+            cursorRef.current = page.cursor
+            hasMore = page.hasMore
+            for (const account of accountList) {
+              if (account.isInitialSync) continue
+              const messageList = page.itemList.filter(
+                (message) =>
+                  message.accountId === account.id && !message.archived,
+              )
+              const message = messageList.at(-1)
+              const visible = visibleAccountRef.current
+              if (
+                !message ||
+                (locationRef.current.startsWith('/inbox') &&
+                  (visible === 'all' ||
+                    visible === 'email' ||
+                    visible === account.id))
+              )
+                continue
+              toast.message(
+                messageList.length === 1
+                  ? t('New email')
+                  : t('{0} new emails', messageList.length),
+                {
+                  id: `mail-${account.id}-${message.id}`,
+                  description: `${account.email} · ${message.sender}\n${message.title}`,
+                  duration: 8000,
+                  action: {
+                    label: t('Open'),
+                    onClick: () =>
+                      navigateRef.current(
+                        `/inbox/${message.id}?account=${account.id}`,
+                      ),
+                  },
+                },
+              )
+            }
+          }
+          if (controller.signal.aborted) return
+          setRevision((current) => current + 1)
+          const failed = result.statusList.some(
+            (account) =>
+              account.status === 'failed' || account.status === 'changed',
+          )
+          const busy =
+            force &&
+            result.statusList.some((account) => account.status === 'busy')
+          if (failed || busy)
+            throw new Error(
+              busy
+                ? t(
+                    'A mailbox is syncing in another tab. Try refreshing again shortly.',
+                  )
+                : t(
+                    'Some mailboxes could not sync. Check their status in Manage mailboxes.',
+                  ),
+            )
+          setSyncError(null)
+        } catch (cause) {
+          if (!controller.signal.aborted) {
+            setSyncError(
+              cause instanceof Error
+                ? cause.message
+                : t('Unable to sync mailboxes.'),
+            )
+            throw cause
+          }
+        } finally {
+          if (jobRef.current?.controller === controller) jobRef.current = null
+          if (!controller.signal.aborted) setIsSyncing(false)
+        }
+      }
+      const promise = performSyncHandler()
+      jobRef.current = { promise, controller, force }
+      return promise
+    },
+    [t],
+  )
 
   useEffect(() => {
     disposedRef.current = false

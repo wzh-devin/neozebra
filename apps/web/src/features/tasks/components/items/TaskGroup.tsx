@@ -1,3 +1,4 @@
+import { useI18n } from '@/lib/i18n'
 import { ChevronDown } from 'lucide-react'
 import { useState, type ReactNode } from 'react'
 import { Button } from '@/components/ui/button'
@@ -41,6 +42,8 @@ export const TaskGroup = ({
   actions,
   reorder = true,
 }: Props) => {
+  const { t } = useI18n()
+
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null)
   const siblingIdList = reorder ? taskList.map((task) => task.id) : undefined
   const { listRef, dragState, dragHandlers } = useTaskCardDrag(
@@ -107,7 +110,7 @@ export const TaskGroup = ({
         </div>
         {!taskList.length ? (
           <p className={styles.groupEmpty}>
-            这里还没有任务，留一点空间给接下来的计划。
+            {t('这里还没有任务，留一点空间给接下来的计划。')}
           </p>
         ) : null}
         {quickAdd ? (

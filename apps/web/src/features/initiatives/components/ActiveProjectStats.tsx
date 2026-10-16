@@ -1,3 +1,4 @@
+import { useI18n } from '@/lib/i18n'
 import type { ActiveProjectStat } from '@/features/initiatives/types'
 
 import styles from '@/features/initiatives/styles/InitiativeShared.module.css'
@@ -13,12 +14,17 @@ type ActiveProjectStatsProps = {
  * @returns 统计数字 JSX
  */
 const ActiveProjectStats = ({ stats }: ActiveProjectStatsProps) => {
+  const { t } = useI18n()
+
   if (stats.length === 0) {
     return <span className={styles['muted-dash']}>—</span>
   }
 
   return (
-    <div className={styles['project-stats']} aria-label="Active project counts">
+    <div
+      className={styles['project-stats']}
+      aria-label={t('Active project counts')}
+    >
       {stats.map((stat) => (
         <span
           className={styles['project-stat']}

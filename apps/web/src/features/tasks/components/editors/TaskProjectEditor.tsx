@@ -1,3 +1,4 @@
+import { useI18n } from '@/lib/i18n'
 import { Archive, Trash2 } from 'lucide-react'
 import { useState, type ChangeEvent, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -72,6 +73,8 @@ export const TaskProjectEditor = ({
   project?: TaskProject
   onClose: () => void
 }) => {
+  const { t } = useI18n()
+
   const { data, saveProjectHandler, deleteProjectHandler, isSaving } =
     useTaskPlannerContext()
   const navigate = useNavigate()
@@ -136,13 +139,13 @@ export const TaskProjectEditor = ({
       JSON.stringify(originalProject) !==
         JSON.stringify(data.projectList.find((entry) => entry.id === draft.id))
     ) {
-      setError('项目已更新，请保留输入，关闭并重新打开后核对。')
+      setError(t('项目已更新，请保留输入，关闭并重新打开后核对。'))
       return
     }
     if (await saveProjectHandler({ ...draft, name: draft.name.trim() })) {
       onClose()
       navigate(`/task/projects/${draft.id}`)
-    } else setError('保存未成功，输入已保留，请重试。')
+    } else setError(t('保存未成功，输入已保留，请重试。'))
   }
 
   /**
@@ -154,7 +157,7 @@ export const TaskProjectEditor = ({
   const archiveHandler = async (): Promise<void> => {
     const current = data.projectList.find((entry) => entry.id === draft.id)
     if (!current) {
-      setError('项目已被移除，请关闭并返回项目列表。')
+      setError(t('项目已被移除，请关闭并返回项目列表。'))
       return
     }
     if (
@@ -165,7 +168,7 @@ export const TaskProjectEditor = ({
     ) {
       onClose()
       navigate('/task/projects')
-    } else setError('操作未成功，输入已保留，请重试。')
+    } else setError(t('操作未成功，输入已保留，请重试。'))
   }
 
   /**
@@ -182,8 +185,8 @@ export const TaskProjectEditor = ({
   }
   return (
     <TaskEditorFrame
-      title={project ? '项目设置' : '开始一个新项目'}
-      description={'给目标一个名字，再把它拆成可以完成的小事。'}
+      title={project ? t('项目设置') : t('开始一个新项目')}
+      description={t('给目标一个名字，再把它拆成可以完成的小事。')}
       onClose={onClose}
     >
       <form
@@ -192,7 +195,7 @@ export const TaskProjectEditor = ({
         aria-busy={isSaving}
       >
         <fieldset disabled={isSaving} className="contents">
-          <EditorField id="project-name" label="项目名称">
+          <EditorField id="project-name" label={t('项目名称')}>
             <Input
               id="project-name"
               name="name"
@@ -201,10 +204,10 @@ export const TaskProjectEditor = ({
               autoFocus
               required
               maxLength={80}
-              placeholder="例如：个人网站改版"
+              placeholder={t('例如：个人网站改版')}
             />
           </EditorField>
-          <EditorField id="project-description" label="目标说明">
+          <EditorField id="project-description" label={t('目标说明')}>
             <Textarea
               id="project-description"
               name="description"
@@ -212,11 +215,11 @@ export const TaskProjectEditor = ({
               onChange={textChangeHandler}
               maxLength={10000}
               rows={4}
-              placeholder="这次计划希望达成什么？"
+              placeholder={t('这次计划希望达成什么？')}
             />
           </EditorField>
           <div className={formStyles.field}>
-            <Label id="project-colors-label">项目颜色</Label>
+            <Label id="project-colors-label">{t('项目颜色')}</Label>
             <RadioGroup
               aria-labelledby="project-colors-label"
               value={draft.color}
@@ -232,10 +235,10 @@ export const TaskProjectEditor = ({
                   <RadioGroupItem
                     id={`project-color-${color}`}
                     value={color}
-                    aria-label={colorLabelRecord[color]}
+                    aria-label={t(colorLabelRecord[color])}
                   />
                   <Label htmlFor={`project-color-${color}`}>
-                    {colorLabelRecord[color]}
+                    {t(colorLabelRecord[color])}
                   </Label>
                 </div>
               ))}
@@ -243,7 +246,7 @@ export const TaskProjectEditor = ({
           </div>
           <div className={styles.twoColumns}>
             <div className={formStyles.field}>
-              <Label htmlFor="project-icon">项目图标</Label>
+              <Label htmlFor="project-icon">{t('项目图标')}</Label>
               <Select value={draft.icon} onValueChange={iconChangeHandler}>
                 <SelectTrigger id="project-icon">
                   <SelectValue />
@@ -256,16 +259,16 @@ export const TaskProjectEditor = ({
                 >
                   {projectIconList.map((icon) => (
                     <SelectItem key={icon} value={icon}>
-                      {iconLabelRecord[icon]}
+                      {t(iconLabelRecord[icon])}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
             <div className={formStyles.field}>
-              <Label>项目截止</Label>
+              <Label>{t('项目截止')}</Label>
               <TaskDatePicker
-                label="项目截止日期"
+                label={t('项目截止日期')}
                 value={draft.deadlineDate}
                 onChange={dateChangeHandler}
               />
@@ -273,35 +276,41 @@ export const TaskProjectEditor = ({
           </div>
           {error ? (
             <p className={styles.error} role="alert">
-              {error}
+              {t(error)}
             </p>
           ) : null}
           <DialogFooter className={formStyles.footer}>
             <Button type="button" variant="outline" onClick={onClose}>
-              取消
+              {t('取消')}
             </Button>
             <Button type="submit">
-              {isSaving ? '保存中…' : project ? '保存项目' : '创建项目'}
+              {isSaving
+                ? t('保存中…')
+                : project
+                  ? t('保存项目')
+                  : t('创建项目')}
             </Button>
           </DialogFooter>
           {project ? (
             <div className={styles.dangerZone}>
               <Button type="button" variant="outline" onClick={archiveHandler}>
                 <Archive aria-hidden="true" />
-                {project.archived ? '恢复项目' : '归档项目'}
+                {project.archived ? t('恢复项目') : t('归档项目')}
               </Button>
               <AlertDialog>
                 <AlertDialogTrigger asChild>
                   <Button type="button" variant="ghost">
                     <Trash2 aria-hidden="true" />
-                    删除项目
+                    {t('删除项目')}
                   </Button>
                 </AlertDialogTrigger>
                 <AlertDialogContent className={surfaceStyles.surface}>
                   <AlertDialogHeader>
-                    <AlertDialogTitle>删除“{project.name}”？</AlertDialogTitle>
+                    <AlertDialogTitle>
+                      {t('删除“{0}”？', project.name)}
+                    </AlertDialogTitle>
                     <AlertDialogDescription>
-                      请选择如何处理项目中的任务。最近一次删除可撤销。
+                      {t('请选择如何处理项目中的任务。最近一次删除可撤销。')}
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <RadioGroup
@@ -312,7 +321,7 @@ export const TaskProjectEditor = ({
                     <div className={styles.deleteOption}>
                       <RadioGroupItem id="keep-project-tasks" value="keep" />
                       <Label htmlFor="keep-project-tasks">
-                        保留任务，移出这个项目
+                        {t('保留任务，移出这个项目')}
                       </Label>
                     </div>
                     <div className={styles.deleteOption}>
@@ -321,18 +330,18 @@ export const TaskProjectEditor = ({
                         value="delete"
                       />
                       <Label htmlFor="delete-project-tasks">
-                        删除项目及其中全部任务
+                        {t('删除项目及其中全部任务')}
                       </Label>
                     </div>
                   </RadioGroup>
                   <AlertDialogFooter>
-                    <AlertDialogCancel>取消</AlertDialogCancel>
+                    <AlertDialogCancel>{t('取消')}</AlertDialogCancel>
                     <AlertDialogAction
                       variant="destructive"
                       onClick={deleteHandler}
                       disabled={isSaving}
                     >
-                      删除项目
+                      {t('删除项目')}
                     </AlertDialogAction>
                   </AlertDialogFooter>
                 </AlertDialogContent>

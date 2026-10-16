@@ -1,3 +1,4 @@
+import { useI18n } from '@/lib/i18n'
 import {
   useEffect,
   useMemo,
@@ -34,6 +35,8 @@ const InboxMessageBody = ({
   body: string
   format: 'html' | 'markdown'
 }) => {
+  const { t } = useI18n()
+
   const frameRef = useRef<HTMLIFrameElement>(null)
   const [height, setHeight] = useState(360)
   const html = useMemo(
@@ -77,7 +80,7 @@ const InboxMessageBody = ({
       {format === 'html' ? (
         <iframe
           ref={frameRef}
-          title="Email HTML content"
+          title={t('Email HTML content')}
           className={styles.html}
           style={{ height }}
           sandbox="allow-same-origin allow-popups allow-popups-to-escape-sandbox"

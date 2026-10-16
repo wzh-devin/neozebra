@@ -1,3 +1,4 @@
+import { useI18n } from '@/lib/i18n'
 import {
   ChartNoAxesGantt,
   CheckCheck,
@@ -6,7 +7,7 @@ import {
   ListTodo,
   Plus,
 } from 'lucide-react'
-import { lazy, Suspense, useEffect, useState, type MouseEvent } from 'react'
+import { lazy, Suspense, useState, type MouseEvent } from 'react'
 import { Link } from 'react-router-dom'
 import {
   AlertDialog,
@@ -70,6 +71,8 @@ const TaskGanttView = lazy(() =>
  * @returns Task 工作区 JSX
  */
 export const TaskPageContent = () => {
+  const { t } = useI18n()
+
   const planner = useTaskPlanner()
   const route = useTaskRoute(planner.today)
   const { isMobile, state } = useSidebar()
@@ -85,14 +88,6 @@ export const TaskPageContent = () => {
   const pendingTask = planner.data.taskList.find(
     (task) => task.id === planner.pendingCompletionId,
   )
-
-  useEffect(() => {
-    const previousTitle = document.title
-    document.title = 'Neozebra — Task'
-    return () => {
-      document.title = previousTitle
-    }
-  }, [])
 
   // 打开项目编辑器。
   const projectEditorHandler = (value: TaskProject | null): void =>
@@ -137,7 +132,7 @@ export const TaskPageContent = () => {
     return (
       <TabsTrigger key={item.value} value={item.value} onClick={clickHandler}>
         <Icon aria-hidden="true" />
-        {item.label}
+        {t(item.label)}
       </TabsTrigger>
     )
   }
@@ -151,7 +146,11 @@ export const TaskPageContent = () => {
   const renderView = () => {
     if (planner.isLoading)
       return (
-        <div className={styles.loading} role="status" aria-label="加载计划">
+        <div
+          className={styles.loading}
+          role="status"
+          aria-label={t('加载计划')}
+        >
           <Skeleton className="h-10 w-48" />
           {[0, 1, 2].map((id) => (
             <Skeleton key={id} className="h-24 w-full" />
@@ -162,13 +161,13 @@ export const TaskPageContent = () => {
       return (
         <Empty>
           <EmptyHeader>
-            <EmptyTitle>暂时无法打开计划</EmptyTitle>
+            <EmptyTitle>{t('暂时无法打开计划')}</EmptyTitle>
             <EmptyDescription>
-              已保留原数据，请检查服务连接后重试。
+              {t('已保留原数据，请检查服务连接后重试。')}
             </EmptyDescription>
           </EmptyHeader>
           <Button variant="outline" onClick={planner.loadHandler}>
-            重新读取
+            {t('重新读取')}
           </Button>
         </Empty>
       )
@@ -180,7 +179,7 @@ export const TaskPageContent = () => {
               <div
                 className={styles.loading}
                 role="status"
-                aria-label="加载甘特图"
+                aria-label={t('加载甘特图')}
               >
                 <Skeleton className="h-10 w-48" />
                 <Skeleton className="h-64 w-full" />
@@ -201,11 +200,11 @@ export const TaskPageContent = () => {
       return (
         <Empty>
           <EmptyHeader>
-            <EmptyTitle>项目不存在</EmptyTitle>
-            <EmptyDescription>这个项目可能已被删除。</EmptyDescription>
+            <EmptyTitle>{t('项目不存在')}</EmptyTitle>
+            <EmptyDescription>{t('这个项目可能已被删除。')}</EmptyDescription>
           </EmptyHeader>
           <Button asChild variant="outline">
-            <Link to="/task/projects">返回我的项目</Link>
+            <Link to="/task/projects">{t('返回我的项目')}</Link>
           </Button>
         </Empty>
       )
@@ -227,12 +226,15 @@ export const TaskPageContent = () => {
         <header className={styles.toolbar}>
           <div className={styles.brand}>
             {isMobile || state === 'collapsed' ? (
-              <SidebarTrigger aria-label="打开导航" />
+              <SidebarTrigger aria-label={t('打开导航')} />
             ) : null}
             <ListChecks aria-hidden="true" />
-            <span>Task</span>
+            <span>{t('Tasks')}</span>
           </div>
-          <TabsList className={styles.navigation} aria-label="任务规划视图">
+          <TabsList
+            className={styles.navigation}
+            aria-label={t('任务规划视图')}
+          >
             {navigationList.map(renderNavigation)}
           </TabsList>
           <Button
@@ -246,12 +248,12 @@ export const TaskPageContent = () => {
             }
           >
             <Plus aria-hidden="true" />
-            <span>新任务</span>
+            <span>{t('新任务')}</span>
           </Button>
         </header>
         {planner.error ? (
           <div className={styles.error} role="alert">
-            {planner.error}
+            {t(planner.error)}
           </div>
         ) : null}
         <TabsContent value={route.view} className={styles.panel}>
@@ -290,9 +292,9 @@ export const TaskPageContent = () => {
             onCloseAutoFocus={restoreTaskFocusHandler}
           >
             <DialogHeader>
-              <DialogTitle>任务不存在</DialogTitle>
+              <DialogTitle>{t('任务不存在')}</DialogTitle>
               <DialogDescription>
-                这个任务可能已被删除，原链接仍可返回任务列表。
+                {t('这个任务可能已被删除，原链接仍可返回任务列表。')}
               </DialogDescription>
             </DialogHeader>
             <Button
@@ -300,7 +302,7 @@ export const TaskPageContent = () => {
               className="mx-4"
               onClick={route.closeEditorHandler}
             >
-              返回列表
+              {t('返回列表')}
             </Button>
           </DialogContent>
         </Dialog>
@@ -314,20 +316,23 @@ export const TaskPageContent = () => {
       <AlertDialog open={!!pendingTask} onOpenChange={completionOpenHandler}>
         <AlertDialogContent className={surfaceStyles.surface}>
           <AlertDialogHeader>
-            <AlertDialogTitle>还有步骤未完成</AlertDialogTitle>
+            <AlertDialogTitle>{t('还有步骤未完成')}</AlertDialogTitle>
             <AlertDialogDescription>
-              “{pendingTask?.title}”仍有未完成步骤。确定一并标记为完成？
+              {t(
+                '“{0}”仍有未完成步骤。确定一并标记为完成？',
+                pendingTask?.title,
+              )}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel disabled={planner.isSaving}>
-              继续完成步骤
+              {t('继续完成步骤')}
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={confirmCompletionHandler}
               disabled={planner.isSaving}
             >
-              完成任务和所有步骤
+              {t('完成任务和所有步骤')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

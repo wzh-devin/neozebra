@@ -1,4 +1,5 @@
 import { Hono } from 'hono'
+import { createVaultRouter } from './assets/vault-router.ts'
 import { createHealthRouter } from './health/health-router.ts'
 import { createInboxRouter } from './inbox/inbox-router.ts'
 import { createTaskRouter } from './task/task-router.ts'
@@ -9,5 +10,6 @@ const createApiRouter = () =>
     .route('/health', createHealthRouter())
     .route('/inbox', createInboxRouter())
     .route('/task', createTaskRouter())
+    .route('/assets/vault', createVaultRouter())
 
 export { createApiRouter }

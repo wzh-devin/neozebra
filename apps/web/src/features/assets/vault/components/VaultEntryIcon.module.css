@@ -1,0 +1,33 @@
+.icon {
+  flex-shrink: 0;
+  color: var(--muted-foreground);
+  stroke-width: 1.75;
+}
+.icon[data-file-type='folder'] {
+  color: var(--project-amber);
+  fill: color-mix(in oklch, currentColor 16%, transparent);
+}
+.icon[data-file-type='spreadsheet'] {
+  color: var(--project-green);
+}
+.icon[data-file-type='presentation'] {
+  color: color-mix(in oklch, var(--project-amber), var(--project-rose) 45%);
+}
+.icon[data-file-type='pdf'] {
+  color: var(--project-rose);
+}
+.icon[data-file-type='document'],
+.icon[data-file-type='text'] {
+  color: var(--project-blue);
+}
+.icon[data-file-type='image'],
+.icon[data-file-type='archive'] {
+  color: var(--project-purple);
+}
+.icon[data-file-type='video'] {
+  color: var(--project-rose);
+}
+.icon[data-file-type='audio'],
+.icon[data-file-type='code'] {
+  color: var(--project-teal);
+}

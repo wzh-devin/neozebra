@@ -1,3 +1,4 @@
+import { useI18n, getLocale } from '@/lib/i18n'
 import { Archive, ArrowLeft, Inbox, Mail, MailOpen } from 'lucide-react'
 import { lazy, Suspense } from 'react'
 import { Link, useLocation } from 'react-router-dom'
@@ -55,6 +56,8 @@ const InboxReader = ({
   retryBodyHandler,
   isMutating,
 }: InboxReaderProps) => {
+  const { t } = useI18n()
+
   const location = useLocation()
   const inboxPath = `/inbox${location.search}`
   if (!selectedItem) {
@@ -66,21 +69,21 @@ const InboxReader = ({
           </EmptyMedia>
           <EmptyTitle>
             {isBodyLoading
-              ? 'Loading message…'
+              ? t('Loading message…')
               : isMissingItem
-                ? 'Message not found'
-                : 'Nothing selected'}
+                ? t('Message not found')
+                : t('Nothing selected')}
           </EmptyTitle>
           <EmptyDescription>
             {isMissingItem
-              ? (bodyError ?? 'This message may have been removed.')
-              : 'Choose a message from the inbox to read it.'}
+              ? t(bodyError ?? 'This message may have been removed.')
+              : t('Choose a message from the inbox to read it.')}
           </EmptyDescription>
         </EmptyHeader>
         {isMissingItem ? (
           <EmptyContent>
             <Button asChild size="sm" variant="outline">
-              <Link to={inboxPath}>Back to inbox</Link>
+              <Link to={inboxPath}>{t('Back to inbox')}</Link>
             </Button>
           </EmptyContent>
         ) : null}
@@ -99,7 +102,7 @@ const InboxReader = ({
           size="icon-sm"
           variant="ghost"
         >
-          <Link aria-label="Back to inbox" to={inboxPath}>
+          <Link aria-label={t('Back to inbox')} to={inboxPath}>
             <ArrowLeft aria-hidden="true" />
           </Link>
         </Button>
@@ -108,7 +111,7 @@ const InboxReader = ({
             <TooltipTrigger asChild>
               <Button
                 aria-label={
-                  selectedItem.read ? 'Mark as unread' : 'Mark as read'
+                  selectedItem.read ? t('Mark as unread') : t('Mark as read')
                 }
                 disabled={isMutating}
                 onClick={toggleReadHandler}
@@ -123,14 +126,16 @@ const InboxReader = ({
               </Button>
             </TooltipTrigger>
             <TooltipContent>
-              {selectedItem.read ? 'Mark as unread' : 'Mark as read'}
+              {selectedItem.read ? t('Mark as unread') : t('Mark as read')}
             </TooltipContent>
           </Tooltip>
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
                 aria-label={
-                  selectedItem.archived ? 'Move to inbox' : 'Archive message'
+                  selectedItem.archived
+                    ? t('Move to inbox')
+                    : t('Archive message')
                 }
                 disabled={isMutating}
                 onClick={toggleArchiveHandler}
@@ -141,7 +146,9 @@ const InboxReader = ({
               </Button>
             </TooltipTrigger>
             <TooltipContent>
-              {selectedItem.archived ? 'Move to inbox' : 'Archive message'}
+              {selectedItem.archived
+                ? t('Move to inbox')
+                : t('Archive message')}
             </TooltipContent>
           </Tooltip>
         </div>
@@ -155,21 +162,21 @@ const InboxReader = ({
             </div>
             <p className={styles['reader-meta']}>
               {selectedItem.sender} ·{' '}
-              {new Date(selectedItem.receivedAt).toLocaleString()}
+              {new Date(selectedItem.receivedAt).toLocaleString(getLocale())}
             </p>
           </header>
           <div className={styles['reader-body']}>
             {isBodyLoading ? (
-              <p role="status">Loading message…</p>
+              <p role="status">{t('Loading message…')}</p>
             ) : bodyError ? (
               <div role="alert">
-                <p>{bodyError}</p>
+                <p>{t(bodyError)}</p>
                 <Button onClick={retryBodyHandler} size="sm" variant="outline">
-                  Retry
+                  {t('Retry')}
                 </Button>
               </div>
             ) : (
-              <Suspense fallback={<p role="status">Loading message…</p>}>
+              <Suspense fallback={<p role="status">{t('Loading message…')}</p>}>
                 <InboxMessageBody
                   key={selectedItem.id}
                   body={selectedItem.body}

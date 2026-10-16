@@ -1,3 +1,4 @@
+import { useI18n } from '@/lib/i18n'
 import { ArrowUpRight, CalendarDays, MoreHorizontal, Plus } from 'lucide-react'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
@@ -22,6 +23,8 @@ export const TaskProjectGrid = ({
 }: {
   onEdit: (project: TaskProject | null) => void
 }) => {
+  const { t } = useI18n()
+
   const { data, today } = useTaskPlannerContext()
   const [archived, setArchived] = useState(false)
   const projectList = data.projectList.filter(
@@ -58,7 +61,7 @@ export const TaskProjectGrid = ({
             size="icon-sm"
             variant="ghost"
             onClick={editHandler}
-            aria-label={`设置项目：${project.name}`}
+            aria-label={t('设置项目：{0}', project.name)}
           >
             <MoreHorizontal aria-hidden="true" />
           </Button>
@@ -69,24 +72,31 @@ export const TaskProjectGrid = ({
               {project.name}
               <ArrowUpRight aria-hidden="true" />
             </h2>
-            <p>{project.description || '为这个项目写下一句话目标。'}</p>
+            <p>{project.description || t('为这个项目写下一句话目标。')}</p>
           </Link>
           <div className={styles.progressLabel}>
             <span>
-              {done}/{tasks.length} 已完成
+              {done}/{tasks.length}
+              {t('已完成')}
             </span>
             <strong>{progress}%</strong>
           </div>
-          <Progress value={progress} aria-label={`${project.name}完成进度`} />
+          <Progress
+            value={progress}
+            aria-label={t('{0}完成进度', project.name)}
+          />
           <div className={styles.cardFooter}>
-            <span>{tasks.length - done} 项待办</span>
+            <span>
+              {tasks.length - done} {t('项待办')}
+            </span>
             {project.deadlineDate ? (
               <span>
                 <CalendarDays aria-hidden="true" />
-                {formatTaskDate(project.deadlineDate, today)}截止
+                {formatTaskDate(project.deadlineDate, today)}
+                {t('截止')}
               </span>
             ) : (
-              <span>按自己的节奏推进</span>
+              <span>{t('按自己的节奏推进')}</span>
             )}
           </div>
         </CardContent>
@@ -102,7 +112,7 @@ export const TaskProjectGrid = ({
           aria-pressed={!archived}
           onClick={activeHandler}
         >
-          进行中的项目
+          {t('进行中的项目')}
         </Button>
         <Button
           variant={archived ? 'secondary' : 'ghost'}
@@ -110,7 +120,7 @@ export const TaskProjectGrid = ({
           aria-pressed={archived}
           onClick={archiveHandler}
         >
-          已归档
+          {t('已归档')}
         </Button>
       </div>
       <div className={styles.grid}>
@@ -122,18 +132,18 @@ export const TaskProjectGrid = ({
             onClick={createHandler}
           >
             <Plus aria-hidden="true" />
-            <span>开始一个新计划</span>
-            <small>给下一个目标留个位置</small>
+            <span>{t('开始一个新计划')}</span>
+            <small>{t('给下一个目标留个位置')}</small>
           </Button>
         ) : null}
       </div>
       {!projectList.length ? (
         <TaskEmptyState
-          title={archived ? '还没有归档项目' : '从一个小目标开始'}
+          title={archived ? t('还没有归档项目') : t('从一个小目标开始')}
           description={
             archived
-              ? '归档后的项目仍保留任务与历史。'
-              : '创建项目，写下目标，再逐步拆解计划。'
+              ? t('归档后的项目仍保留任务与历史。')
+              : t('创建项目，写下目标，再逐步拆解计划。')
           }
         />
       ) : null}

@@ -1,5 +1,6 @@
-import { useState, type CSSProperties } from 'react'
-import { Outlet } from 'react-router-dom'
+import { useEffect, useState, type CSSProperties } from 'react'
+import { Outlet, useLocation } from 'react-router-dom'
+import { useI18n } from '@/lib/i18n'
 
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar'
 import { WorkbenchSidebar } from '@/layouts/workbench/sidebar/WorkbenchSidebar'
@@ -15,7 +16,19 @@ type SidebarWidthStyle = CSSProperties & { '--sidebar-width': string }
  * @returns 工作台布局 JSX
  */
 const WorkbenchLayout = () => {
+  const { locale, t } = useI18n()
+  const { pathname } = useLocation()
   const [sidebarWidth, setSidebarWidth] = useState(240)
+  useEffect(() => {
+    const page = pathname.startsWith('/assets')
+      ? 'Vault'
+      : pathname.startsWith('/task')
+        ? 'Tasks'
+        : pathname.startsWith('/inbox')
+          ? 'Inbox'
+          : 'Dashboard'
+    document.title = `Neozebra — ${t(page)}`
+  }, [locale, pathname, t])
   const sidebarStyle: SidebarWidthStyle = {
     '--sidebar-width': `${sidebarWidth}px`,
   }

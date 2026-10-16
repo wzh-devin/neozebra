@@ -1,5 +1,5 @@
+import { useI18n, getDateFnsLocale, t } from '@/lib/i18n'
 import { addDays, differenceInCalendarDays } from 'date-fns'
-import { zhCN } from 'date-fns/locale'
 import { useSearchParams } from 'react-router-dom'
 import { toast } from 'sonner'
 import {
@@ -63,7 +63,7 @@ const buildFeature = (entry: TaskGanttEntry): GanttFeature => ({
   endAt: entry.endAt,
   status: {
     id: entry.task.status,
-    name: statusLabelRecord[entry.task.status],
+    name: t(statusLabelRecord[entry.task.status]),
     color: statusColorRecord[entry.task.status],
   },
 })
@@ -75,6 +75,8 @@ const buildFeature = (entry: TaskGanttEntry): GanttFeature => ({
  * @returns 甘特图、项目筛选和未安排任务 JSX
  */
 export const TaskGanttView = () => {
+  const { t } = useI18n()
+
   const { data, today, rescheduleTaskHandler } = useTaskPlannerContext()
   const [params, setParams] = useSearchParams()
   const rangeParam = params.get('range')
@@ -149,7 +151,7 @@ export const TaskGanttView = () => {
    */
   const moveHandler = (id: string, startAt: Date, endAt: Date | null): void => {
     const patch = buildTaskGanttDatePatch(startAt, endAt)
-    if (!patch) toast.error('截止日期不能早于计划日期，已恢复原位置。')
+    if (!patch) toast.error(t('截止日期不能早于计划日期，已恢复原位置。'))
     else rescheduleTaskHandler(id, patch)
   }
 
@@ -172,7 +174,7 @@ export const TaskGanttView = () => {
         key={task.id}
         feature={buildFeature(entry)}
         className={styles.sidebarItem}
-        title={`${task.title} · ${dateLabel} · ${statusLabelRecord[task.status]}`}
+        title={`${task.title} · ${dateLabel} · ${t(statusLabelRecord[task.status])}`}
       >
         <span
           className={styles.statusDot}
@@ -182,7 +184,7 @@ export const TaskGanttView = () => {
         <span className={styles.progress}>
           {task.subtasks.length
             ? `${completedSteps}/${task.subtasks.length}`
-            : statusLabelRecord[task.status]}
+            : t(statusLabelRecord[task.status])}
         </span>
       </GanttSidebarItem>
     )
@@ -204,7 +206,7 @@ export const TaskGanttView = () => {
     >
       <span className={styles.barName}>{entry.task.title}</span>
       <span className={styles.barDuration}>
-        {differenceInCalendarDays(entry.endAt, entry.startAt)}天
+        {t('{0} 天', differenceInCalendarDays(entry.endAt, entry.startAt))}
       </span>
     </GanttFeatureItem>
   )
@@ -268,11 +270,12 @@ export const TaskGanttView = () => {
   return (
     <section
       className={`${panelStyles.panel} ${styles.workspace}`}
-      aria-label="甘特图"
+      aria-label={t('甘特图')}
     >
       <header className={styles.toolbar}>
         <h1>
-          甘特图 <span>{entryList.length}</span>
+          {t('甘特图')}
+          <span>{entryList.length}</span>
         </h1>
         <div className={styles.controls}>
           <label className={styles.completedToggle}>
@@ -280,26 +283,26 @@ export const TaskGanttView = () => {
               checked={showCompleted}
               onCheckedChange={completedChangeHandler}
             />
-            显示已完成
+            {t('显示已完成')}
           </label>
           <Select value={selectedProject} onValueChange={projectChangeHandler}>
-            <SelectTrigger aria-label="筛选甘特图项目">
+            <SelectTrigger aria-label={t('筛选甘特图项目')}>
               <SelectValue />
             </SelectTrigger>
             <SelectContent className={surfaceStyles.surface}>
-              <SelectItem value="all">全部项目</SelectItem>
-              <SelectItem value="personal">个人任务</SelectItem>
+              <SelectItem value="all">{t('全部项目')}</SelectItem>
+              <SelectItem value="personal">{t('个人任务')}</SelectItem>
               {data.projectList.map(renderProjectOption)}
             </SelectContent>
           </Select>
-          <div className={styles.scale} role="group" aria-label="时间尺度">
+          <div className={styles.scale} role="group" aria-label={t('时间尺度')}>
             <Button
               size="sm"
               variant={range === 'daily' ? 'secondary' : 'ghost'}
               aria-pressed={range === 'daily'}
               onClick={dailyHandler}
             >
-              日
+              {t('日')}
             </Button>
             <Button
               size="sm"
@@ -307,7 +310,7 @@ export const TaskGanttView = () => {
               aria-pressed={range === 'weekly'}
               onClick={weeklyHandler}
             >
-              周
+              {t('周')}
             </Button>
             <Button
               size="sm"
@@ -315,7 +318,7 @@ export const TaskGanttView = () => {
               aria-pressed={range === 'monthly'}
               onClick={monthlyHandler}
             >
-              月
+              {t('月')}
             </Button>
           </div>
         </div>
@@ -328,15 +331,15 @@ export const TaskGanttView = () => {
             zoom={range === 'monthly' ? 180 : 100}
             initialDate={initialDate}
             endDate={endDate}
-            locale={zhCN}
+            locale={getDateFnsLocale()}
             className={styles.gantt}
           >
             <GanttSidebar
               className={styles.sidebar}
               header={
                 <div className={styles.sidebarHeader}>
-                  <span>任务</span>
-                  <span>进度</span>
+                  <span>{t('任务')}</span>
+                  <span>{t('进度')}</span>
                 </div>
               }
             >
@@ -355,17 +358,17 @@ export const TaskGanttView = () => {
           <TaskEmptyState
             title={
               taskList.length
-                ? '还没有可展示的日期'
+                ? t('还没有可展示的日期')
                 : data.taskList.length
-                  ? '当前没有待展示的任务'
-                  : '还没有任务进度'
+                  ? t('当前没有待展示的任务')
+                  : t('还没有任务进度')
             }
             description={
               taskList.length
-                ? '为任务设置计划日期或截止日期，即可在时间轴查看和调整。'
+                ? t('为任务设置计划日期或截止日期，即可在时间轴查看和调整。')
                 : data.taskList.length
-                  ? '可以切换项目或打开「显示已完成」查看历史进度。'
-                  : '添加任务并设置计划日期或截止日期。'
+                  ? t('可以切换项目或打开「显示已完成」查看历史进度。')
+                  : t('添加任务并设置计划日期或截止日期。')
             }
           />
         </div>
@@ -374,13 +377,17 @@ export const TaskGanttView = () => {
         <div className={styles.unplanned}>
           {invalidTaskList.length ? (
             <details open>
-              <summary>日期待调整 · {invalidTaskList.length}</summary>
+              <summary>
+                {t('日期待调整 ·')} {invalidTaskList.length}
+              </summary>
               <div>{invalidTaskList.map(renderUnscheduledTask)}</div>
             </details>
           ) : null}
           {unscheduledTaskList.length ? (
             <details>
-              <summary>未安排 · {unscheduledTaskList.length}</summary>
+              <summary>
+                {t('未安排 ·')} {unscheduledTaskList.length}
+              </summary>
               <div>{unscheduledTaskList.map(renderUnscheduledTask)}</div>
             </details>
           ) : null}

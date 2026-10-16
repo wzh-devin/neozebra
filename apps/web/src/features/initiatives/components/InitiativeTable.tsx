@@ -1,3 +1,4 @@
+import { useI18n } from '@/lib/i18n'
 import { Archive } from 'lucide-react'
 
 import {
@@ -29,39 +30,50 @@ const InitiativeTable = ({
   initiativeList,
   expandedSet,
   onExpandedChange,
-}: InitiativeTableProps) => (
-  <div className={styles['table-scroll-shell']}>
-    <Table className={styles['initiative-table']}>
-      <TableHeader>
-        <TableRow>
-          <TableHead className={styles['name-head']}>Name</TableHead>
-          <TableHead className={styles['target-head']}>Target</TableHead>
-          <TableHead className={styles['health-head']}>Health</TableHead>
-          <TableHead className={styles['projects-head']}>Projects</TableHead>
-          <TableHead className={styles['active-head']}>
-            Active projects
-          </TableHead>
-          <TableHead className={styles['activity-head']}>Activity</TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {initiativeList.length > 0 ? (
-          <InitiativeRows
-            rows={initiativeList}
-            expandedSet={expandedSet}
-            onExpandedChange={onExpandedChange}
-          />
-        ) : (
+}: InitiativeTableProps) => {
+  const { t } = useI18n()
+  return (
+    <div className={styles['table-scroll-shell']}>
+      <Table className={styles['initiative-table']}>
+        <TableHeader>
           <TableRow>
-            <TableCell colSpan={6} className={styles['empty-cell']}>
-              <Archive aria-hidden="true" />
-              No initiatives in this view
-            </TableCell>
+            <TableHead className={styles['name-head']}>{t('Name')}</TableHead>
+            <TableHead className={styles['target-head']}>
+              {t('Target')}
+            </TableHead>
+            <TableHead className={styles['health-head']}>
+              {t('Health')}
+            </TableHead>
+            <TableHead className={styles['projects-head']}>
+              {t('Projects')}
+            </TableHead>
+            <TableHead className={styles['active-head']}>
+              {t('Active projects')}
+            </TableHead>
+            <TableHead className={styles['activity-head']}>
+              {t('Activity')}
+            </TableHead>
           </TableRow>
-        )}
-      </TableBody>
-    </Table>
-  </div>
-)
+        </TableHeader>
+        <TableBody>
+          {initiativeList.length > 0 ? (
+            <InitiativeRows
+              rows={initiativeList}
+              expandedSet={expandedSet}
+              onExpandedChange={onExpandedChange}
+            />
+          ) : (
+            <TableRow>
+              <TableCell colSpan={6} className={styles['empty-cell']}>
+                <Archive aria-hidden="true" />
+                {t('No initiatives in this view')}
+              </TableCell>
+            </TableRow>
+          )}
+        </TableBody>
+      </Table>
+    </div>
+  )
+}
 
 export { InitiativeTable }

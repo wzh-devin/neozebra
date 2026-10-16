@@ -1,0 +1,215 @@
+.tree {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+}
+.label {
+  display: flex;
+  height: 44px;
+  flex-shrink: 0;
+  align-items: center;
+  padding: 0 22px;
+  border-bottom: 1px solid var(--border);
+  color: var(--muted-foreground);
+  font-size: 13px;
+  font-weight: 500;
+}
+.tree-scroll {
+  min-height: 0;
+  flex: 1;
+}
+
+/* 限制 Radix 测量容器，避免长文件名撑宽文件树。 */
+.tree-scroll [data-slot='scroll-area-viewport'] > div {
+  width: 100%;
+  table-layout: fixed;
+}
+.tree-list {
+  padding: 8px 12px 12px;
+}
+.tree-row {
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr);
+  position: relative;
+  min-height: 30px;
+  align-items: center;
+  gap: 2px;
+  margin-block: 1px;
+  padding-left: 8px;
+  border-radius: 6px;
+  color: var(--muted-foreground);
+  transition: background-color 150ms;
+}
+.tree-row:hover {
+  color: var(--foreground);
+}
+.tree-row-selected,
+.tree-row-selected:hover {
+  color: var(--foreground);
+}
+.tree-item {
+  display: flex;
+  grid-column: 2;
+  min-width: 0;
+  min-height: 30px;
+  align-items: center;
+  padding-inline: 6px 4px;
+}
+.tree-row:hover,
+.tree-row[data-state='open'] {
+  background: color-mix(in oklch, var(--foreground) 3%, transparent);
+}
+.tree-row.tree-row-selected {
+  background: color-mix(in oklch, var(--foreground) 5%, transparent);
+}
+.tree-row[data-drop-over] {
+  background: var(--accent);
+  color: var(--foreground);
+}
+.tree-row[data-dragging] {
+  opacity: 0.45;
+}
+.tree-toggle {
+  width: 18px;
+  height: 26px;
+  padding: 0;
+  border: 0;
+  border-radius: 4px;
+  color: var(--muted-foreground);
+  background: transparent;
+  transform: none;
+}
+.tree-toggle[aria-expanded],
+.tree-toggle:hover {
+  background: transparent;
+}
+.tree-toggle:hover {
+  color: var(--foreground);
+}
+.tree-toggle svg {
+  width: 12px;
+  height: 12px;
+}
+.tree-label {
+  min-width: 0;
+  height: 30px;
+  flex: 1;
+  justify-content: flex-start;
+  gap: 8px;
+  padding: 0 2px;
+  border: 0;
+  border-radius: 4px;
+  color: inherit;
+  background: transparent;
+  font-size: 13px;
+  font-weight: 450;
+  transform: none;
+}
+.tree-label:hover {
+  background: transparent;
+  color: inherit;
+}
+.tree-label[aria-selected='true'] {
+  font-weight: 500;
+}
+.tree-label:focus-visible {
+  outline: 1px solid var(--ring);
+  outline-offset: -1px;
+  box-shadow: none;
+}
+.tree-label svg {
+  width: 15px;
+  height: 15px;
+  flex-shrink: 0;
+}
+.tree-label span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.tree-children {
+  position: relative;
+}
+.tree-children::before {
+  position: absolute;
+  inset-block: 0 8px;
+  left: var(--branch-indent);
+  width: 1px;
+  background: var(--border);
+  content: '';
+  pointer-events: none;
+}
+.tree-more {
+  width: 24px;
+  height: 26px;
+  flex-shrink: 0;
+  padding: 0;
+  color: var(--muted-foreground);
+  opacity: 0;
+}
+.tree-row:hover .tree-more,
+.tree-row:focus-within .tree-more,
+.tree-row-selected .tree-more,
+.tree-more[data-state='open'] {
+  opacity: 1;
+}
+.footer {
+  flex-shrink: 0;
+  margin: 0 12px;
+  padding: 10px 0;
+  border-top: 1px solid var(--border);
+}
+.trash {
+  width: 100%;
+  height: 36px;
+  justify-content: center;
+  gap: 10px;
+  padding-inline: 12px;
+  color: var(--muted-foreground);
+  font-size: 13px;
+  font-weight: 400;
+}
+.trash svg {
+  color: var(--project-teal);
+}
+.state {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 32px;
+  color: var(--muted-foreground);
+  font-size: 13px;
+}
+.more {
+  margin-inline-start: 30px;
+  font-size: 13px;
+}
+@media (max-width: 767px) {
+  .tree-row,
+  .tree-item,
+  .tree-label,
+  .tree-toggle,
+  .tree-more,
+  .trash {
+    min-height: 44px;
+  }
+  .tree-more {
+    width: 32px;
+    opacity: 1;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tree-row {
+    transition: none;
+  }
+}
+
+.tree-row[data-tree-root] {
+  margin-bottom: 2px;
+}
+.tree-row[data-tree-root] .tree-label {
+  font-weight: 500;
+}

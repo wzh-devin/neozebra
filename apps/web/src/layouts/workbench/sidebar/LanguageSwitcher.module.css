@@ -1,0 +1,9 @@
+.trigger {
+  min-height: 40px;
+  color: var(--muted-foreground);
+}
+@media (max-width: 767px) {
+  .trigger {
+    min-height: 44px;
+  }
+}

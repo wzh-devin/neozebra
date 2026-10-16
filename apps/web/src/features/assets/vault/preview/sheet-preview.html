@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'none'; script-src __CSP_ORIGIN__ 'unsafe-inline'; style-src __CSP_ORIGIN__ 'unsafe-inline'; connect-src __CSP_ORIGIN__; img-src __CSP_ORIGIN__ data:; object-src 'none'; form-action 'none'; base-uri 'none'"
+    />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <link rel="stylesheet" href="xspreadsheet/xspreadsheet.css" />
+    <style>
+      html,
+      body {
+        height: 100%;
+        margin: 0;
+        font:
+          13px system-ui,
+          sans-serif;
+        background: #fff;
+        color: #202124;
+      }
+      #sheet {
+        height: calc(100% - 32px);
+      }
+      #status {
+        height: 32px;
+        box-sizing: border-box;
+        padding: 7px 12px;
+        border-top: 1px solid #ddd;
+        color: #666;
+        font-size: 11px;
+      }
+      .x-spreadsheet-toolbar,
+      .x-spreadsheet-bottombar .x-spreadsheet-icon {
+        display: none !important;
+      }
+    </style>
+    <script src="xspreadsheet/xspreadsheet.js"></script>
+    <script src="xspreadsheet/zh-cn.js"></script>
+    <script src="xspreadsheet/xlsx.full.min.js"></script>
+    <script src="xspreadsheet/xlsxspread.min.js"></script>
+  </head>
+  <body>
+    <div id="sheet"></div>
+    <div id="status" role="status"></div>
+    <script>
+      const owner = __ORIGIN__
+      const ui = __UI_CONFIG__
+      document.documentElement.lang = ui.locale
+      document.getElementById('status').textContent = ui.loading
+      const notify = (type, message) =>
+        parent.postMessage({ type, message }, owner)
+      const decodeDelimited = (bytes) => {
+        const prefix = new Uint8Array(bytes, 0, Math.min(2, bytes.byteLength))
+        if (prefix[0] === 255 && prefix[1] === 254)
+          return new TextDecoder('utf-16le').decode(bytes)
+        if (prefix[0] === 254 && prefix[1] === 255)
+          return new TextDecoder('utf-16be').decode(bytes)
+        try {
+          return new TextDecoder('utf-8', { fatal: true }).decode(bytes)
+        } catch {
+          return new TextDecoder('gb18030').decode(bytes)
+        }
+      }
+      const load = async () => {
+        try {
+          const response = await fetch('getCorsFile')
+          if (!response.ok) throw new Error(ui.readError)
+          const bytes = await response.arrayBuffer()
+          if (bytes.byteLength > 25 * 1024 * 1024) throw new Error(ui.sizeError)
+          const workbook = XLSX.read(
+            __DELIMITED__ ? decodeDelimited(bytes) : bytes,
+            {
+              type: __DELIMITED__ ? 'string' : 'array',
+              cellFormula: true,
+              sheetStubs: true,
+              sheetRows: 50001,
+            },
+          )
+          if (workbook.SheetNames.length > 100) throw new Error(ui.sheetsError)
+          let cells = 0
+          for (const name of workbook.SheetNames) {
+            const worksheet = workbook.Sheets[name]
+            const range = XLSX.utils.decode_range(
+              worksheet['!fullref'] || worksheet['!ref'] || 'A1',
+            )
+            cells += (range.e.r + 1) * (range.e.c + 1)
+            if (range.e.r >= 50000 || range.e.c >= 512 || cells > 500000)
+              throw new Error(ui.rangeError)
+            for (const key of Object.keys(worksheet)) {
+              const cell = worksheet[key]
+              if (!key.startsWith('!') && cell && cell.f) {
+                if (cell.v === undefined || cell.t === 'z') {
+                  cell.v = ui.missingValue
+                  cell.t = 's'
+                }
+                delete cell.f
+              }
+            }
+          }
+          x_spreadsheet.locale(ui.locale === 'en-US' ? 'en' : 'zh-cn')
+          const grid = x_spreadsheet('#sheet', {
+            mode: 'read',
+            showToolbar: false,
+            showGrid: true,
+            showBottomBar: true,
+            view: {
+              height: () => window.innerHeight - 64,
+              width: () => window.innerWidth,
+            },
+          })
+          const data = stox(workbook)
+          for (const name of workbook.SheetNames)
+            if (!data.some((sheet) => sheet.name === name))
+              data.push({ name, rows: { len: 100 } })
+          grid.loadData(data)
+          grid.reRender()
+          document.getElementById('status').textContent = ui.ready.replace(
+            '{0}',
+            String(workbook.SheetNames.length),
+          )
+          notify('vault-preview-ready')
+        } catch (error) {
+          const message = error instanceof Error ? error.message : ui.error
+          document.getElementById('status').textContent = message
+          notify('vault-preview-error', message)
+        }
+      }
+      document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') notify('vault-preview-close')
+      })
+      load()
+    </script>
+  </body>
+</html>

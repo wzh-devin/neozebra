@@ -1,0 +1,15 @@
+{
+  "name": "@neozebra/vault",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node --env-file-if-exists=.env scripts/run.mjs dev",
+    "build": "go build -o dist/vault ./cmd/vault",
+    "lint": "go vet ./...",
+    "test": "go test -race ./...",
+    "test:integration": "node scripts/integration.mjs",
+    "db:migrate": "node --env-file-if-exists=.env scripts/run.mjs migrate",
+    "vault:init": "node --env-file-if-exists=.env scripts/run.mjs init-bucket"
+  },
+  "version": "0.0.0"
+}

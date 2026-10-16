@@ -1,3 +1,4 @@
+import { useI18n } from '@/lib/i18n'
 import { ArrowDown, ArrowUp, Plus, Trash2 } from 'lucide-react'
 import {
   useState,
@@ -30,6 +31,8 @@ export const TaskSubtaskList = ({
   onChange,
   disabled = false,
 }: Props) => {
+  const { t } = useI18n()
+
   const [title, setTitle] = useState('')
 
   // 更新新增步骤输入。
@@ -89,7 +92,7 @@ export const TaskSubtaskList = ({
     const renameHandler = (event: FocusEvent<HTMLInputElement>): void => {
       const next = event.currentTarget.value.trim()
       if (!next) {
-        toast.error('步骤标题不能为空')
+        toast.error(t('步骤标题不能为空'))
         return
       }
       if (next !== step.title)
@@ -147,7 +150,7 @@ export const TaskSubtaskList = ({
         <Checkbox
           checked={step.completed}
           disabled={disabled}
-          aria-label={`完成步骤：${step.title}`}
+          aria-label={t('完成步骤：{0}', step.title)}
           onCheckedChange={checkedChangeHandler}
         />
         <Input
@@ -155,7 +158,7 @@ export const TaskSubtaskList = ({
           defaultValue={step.title}
           disabled={disabled}
           maxLength={200}
-          aria-label="步骤标题"
+          aria-label={t('步骤标题')}
           onBlur={renameHandler}
           onKeyDown={keyDownHandler}
         />
@@ -163,7 +166,7 @@ export const TaskSubtaskList = ({
           type="button"
           variant="ghost"
           size="icon-sm"
-          aria-label="上移步骤"
+          aria-label={t('上移步骤')}
           disabled={disabled || index === 0}
           onClick={upHandler}
         >
@@ -173,7 +176,7 @@ export const TaskSubtaskList = ({
           type="button"
           variant="ghost"
           size="icon-sm"
-          aria-label="下移步骤"
+          aria-label={t('下移步骤')}
           disabled={disabled || index === subtasks.length - 1}
           onClick={downHandler}
         >
@@ -183,7 +186,7 @@ export const TaskSubtaskList = ({
           type="button"
           variant="ghost"
           size="icon-sm"
-          aria-label={`删除步骤：${step.title}`}
+          aria-label={t('删除步骤：{0}', step.title)}
           disabled={disabled}
           onClick={deleteHandler}
         >
@@ -200,9 +203,9 @@ export const TaskSubtaskList = ({
         <Input
           value={title}
           maxLength={200}
-          aria-label="新增步骤"
+          aria-label={t('新增步骤')}
           disabled={disabled}
-          placeholder="添加一个步骤…"
+          placeholder={t('添加一个步骤…')}
           onChange={titleChangeHandler}
         />
         <Button
@@ -211,7 +214,7 @@ export const TaskSubtaskList = ({
           variant="ghost"
           disabled={disabled || !title.trim()}
         >
-          添加
+          {t('添加')}
         </Button>
       </form>
     </div>

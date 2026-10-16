@@ -31,23 +31,22 @@ DESIGN.md
 tests/
 /apps/web/.impeccable/
 *.test.*
+*.spec.*
+*_test.go
 
-# Server credentials and tracked backend checks
+# Server credentials and local checks
 /apps/server/.env
+/packages/assets/vault/.env
+/packages/assets/vault/.env.*
+!/packages/assets/vault/.env.example
+/deploy/vault/.env
 /apps/server/.env.*
 !/apps/server/.env.example
-checks
-!/apps/server/checks/
-/apps/server/checks/*
-!/apps/server/checks/*.test.ts
-!/apps/server/checks/imap-fixture.ts
-!/apps/server/checks/task-fixture.ts
-!/apps/server/checks/drive-upload-s3-fixture.ts
-!/apps/server/checks/run-integration.ts
-!/apps/server/checks/drive-performance.ts
+checks/
 
 # Prisma generated client
 /packages/database/src/generated/
 **/.data/drive-uploads/
 **/.data/drive-previews/
-/deploy/office/.env
+
+/apps/web/public/vendor/pdfjs/

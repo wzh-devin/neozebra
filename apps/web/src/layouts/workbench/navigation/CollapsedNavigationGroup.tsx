@@ -9,6 +9,7 @@ import {
   type RefObject,
 } from 'react'
 import type { LucideIcon } from 'lucide-react'
+import { useI18n } from '@/lib/i18n'
 
 import {
   Popover,
@@ -42,6 +43,7 @@ const CollapsedNavigationGroup = ({
   triggerRef,
   onNavigate,
 }: CollapsedNavigationGroupProps) => {
+  const { t } = useI18n()
   const [isOpen, setIsOpen] = useState(false)
   const closeTimerRef = useRef<number | undefined>(undefined)
   const contentRef = useRef<HTMLDivElement | null>(null)
@@ -198,7 +200,7 @@ const CollapsedNavigationGroup = ({
         side="right"
         align="start"
         sideOffset={8}
-        aria-label={`${label} submenu`}
+        aria-label={t('{0} 子菜单', label)}
         className={styles['group-flyout']}
         onPointerEnter={keepFlyoutOpenHandler}
         onPointerLeave={delayFlyoutCloseHandler}

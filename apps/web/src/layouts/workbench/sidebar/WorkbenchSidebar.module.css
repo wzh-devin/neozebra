@@ -44,7 +44,11 @@
 }
 
 .sidebar-scroll {
-  height: calc(100% - 87px);
+  min-height: 0;
+  flex: 1;
+}
+.sidebar-footer {
+  padding: 8px 10px 16px 24px;
 }
 
 .sidebar-content {
@@ -69,6 +73,9 @@
   }
 
   [data-collapsible='icon'] .sidebar-content {
+    padding-inline: 8px;
+  }
+  [data-collapsible='icon'] .sidebar-footer {
     padding-inline: 8px;
   }
 

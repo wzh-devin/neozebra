@@ -1,5 +1,5 @@
+import { useI18n, getLocale, getDateFnsLocale } from '@/lib/i18n'
 import { CalendarDays, ChevronDown } from 'lucide-react'
-import { zhCN } from 'date-fns/locale'
 import { useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
@@ -39,6 +39,8 @@ export const TaskCalendarCard = ({
   today,
   onSelect,
 }: Props) => {
+  const { t } = useI18n()
+
   const { isMobile } = useSidebar()
   const [calendarOpen, setCalendarOpen] = useState(false)
   const [month, setMonth] = useState(new Date(`${selectedDate}T12:00:00`))
@@ -84,13 +86,13 @@ export const TaskCalendarCard = ({
    * @returns 日期与任务数量文本
    */
   const getDayButtonLabel = (date: Date): string => {
-    const label = new Intl.DateTimeFormat('zh-CN', {
+    const label = new Intl.DateTimeFormat(getLocale(), {
       year: 'numeric',
       month: 'long',
       day: 'numeric',
       weekday: 'long',
     }).format(date)
-    return `${label}，${dateCountMap.get(getLocalDate(date)) ?? 0}项任务`
+    return t('{0}，{1}项任务', label, dateCountMap.get(getLocalDate(date)) ?? 0)
   }
 
   /**
@@ -119,7 +121,7 @@ export const TaskCalendarCard = ({
           className={styles.previewTask}
           data-status={task.status}
           onClick={openTaskHandler}
-          aria-label={`查看任务：${task.title}`}
+          aria-label={t('查看任务：{0}', task.title)}
           title={task.title}
         >
           <span className={styles.statusDot} aria-hidden="true" />
@@ -138,15 +140,15 @@ export const TaskCalendarCard = ({
         <header className={styles.heading}>
           <h2>
             <CalendarDays aria-hidden="true" />
-            任务日历
+            {t('任务日历')}
           </h2>
           <div>
             <Button
               variant="ghost"
               size="sm"
               onClick={todayHandler}
-              aria-label={`回到当前日期：${today}`}
-              title="回到当前日期"
+              aria-label={t('回到当前日期：{0}', today)}
+              title={t('回到当前日期')}
             >
               {formatTaskCalendarDate(today, today)}
             </Button>
@@ -155,7 +157,7 @@ export const TaskCalendarCard = ({
                 <Button
                   variant="ghost"
                   size="icon-sm"
-                  aria-label="展开或收起任务日历"
+                  aria-label={t('展开或收起任务日历')}
                 >
                   <ChevronDown aria-hidden="true" />
                 </Button>
@@ -166,7 +168,7 @@ export const TaskCalendarCard = ({
         <CollapsibleContent>
           <Calendar
             className={styles.calendar}
-            locale={zhCN}
+            locale={getDateFnsLocale()}
             mode="single"
             required
             month={month}
@@ -177,20 +179,22 @@ export const TaskCalendarCard = ({
             modifiersClassNames={{ planned: styles.hasTasks }}
             labels={{ labelDayButton: getDayButtonLabel }}
           />
-          <section className={styles.preview} aria-label="所选日期任务">
+          <section className={styles.preview} aria-label={t('所选日期任务')}>
             <div className={styles.previewHeading}>
               <h3>
                 {formatTaskCalendarDate(selectedDate, today)}
-                <span>{selectedTaskList.length}项</span>
+                <span>{t('{0} 项', selectedTaskList.length)}</span>
               </h3>
               <Button variant="ghost" size="sm" onClick={viewDateHandler}>
-                查看清单
+                {t('查看清单')}
               </Button>
             </div>
             {selectedTaskList.length ? (
               <ul>{selectedTaskList.slice(0, 4).map(renderTask)}</ul>
             ) : (
-              <p className={styles.empty}>这一天还没有符合筛选条件的任务。</p>
+              <p className={styles.empty}>
+                {t('这一天还没有符合筛选条件的任务。')}
+              </p>
             )}
             {selectedTaskList.length > 4 ? (
               <Button
@@ -199,7 +203,7 @@ export const TaskCalendarCard = ({
                 className={styles.more}
                 onClick={viewDateHandler}
               >
-                查看全部 {selectedTaskList.length} 项任务
+                {t('查看全部 {0} 项任务', selectedTaskList.length)}
               </Button>
             ) : null}
           </section>

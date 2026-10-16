@@ -1,3 +1,4 @@
+import { useI18n, t } from '@/lib/i18n'
 import { History } from 'lucide-react'
 import { Card } from '@/components/ui/card'
 import {
@@ -24,10 +25,10 @@ const renderActivityItem = (activity: DashboardActivity) => {
         <Icon aria-hidden="true" />
       </span>
       <div className={styles.copy}>
-        <p>{activity.title}</p>
-        <span>{activity.source}</span>
+        <p>{t(activity.title)}</p>
+        <span>{t(activity.source)}</span>
       </div>
-      <span className={styles.time}>{activity.time}</span>
+      <span className={styles.time}>{t(activity.time)}</span>
     </li>
   )
 }
@@ -42,30 +43,35 @@ const DashboardActivityFeed = ({
   activityList,
 }: {
   activityList: DashboardActivity[]
-}) => (
-  <Card
-    className={styles.activity}
-    role="region"
-    aria-labelledby="dashboard-activity-title"
-  >
-    <header className={styles.header}>
-      <h2 id="dashboard-activity-title">Recent activity</h2>
-      <p>Updates across your workspace</p>
-    </header>
-    {activityList.length ? (
-      <ol className={styles.list}>{activityList.map(renderActivityItem)}</ol>
-    ) : (
-      <Empty className={styles.empty}>
-        <EmptyHeader>
-          <EmptyMedia variant="icon">
-            <History aria-hidden="true" />
-          </EmptyMedia>
-          <EmptyTitle>No recent activity</EmptyTitle>
-          <EmptyDescription>Nothing to show right now.</EmptyDescription>
-        </EmptyHeader>
-      </Empty>
-    )}
-  </Card>
-)
+}) => {
+  const { t } = useI18n()
+  return (
+    <Card
+      className={styles.activity}
+      role="region"
+      aria-labelledby="dashboard-activity-title"
+    >
+      <header className={styles.header}>
+        <h2 id="dashboard-activity-title">{t('Recent activity')}</h2>
+        <p>{t('Updates across your workspace')}</p>
+      </header>
+      {activityList.length ? (
+        <ol className={styles.list}>{activityList.map(renderActivityItem)}</ol>
+      ) : (
+        <Empty className={styles.empty}>
+          <EmptyHeader>
+            <EmptyMedia variant="icon">
+              <History aria-hidden="true" />
+            </EmptyMedia>
+            <EmptyTitle>{t('No recent activity')}</EmptyTitle>
+            <EmptyDescription>
+              {t('Nothing to show right now.')}
+            </EmptyDescription>
+          </EmptyHeader>
+        </Empty>
+      )}
+    </Card>
+  )
+}
 
 export { DashboardActivityFeed }

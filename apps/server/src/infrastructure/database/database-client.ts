@@ -1,9 +1,4 @@
 import { createHash } from 'node:crypto'
-import {
-  closeDriveQueues,
-  closeDriveUploadQueues,
-  closeDrivePreviewQueues,
-} from '@neozebra/assets'
 import { Pool } from 'pg'
 import { createClient } from 'redis'
 import { PrismaClient } from '@neozebra/database'
@@ -38,9 +33,6 @@ const createDatabase = () => {
     await connecting
   }
   const close = async () => {
-    await closeDriveQueues(redis)
-    await closeDriveUploadQueues(redis)
-    await closeDrivePreviewQueues(redis)
     if (redis.isOpen) redis.destroy()
     await store.$disconnect()
     await pool.end()

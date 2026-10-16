@@ -1,0 +1,165 @@
+.dialog {
+  display: flex;
+  width: min(1120px, calc(100vw - 48px));
+  max-width: none;
+  height: min(740px, calc(100svh - 64px));
+  flex-direction: column;
+  gap: 0;
+  padding: 0;
+  overflow: hidden;
+  border-radius: 10px;
+  animation: none;
+}
+.dialog[data-compact='true'] {
+  width: min(560px, calc(100vw - 32px));
+  height: auto;
+  max-height: calc(100svh - 32px);
+}
+.header {
+  display: flex;
+  min-width: 0;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  min-height: 60px;
+  padding: 10px 12px 10px 18px;
+  border-bottom: 1px solid var(--border);
+}
+.file {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+.fileIcon {
+  width: 20px;
+  height: 22px;
+  flex-shrink: 0;
+}
+.fileInfo {
+  min-width: 0;
+}
+.title {
+  font-size: 13px;
+  line-height: 20px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.description {
+  margin-top: 2px;
+  font-size: 11px;
+  line-height: 16px;
+}
+.actions {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 4px;
+}
+.download,
+.close {
+  height: 30px;
+  color: var(--muted-foreground);
+  font-size: 12px;
+}
+.content {
+  display: flex;
+  position: relative;
+  min-height: 0;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  overflow: auto;
+  background: var(--background);
+}
+.dialog[data-compact='true'] .content {
+  min-height: 260px;
+}
+.fallback {
+  min-height: 260px;
+  padding: 32px;
+  border-radius: 0;
+}
+.fileMark {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  color: var(--muted-foreground);
+  background: var(--secondary);
+}
+.fileMark svg {
+  width: 22px;
+  height: 22px;
+}
+.fallbackDescription {
+  font-size: 12px;
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+}
+.fallbackActions {
+  flex-direction: row;
+  justify-content: center;
+  gap: 8px;
+}
+.state {
+  display: flex;
+  position: absolute;
+  inset: 0;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 20px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--muted-foreground);
+  background: var(--background);
+}
+.image,
+.media {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+.text {
+  align-self: stretch;
+  width: 100%;
+  margin: 0;
+  padding: 24px;
+  font-size: 12px;
+  line-height: 1.6;
+  overflow: auto;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+@media (max-width: 767px) {
+  .dialog {
+    width: calc(100vw - 24px);
+    height: calc(100svh - 24px);
+  }
+  .header {
+    gap: 8px;
+    padding: 10px 8px 10px 12px;
+  }
+  .dialog[data-compact='true'] {
+    width: calc(100vw - 24px);
+  }
+  .download,
+  .close {
+    width: 40px;
+    min-height: 40px;
+    padding: 0;
+  }
+  .download span {
+    display: none;
+  }
+  .fallback {
+    padding: 28px 20px;
+  }
+  .fallbackActions :is(button, a) {
+    min-height: 40px;
+  }
+}

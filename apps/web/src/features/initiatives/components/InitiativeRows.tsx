@@ -1,3 +1,4 @@
+import { useI18n } from '@/lib/i18n'
 import { Fragment, type ReactNode } from 'react'
 import {
   ChevronDown,
@@ -44,8 +45,9 @@ const InitiativeRows = ({
   depth = 0,
   expandedSet,
   onExpandedChange,
-}: InitiativeRowsProps): ReactNode[] =>
-  rows.flatMap((row) => {
+}: InitiativeRowsProps): ReactNode[] => {
+  const { t } = useI18n()
+  return rows.flatMap((row) => {
     const hasChildren = Boolean(row.children?.length)
     const isExpanded = expandedSet.has(row.id)
     const Icon = row.icon
@@ -78,7 +80,7 @@ const InitiativeRows = ({
                 {hasChildren ? (
                   <CollapsibleTrigger asChild>
                     <button
-                      aria-label={`${isExpanded ? 'Collapse' : 'Expand'} ${row.name}`}
+                      aria-label={`${isExpanded ? t('Collapse') : t('Expand')} ${row.name}`}
                       className={styles['row-toggle']}
                       type="button"
                     >
@@ -132,7 +134,7 @@ const InitiativeRows = ({
             <TableCell className={styles['activity-cell']}>
               {row.activity === 'up' ? (
                 <TrendingUp
-                  aria-label="Improving activity"
+                  aria-label={t('Improving activity')}
                   className={styles['activity-up']}
                 />
               ) : (
@@ -154,5 +156,6 @@ const InitiativeRows = ({
 
     return [currentRow]
   })
+}
 
 export { InitiativeRows }

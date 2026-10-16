@@ -1,3 +1,4 @@
+import { useI18n } from '@/lib/i18n'
 import {
   SidebarGroup,
   SidebarGroupContent,
@@ -19,6 +20,8 @@ import styles from '@/layouts/workbench/navigation/NavigationGroup.module.css'
  * @returns 主导航 JSX
  */
 const WorkbenchNavigation = () => {
+  const { t } = useI18n()
+
   const { isMobile, setOpenMobile } = useSidebar()
 
   /**
@@ -34,7 +37,7 @@ const WorkbenchNavigation = () => {
   }
 
   return (
-    <nav aria-label="Main navigation">
+    <nav aria-label={t('Main navigation')}>
       <SidebarGroup
         className={`${styles['sidebar-group']} ${styles['primary-group']}`}
       >

@@ -1,3 +1,4 @@
+import { useI18n } from '@/lib/i18n'
 import { InboxToolbar } from '@/features/inbox/components/InboxToolbar'
 import { InboxMessageList } from '@/features/inbox/components/InboxMessageList'
 import { InboxReader } from '@/features/inbox/components/InboxReader'
@@ -11,20 +12,29 @@ import styles from '@/features/inbox/components/InboxPageContent.module.css'
  * @param props - Inbox 的加载、筛选和操作状态
  * @returns Inbox 分栏页面 JSX
  */
-const InboxPageContent = (props: InboxView) => (
-  <main
-    className={styles['inbox-shell']}
-    data-has-detail={props.hasDetailRoute}
-  >
-    <section className={styles['message-pane']} aria-label="Inbox messages">
-      <InboxToolbar {...props} />
-      <InboxMessageList {...props} />
-    </section>
-    <section className={styles['reader-pane']} aria-label="Message reader">
-      <InboxReader {...props} />
-    </section>
-    <InboxAccountsDialog {...props} />
-  </main>
-)
+const InboxPageContent = (props: InboxView) => {
+  const { t } = useI18n()
+  return (
+    <main
+      className={styles['inbox-shell']}
+      data-has-detail={props.hasDetailRoute}
+    >
+      <section
+        className={styles['message-pane']}
+        aria-label={t('Inbox messages')}
+      >
+        <InboxToolbar {...props} />
+        <InboxMessageList {...props} />
+      </section>
+      <section
+        className={styles['reader-pane']}
+        aria-label={t('Message reader')}
+      >
+        <InboxReader {...props} />
+      </section>
+      <InboxAccountsDialog {...props} />
+    </main>
+  )
+}
 
 export { InboxPageContent }

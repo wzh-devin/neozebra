@@ -1,7 +1,13 @@
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { Sidebar, SidebarContent, SidebarHeader } from '@/components/ui/sidebar'
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarHeader,
+} from '@/components/ui/sidebar'
 import { WorkbenchNavigation } from '@/layouts/workbench/navigation/WorkbenchNavigation'
 import { SidebarResizeRail } from '@/layouts/workbench/sidebar/SidebarResizeRail'
+import { LanguageSwitcher } from './LanguageSwitcher'
 
 import styles from '@/layouts/workbench/sidebar/WorkbenchSidebar.module.css'
 
@@ -40,6 +46,9 @@ const WorkbenchSidebar = ({ width, onWidthChange }: WorkbenchSidebarProps) => (
         <WorkbenchNavigation />
       </SidebarContent>
     </ScrollArea>
+    <SidebarFooter className={styles['sidebar-footer']}>
+      <LanguageSwitcher />
+    </SidebarFooter>
     <SidebarResizeRail width={width} onWidthChange={onWidthChange} />
   </Sidebar>
 )

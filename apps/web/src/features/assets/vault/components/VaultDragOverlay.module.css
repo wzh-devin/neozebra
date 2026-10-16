@@ -1,0 +1,42 @@
+.overlay {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: var(--popover);
+  color: var(--foreground);
+  box-shadow: 0 6px 20px rgb(0 0 0 / 25%);
+  cursor: grabbing;
+}
+.icon {
+  width: 20px;
+  height: 22px;
+  flex-shrink: 0;
+}
+.copy {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+}
+.name,
+.target {
+  overflow: hidden;
+  font-size: 12px;
+  line-height: 18px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.target {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--muted-foreground);
+  font-size: 11px;
+}
+.target svg {
+  flex-shrink: 0;
+}
+.overlay[data-valid] .target {
+  color: var(--foreground);
+}

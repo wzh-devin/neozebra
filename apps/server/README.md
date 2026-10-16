@@ -25,17 +25,18 @@ apps/server/
         ├── database/           # Prisma 连接、baseline 与迁移入口
         ├── security/           # AES-GCM 凭据加密
         └── inbox/              # 邮件服务、Repository、Gmail / QQ Provider
-packages/assets/src/            # 独立 Assets 菜单组后端
+packages/assets/               # 菜单目录隔离，不是 workspace
+└── vault/                     # Go 文件库模块（controller/service/dto/tests）
 packages/database/              # 共享 Prisma 模型、生成类型和迁移
 ```
 
-默认菜单后端按领域放在 apps/server。非默认菜单组各建一个 packages/<group> workspace，通过包的公开出口接入网关；Assets 内的 Drive 等业务继续放在同一组包中。开发通过 development 条件导入包源码，生产导入 dist，根构建自动按依赖顺序运行。
+apps/server 是统一 API 网关：Inbox / Task 使用当前 Node 实现，`/api/assets/vault/*` 通过网关路由流式转发至 packages/assets/vault 的内部 Go 模块。`VAULT_API_TARGET` 默认 http://127.0.0.1:3001。所有开发与生产 `/api` 流量都进入此网关；Vault 的 Go 端口不直接作为外部入口，见 [文件库模块](../../packages/assets/vault/README.md)。
 
 ## PostgreSQL 与 Redis
 
 复用已有中间件，不创建 Compose 或容器。集成检查在配置的 PostgreSQL 内创建随机独立 schema，结束后删除；Redis 只清理 synthetic 会话键。用户 apps/server/.env 配置保持不变。其他环境从 .env.example 配置连接串。
 
-业务表统一以 nm_ 开头，包括 nm_email_accounts、nm_email_messages，nm_drive_connections、nm_drive_directories、nm_drive_entries，以及 Task 的 nm_task_workspaces、nm_task_projects、nm_task_sections、nm_tasks、nm_task_subtasks。每表均有数据库自增的 BIGINT 主键 id，既有 identity 主键保持原样、TIMESTAMPTZ created_at / updated_at；其他日期字段也使用 TIMESTAMPTZ。Inbox API 将 bigint ID 序列化为十进制字符串，Task 保留现有 UUID 业务标识，数据库 bigint 主键仅用于内部存储。
+业务表统一以 nm_ 开头，包括 nm_email_accounts、nm_email_messages，以及 Task 的 nm_task_workspaces、nm_task_projects、nm_task_sections、nm_tasks、nm_task_subtasks。每表均有数据库自增的 BIGINT 主键 id，既有 identity 主键保持原样、TIMESTAMPTZ created_at / updated_at；其他日期字段也使用 TIMESTAMPTZ。Inbox API 将 bigint ID 序列化为十进制字符串，Task 保留现有 UUID 业务标识，数据库 bigint 主键仅用于内部存储。
 
 模型不定义外键、枚举、CHECK 或业务唯一约束，只有主键和普通查询索引。账号去重使用 Redis 锁；邮件去重、关联删除通过事务与账号行锁执行；updated_at 由 Prisma @updatedAt 维护。所有业务读写使用 Prisma API，迁移文件由 Prisma Migrate 生成，业务代码不手写 SQL。relationMode=prisma 支持 Inbox 关系查询且不生成数据库外键；Task UUID 关联继续由代码维护。
 
@@ -46,17 +47,16 @@ pnpm install                    # 自动生成 Prisma 客户端
 pnpm db:migrate                 # 新空库初始化；已有库见下面 baseline 步骤
 pnpm dev
 pnpm test:server                 # 无需中间件的单元检查
-pnpm test:inbox                  # 隔离 schema 的数据库 / Inbox / Task / Drive 集成检查
+pnpm test:inbox                  # 隔离 schema 的数据库 / Inbox / Task 集成检查
 pnpm db:generate                # schema 变更后重新生成实体和查询类型
 pnpm db:diff --name change      # 生成待审查迁移，不应用业务库迁移
 pnpm format:check
 pnpm lint
 pnpm build
 pnpm --filter @neozebra/server start
-pnpm --filter @neozebra/server start:worker  # 独立 Drive 队列消费者
 ```
 
-Prisma 模型与迁移在 packages/database/prisma，生成出口为 @neozebra/database；pnpm install 和 pnpm build 自动生成客户端。可以直接 import type { TaskProject, TaskProjectSelect, TaskProjectWhereInput } from '@neozebra/database'，或用 Prisma.TaskProjectGetPayload 推导选择字段/关联后的结果。业务 JSON（IMAP 游标、Drive 挂载）通过现有 Zod 校验。
+Prisma 模型与迁移在 packages/database/prisma，生成出口为 @neozebra/database；pnpm install 和 pnpm build 自动生成客户端。可以直接 import type { TaskProject, TaskProjectSelect, TaskProjectWhereInput } from '@neozebra/database'，或用 Prisma.TaskProjectGetPayload 推导选择字段/关联后的结果。业务 JSON（IMAP 游标）通过现有 Zod 校验。
 
 既有数据库首次切换时运行：
 
@@ -102,7 +102,6 @@ QQ / Foxmail：在 QQ 邮箱设置开启 IMAP 并生成授权码，在 Manage ma
 | 路由                                 | 用途                                                     |
 | ------------------------------------ | -------------------------------------------------------- |
 | GET /api/health                      | 网关健康检查                                             |
-| GET /api/assets/health               | Assets 模块健康检查                                      |
 | GET /api/inbox/accounts              | 所属账号、未读数、账号状态                               |
 | POST /api/inbox/accounts/gmail       | 验证 Gmail IMAP 应用密码并连接                           |
 | POST /api/inbox/accounts/qq          | 验证并连接 QQ / Foxmail                                  |
@@ -115,27 +114,3 @@ QQ / Foxmail：在 QQ 邮箱设置开启 IMAP 并生成授权码，在 Manage ma
 | POST /api/inbox/sync                 | 触发账号同步；可传 {force:true} 绕过自动节流             |
 
 Inbox 接口不缓存，变更请求要求同源 Origin。输入错误返回 400，未知或跨会话对象返回 404，上游错误返回安全提示，配置/存储错误返回 503；凭据与连接串不返回前端。自动化检查使用隔离数据库和 synthetic fixtures，不读取私人邮件；Gmail / QQ 新邮件的真实投递延迟取决于上游。
-
-## Drive 后台元数据同步
-
-独立入口 `src/drive-worker.ts` 消费 BullMQ 队列，Assets 模块负责目录扫描、快照发布与补偿。`pnpm dev` 启动三个进程；单独启动 API 时还需运行 `pnpm dev:worker`。生产在进程管理器中分别运行 API 和 `start:worker`，SIGTERM 会等待当前任务结束，最长 30 秒后退出，未完成分页由下次任务恢复。
-
-HTTP 列表完全走 Prisma，无需 Redis 或上游网盘在线。写请求、同步激活及远端内容仍受现有会话、Origin、根目录边界与 Redis 租约保护。活跃租约 150 秒，可见页面每 60 秒续租；当前目录 60 秒、其他目录 10 分钟，15 秒恢复扫描和队列等待可能增加实际延迟。后台两并发且每连接串行，每任务至多 10 页，失败指数退避最多 5 次，再由数据库到期任务恢复。401/403 阻止自动重试，重新授权或修改根目录会切换 metadataVersion 隐藏旧数据。
-
-目录完整扫描才在短事务内发布新 generation；分页中断保留旧快照，写操作递增 requestedRevision 防止旧扫描覆盖。旧 generation 从被替换时起至少保留 5 分钟。稳定 ID 文件夹在外部移动时更新所属父目录并重扫子树；路径 ID 重命名/移动时退役旧子树。移除连接同时清理本地元数据，不删除远端内容。
-
-集成检查 `checks/drive-sync.integration.test.ts` 验证真实 PG/Redis 消费、漏投恢复、快照和游标、写操作、授权及版本隔离。性能夹具 `checks/drive-performance.ts` 在随机独立 schema 建立一万条 synthetic 元数据，JMeter 每接口一千条正式样本，读取期间断言零上游请求。
-
-## Drive 分片上传
-
-上传使用 `nm_drive_upload_tasks` / `nm_drive_upload_parts` 保存账号任务及分片确认，业务读写均为 Prisma。任务绑定 owner、connectionId 和 metadataVersion；账号/挂载变更后旧任务停止。应用没有固定单文件容量上限，每次 HTTP 分片最多 8MiB，同时最多接收4片；还需满足网盘协议限制和实际磁盘空间。
-
-配置 `DRIVE_UPLOAD_DIRECTORY`（默认当前工作目录的 `.data/drive-uploads`）。API和Worker必须使用相同绝对路径或工作目录，并以可读写该目录的同一用户挂载持久化卷。字节以0600权限保存，先校验SHA-256、落盘及同步文件，再在事务中确认分片。不要把这个目录挂到Web静态资源或使用临时容器层，否则重启后需要重新选择原文件补传。
-
-账号的 Uploads 入口打开居中Dialog弹窗，支持多文件排队、分阶段进度、速度、暂停/续传/取消/重试。切换页面不会停止当前浏览器任务；刷新后未收齐文件需重新选择原文件并校验指纹。系统收齐后由现有独立 `src/drive-worker.ts` 的上传消费者继续向网盘传输；PG保存加密远端会话及确认片。暂停/取消在远端分片边界生效，最终提交期间禁止撤回；已完成文件不因取消被删除。磁盘不足保留可用断点，未完成任务7天过期，完成及取消后清理暂存。百度的未完成云端分片由上游回收，本应用没有删除这些临时分片的API。
-
-接口：`GET/POST /api/assets/drive/connections/:id/uploads` 分页/创建；`GET/PATCH /:uploadId` 详情/控制（action为pause/resume/cancel/retry）；`PUT /:uploadId/parts/:partNumber` 原始分片正文与 `X-Part-SHA256`；`POST /:uploadId/complete` 校验完整指纹并入队。旧整文件 POST entries 入口已替换。任务、内部路径和远端凭据不跨账号共享；上传完成仅刷新目标已加载分支。
-
-## Office 预览
-
-Drive 的 Word、Excel、PowerPoint 预览使用自托管 ONLYOFFICE Docs，后台源快照由 Drive worker 准备。数据库迁移和环境变量见 [部署说明](../../deploy/office/README.md)。API 和 worker 需共享持久的 DRIVE_PREVIEW_DIRECTORY；预览为只读，不写回原文件。PDF 与 Office 使用同一只读预览引擎。

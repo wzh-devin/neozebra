@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState } from 'react'
+import { useI18n } from '@/lib/i18n'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
 
 import {
@@ -28,6 +29,8 @@ import type {
  * @returns 规划状态和业务操作
  */
 export const useTaskPlanner = () => {
+  const { t } = useI18n()
+
   const [data, setData] = useState<TaskPlannerData>(buildEmptyPlannerData)
   const dataRef = useRef(data)
   const revisionRef = useRef<number | null>(null)
@@ -52,7 +55,7 @@ export const useTaskPlanner = () => {
    * @param 无参数
    * @returns 无返回值；更新状态，失败保留原数据
    */
-  const loadHandler = async (): Promise<void> => {
+  const loadHandler = useCallback(async (): Promise<void> => {
     if (loadingRef.current || savingRef.current) return
     loadingRef.current = true
     if (!loadedRef.current) setIsLoading(true)
@@ -60,7 +63,7 @@ export const useTaskPlanner = () => {
     try {
       const response = await getTaskPlanner()
       if (!isPlannerData(response.data))
-        throw new Error('计划响应格式无效，原数据已保留。')
+        throw new Error(t('计划响应格式无效，原数据已保留。'))
       if (!activeRef.current || generation !== generationRef.current) return
       if (revisionRef.current !== response.revision) {
         dataRef.current = response.data
@@ -76,7 +79,7 @@ export const useTaskPlanner = () => {
       setError(
         cause instanceof Error
           ? cause.message
-          : '无法读取计划，原数据已保留，请重试。',
+          : t('无法读取计划，原数据已保留，请重试。'),
       )
     } finally {
       if (activeRef.current && generation === generationRef.current) {
@@ -84,7 +87,7 @@ export const useTaskPlanner = () => {
         setIsLoading(false)
       }
     }
-  }
+  }, [t])
 
   useEffect(() => {
     activeRef.current = true
@@ -110,7 +113,7 @@ export const useTaskPlanner = () => {
       channelRef.current = null
       window.removeEventListener('focus', refreshHandler)
     }
-  }, [])
+  }, [loadHandler])
 
   useEffect(() => {
     // 跨日或恢复窗口时更新今天。
@@ -142,11 +145,11 @@ export const useTaskPlanner = () => {
       revisionRef.current === null ||
       isReadError
     ) {
-      toast.info('计划正在读取或保存，请稍后重试。')
+      toast.info(t('计划正在读取或保存，请稍后重试。'))
       return false
     }
     if (!isPlannerData(next)) {
-      toast.error('请检查标题、日期、预计用时和项目关联。')
+      toast.error(t('请检查标题、日期、预计用时和项目关联。'))
       return false
     }
     const previous = dataRef.current
@@ -155,7 +158,7 @@ export const useTaskPlanner = () => {
     try {
       const response = await saveTaskPlanner(next, revisionRef.current)
       if (!isPlannerData(response.data))
-        throw new Error('保存响应无效，请重新读取核对，草稿已保留。')
+        throw new Error(t('保存响应无效，请重新读取核对，草稿已保留。'))
       revisionRef.current = response.revision
       dataRef.current = response.data
       if (!activeRef.current) return true
@@ -172,15 +175,17 @@ export const useTaskPlanner = () => {
        */
       const undoHandler = (): void => {
         if (dataRef.current !== savedData) {
-          toast.info('已有后续更改，无法直接撤销这次操作。')
+          toast.info(t('已有后续更改，无法直接撤销这次操作。'))
           return
         }
-        void commitHandler(previous, '已撤销')
+        void commitHandler(previous, t('已撤销'))
       }
       toast.success(message, {
         id: 'task-planner-change',
         duration: allowUndo ? 12000 : 4000,
-        action: allowUndo ? { label: '撤销', onClick: undoHandler } : undefined,
+        action: allowUndo
+          ? { label: t('撤销'), onClick: undoHandler }
+          : undefined,
       })
       return true
     } catch (cause) {
@@ -188,7 +193,7 @@ export const useTaskPlanner = () => {
       const message =
         cause instanceof Error
           ? cause.message
-          : '保存未确认，请重新读取核对；草稿已保留。'
+          : t('保存未确认，请重新读取核对；草稿已保留。')
       setError(message)
       toast.error(message)
       if (cause instanceof TaskRequestError && cause.status === 409) {
@@ -220,7 +225,7 @@ export const useTaskPlanner = () => {
             )
           : [...current.taskList, task],
       },
-      exists ? '任务已保存' : '任务已添加',
+      exists ? t('任务已保存') : t('任务已添加'),
     )
   }
 
@@ -259,7 +264,7 @@ export const useTaskPlanner = () => {
           entry.id === id ? { ...entry, ...dates } : entry,
         ),
       },
-      '任务日期已调整',
+      t('任务日期已调整'),
       true,
     )
   }
@@ -294,7 +299,9 @@ export const useTaskPlanner = () => {
           entry.id === id ? next : entry,
         ),
       },
-      next.status === 'completed' ? '做得好，又完成了一项' : '任务已重新打开',
+      next.status === 'completed'
+        ? t('做得好，又完成了一项')
+        : t('任务已重新打开'),
       true,
     )
     if (saved) setPendingCompletionId(null)
@@ -313,7 +320,7 @@ export const useTaskPlanner = () => {
         ...dataRef.current,
         taskList: dataRef.current.taskList.filter((task) => task.id !== id),
       },
-      '任务已删除',
+      t('任务已删除'),
       true,
     )
 
@@ -334,7 +341,7 @@ export const useTaskPlanner = () => {
     if (next !== dataRef.current.taskList)
       return commitHandler(
         { ...dataRef.current, taskList: next },
-        '顺序已调整',
+        t('顺序已调整'),
         true,
       )
     return false
@@ -358,7 +365,7 @@ export const useTaskPlanner = () => {
             )
           : [...current.projectList, project],
       },
-      '项目已保存',
+      t('项目已保存'),
     )
   }
 
@@ -375,7 +382,7 @@ export const useTaskPlanner = () => {
   ): Promise<boolean> =>
     commitHandler(
       removeProject(dataRef.current, id, deleteTasks),
-      '项目已删除',
+      t('项目已删除'),
       true,
     )
 
@@ -397,7 +404,7 @@ export const useTaskPlanner = () => {
             )
           : [...current.sectionList, section],
       },
-      '阶段已保存',
+      t('阶段已保存'),
     )
   }
 
@@ -430,7 +437,7 @@ export const useTaskPlanner = () => {
     ]
     await commitHandler(
       { ...current, sectionList: next },
-      '阶段顺序已调整',
+      t('阶段顺序已调整'),
       true,
     )
   }

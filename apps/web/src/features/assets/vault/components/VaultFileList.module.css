@@ -1,0 +1,214 @@
+.table {
+  min-width: 640px;
+  table-layout: fixed;
+}
+.typeColumn {
+  width: 18%;
+}
+.sizeColumn {
+  width: 12%;
+}
+.dateColumn {
+  width: 26%;
+}
+.actionColumn {
+  width: 44px;
+}
+.table th,
+.table td {
+  padding: 2px 16px;
+}
+.table th:first-child,
+.table td:first-child {
+  padding-left: 20px;
+}
+.table th:last-child,
+.table td:last-child {
+  padding-inline: 8px;
+  text-align: right;
+}
+.table th {
+  height: 36px;
+  color: var(--muted-foreground);
+  background: var(--muted);
+  font-size: 12px;
+  font-weight: 500;
+}
+.table tr {
+  border-color: var(--border);
+}
+.row {
+  height: 40px;
+  cursor: grab;
+  transition: background-color 140ms ease-out;
+}
+.row:hover,
+.row:focus-within,
+.row[data-state='open'],
+.row:has(.more[aria-expanded='true']) {
+  background: var(--secondary);
+}
+.row[data-located] {
+  background: var(--accent);
+}
+.row[data-located] .name {
+  font-weight: 500;
+}
+.entry {
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  min-height: 36px;
+  align-items: center;
+  gap: 10px;
+  border: 0;
+  padding: 0;
+  color: var(--foreground);
+  background: transparent;
+  text-align: left;
+}
+.entry:focus-visible {
+  border-radius: 4px;
+  outline: 1px solid var(--ring);
+  outline-offset: 1px;
+}
+.icon {
+  width: 16px;
+  height: 18px;
+  flex-shrink: 0;
+}
+.copy {
+  flex: 1;
+  min-width: 0;
+}
+.name,
+.meta {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.name {
+  display: block;
+  font-size: 13px;
+  font-weight: 450;
+  line-height: 22px;
+}
+.meta,
+.size,
+.date {
+  color: var(--muted-foreground);
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 18px;
+}
+.size,
+.date {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.more {
+  width: 28px;
+  height: 28px;
+  color: var(--muted-foreground);
+  opacity: 0;
+}
+.row:hover .more,
+.row:focus-within .more,
+.more[aria-expanded='true'] {
+  opacity: 1;
+}
+.row[data-dragging] {
+  opacity: 0.45;
+  cursor: grabbing;
+}
+.row[data-trash] {
+  cursor: default;
+}
+.row[data-trash] .more {
+  opacity: 1;
+}
+.row.dropTarget {
+  background: var(--accent);
+}
+.list {
+  display: grid;
+  width: 100%;
+  grid-template-columns: repeat(auto-fill, minmax(144px, 1fr));
+  align-content: start;
+  gap: 12px;
+  margin: 0;
+  padding: 4px 12px;
+  list-style: none;
+}
+.list .row {
+  position: relative;
+  height: auto;
+  min-width: 0;
+  padding: 8px;
+  border-radius: 6px;
+}
+.list .entry {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+}
+.list .copy {
+  display: flex;
+  flex: initial;
+  flex-direction: column;
+  gap: 2px;
+  padding-inline: 2px 24px;
+}
+.list .name {
+  line-height: 20px;
+}
+.list .meta {
+  font-size: 11px;
+  line-height: 16px;
+}
+.list .more {
+  position: absolute;
+  right: 6px;
+  bottom: 8px;
+}
+@media (max-width: 767px) {
+  .table th:first-child,
+  .table td:first-child {
+    padding-left: 16px;
+  }
+  .actionColumn {
+    width: 60px;
+  }
+  .row {
+    height: 48px;
+  }
+  .entry {
+    min-height: 44px;
+  }
+  .more {
+    width: 44px;
+    height: 44px;
+    opacity: 1;
+  }
+  .list {
+    grid-template-columns: repeat(auto-fill, minmax(132px, 1fr));
+    gap: 8px;
+  }
+  .list .copy {
+    padding-right: 32px;
+  }
+  .list .more {
+    right: 2px;
+    bottom: 4px;
+  }
+}
+@media (hover: none) {
+  .more {
+    opacity: 1;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .row {
+    transition: none;
+  }
+}

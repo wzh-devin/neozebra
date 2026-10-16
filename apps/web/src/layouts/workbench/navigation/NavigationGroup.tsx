@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react'
+import { useI18n } from '@/lib/i18n'
 import { ChevronDown } from 'lucide-react'
 
 import {
@@ -31,6 +32,7 @@ type NavigationGroupProps = {
  * @returns 导航分组 JSX
  */
 const NavigationGroup = ({ group, onNavigate }: NavigationGroupProps) => {
+  const { t } = useI18n()
   const [isOpen, setIsOpen] = useState(true)
   const triggerRef = useRef<HTMLButtonElement | null>(null)
   const { state, isMobile } = useSidebar()
@@ -58,11 +60,11 @@ const NavigationGroup = ({ group, onNavigate }: NavigationGroupProps) => {
                 <SidebarMenuButton
                   ref={triggerRef}
                   type="button"
-                  aria-label={group.label}
+                  aria-label={t(group.label)}
                   className={`${styles['sidebar-nav-button']} ${styles['group-trigger']}`}
                 >
                   <Icon aria-hidden="true" />
-                  <span>{group.label}</span>
+                  <span>{t(group.label)}</span>
                   <ChevronDown
                     className={styles['group-chevron']}
                     aria-hidden="true"
@@ -71,7 +73,7 @@ const NavigationGroup = ({ group, onNavigate }: NavigationGroupProps) => {
               </CollapsibleTrigger>
             ) : (
               <CollapsedNavigationGroup
-                label={group.label}
+                label={t(group.label)}
                 icon={Icon}
                 items={group.children}
                 triggerRef={triggerRef}
@@ -83,7 +85,7 @@ const NavigationGroup = ({ group, onNavigate }: NavigationGroupProps) => {
                 items={group.children}
                 onNavigate={onNavigate}
                 variant="submenu"
-                label={`${group.label} submenu`}
+                label={t('{0} 子菜单', t(group.label))}
               />
             </CollapsibleContent>
           </SidebarMenuItem>

@@ -1,5 +1,7 @@
 'use client'
 
+import { t } from '@/lib/i18n'
+
 // Kibo UI Gantt: https://www.kibo-ui.com/r/gantt.json (MIT).
 // Local integration: locale, responsive sidebar, calendar-accurate drag and cancellation.
 
@@ -311,7 +313,11 @@ const DailyHeader: FC = () => {
           <GanttContentHeader
             columns={month.days}
             renderHeaderItem={renderDay}
-            title={format(start, 'yyyy年M月', { locale: gantt.locale })}
+            title={format(
+              start,
+              gantt.locale?.code === 'zh-CN' ? 'yyyy年M月' : 'MMMM yyyy',
+              { locale: gantt.locale },
+            )}
           />
           <GanttColumns columns={month.days} isColumnSecondary={isWeekend} />
         </div>
@@ -453,7 +459,11 @@ const WeeklyHeader: FC = () => {
         const date = addDays(week.start, item)
         return (
           <p
-            title={format(date, 'yyyy年M月d日 EEEE', { locale: gantt.locale })}
+            title={format(
+              date,
+              gantt.locale?.code === 'zh-CN' ? 'yyyy年M月d日 EEEE' : 'PPPP',
+              { locale: gantt.locale },
+            )}
           >
             {date.getDate()}
           </p>
@@ -463,7 +473,7 @@ const WeeklyHeader: FC = () => {
       // 判断周内日期是否为周末。
       const isWeekend = (item: number) =>
         [0, 6].includes(addDays(week.start, item).getDay())
-      const title = `${format(week.start, 'M月d日')}—${format(addDays(week.start, week.days - 1), 'M月d日')}`
+      const title = `${format(week.start, gantt.locale?.code === 'zh-CN' ? 'M月d日' : 'MMM d', { locale: gantt.locale })}—${format(addDays(week.start, week.days - 1), gantt.locale?.code === 'zh-CN' ? 'M月d日' : 'MMM d', { locale: gantt.locale })}`
       return (
         <div
           className="relative flex shrink-0 flex-col"
@@ -927,7 +937,7 @@ export const GanttFeatureDragHelper: FC<GanttFeatureDragHelperProps> = ({
       ref={setNodeRef}
       {...attributes}
       {...listeners}
-      aria-label={direction === 'left' ? '调整计划日期' : '调整截止日期'}
+      aria-label={t(direction === 'left' ? '调整计划日期' : '调整截止日期')}
       tabIndex={-1}
       style={{ touchAction: 'none' }}
     >
@@ -985,7 +995,7 @@ export const GanttFeatureItemCard: FC<GanttFeatureItemCardProps> = ({
       <button
         type="button"
         onClick={onSelect}
-        aria-label={name ? `编辑任务：${name}` : '编辑任务'}
+        aria-label={name ? t('编辑任务：{0}', name) : t('编辑任务')}
         className={cn(
           'flex h-full w-full items-center justify-between gap-2 text-left',
           isPressed && 'cursor-grabbing',

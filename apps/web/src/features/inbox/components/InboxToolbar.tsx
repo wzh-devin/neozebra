@@ -1,3 +1,4 @@
+import { useI18n } from '@/lib/i18n'
 import { useState, type ChangeEvent, type KeyboardEvent } from 'react'
 import {
   Archive,
@@ -75,6 +76,8 @@ const InboxToolbar = ({
   isSyncing,
   isMutating,
 }: InboxToolbarProps) => {
+  const { t } = useI18n()
+
   const { isMobile, state } = useSidebar()
   const [isSearchOpen, setIsSearchOpen] = useState(false)
 
@@ -115,14 +118,14 @@ const InboxToolbar = ({
       <header className={styles['toolbar']}>
         <div className={styles['title-cluster']}>
           {isMobile || state === 'collapsed' ? (
-            <SidebarTrigger aria-label="Expand sidebar" />
+            <SidebarTrigger aria-label={t('Expand sidebar')} />
           ) : null}
           <Inbox aria-hidden="true" className={styles['title-icon']} />
-          <h1>Inbox</h1>
+          <h1>{t('Inbox')}</h1>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
-                aria-label="More inbox actions"
+                aria-label={t('More inbox actions')}
                 className={styles['icon-button']}
                 size="icon-sm"
                 variant="ghost"
@@ -133,18 +136,18 @@ const InboxToolbar = ({
             <DropdownMenuContent align="start" className={styles['menu']}>
               <DropdownMenuItem onSelect={openAccountsHandler}>
                 <Settings2 aria-hidden="true" />
-                Manage mailboxes
+                {t('Manage mailboxes')}
               </DropdownMenuItem>
               <DropdownMenuItem
                 disabled={!unreadCount || isMutating}
                 onSelect={markAllReadHandler}
               >
                 <CheckCheck aria-hidden="true" />
-                Mark all as read
+                {t('Mark all as read')}
               </DropdownMenuItem>
               <DropdownMenuItem onSelect={resetFiltersHandler}>
                 <RotateCcw aria-hidden="true" />
-                Reset filters
+                {t('Reset filters')}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -153,7 +156,7 @@ const InboxToolbar = ({
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
-                aria-label="Sync mailboxes"
+                aria-label={t('Sync mailboxes')}
                 aria-busy={isSyncing}
                 className={styles['icon-button']}
                 onClick={refreshClickHandler}
@@ -166,12 +169,12 @@ const InboxToolbar = ({
                 />
               </Button>
             </TooltipTrigger>
-            <TooltipContent>Sync mailboxes</TooltipContent>
+            <TooltipContent>{t('Sync mailboxes')}</TooltipContent>
           </Tooltip>
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
-                aria-label="Search inbox"
+                aria-label={t('Search inbox')}
                 aria-expanded={isSearchOpen}
                 className={styles['icon-button']}
                 onClick={openSearchHandler}
@@ -181,12 +184,12 @@ const InboxToolbar = ({
                 <Search aria-hidden="true" />
               </Button>
             </TooltipTrigger>
-            <TooltipContent>Search inbox</TooltipContent>
+            <TooltipContent>{t('Search inbox')}</TooltipContent>
           </Tooltip>
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
-                aria-label="Show archived messages"
+                aria-label={t('Show archived messages')}
                 aria-pressed={activeTab === 'archived'}
                 className={styles['icon-button']}
                 onClick={showArchiveHandler}
@@ -196,12 +199,12 @@ const InboxToolbar = ({
                 <Archive aria-hidden="true" />
               </Button>
             </TooltipTrigger>
-            <TooltipContent>Archived messages</TooltipContent>
+            <TooltipContent>{t('Archived messages')}</TooltipContent>
           </Tooltip>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
-                aria-label="Filter inbox"
+                aria-label={t('Filter inbox')}
                 className={styles['icon-button']}
                 data-active={activeTab !== 'all'}
                 size="icon-sm"
@@ -211,19 +214,19 @@ const InboxToolbar = ({
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className={styles['menu']}>
-              <DropdownMenuLabel>Messages</DropdownMenuLabel>
+              <DropdownMenuLabel>{t('Messages')}</DropdownMenuLabel>
               <DropdownMenuRadioGroup
                 value={activeTab}
                 onValueChange={tabChangeHandler}
               >
                 <DropdownMenuRadioItem value="all">
-                  All messages
+                  {t('All messages')}
                 </DropdownMenuRadioItem>
                 <DropdownMenuRadioItem value="unread">
-                  Unread
+                  {t('Unread')}
                 </DropdownMenuRadioItem>
                 <DropdownMenuRadioItem value="archived">
-                  Archived
+                  {t('Archived')}
                 </DropdownMenuRadioItem>
               </DropdownMenuRadioGroup>
             </DropdownMenuContent>
@@ -231,7 +234,7 @@ const InboxToolbar = ({
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
-                aria-label="Filter message sources"
+                aria-label={t('Filter message sources')}
                 className={styles['icon-button']}
                 data-active={source !== 'all'}
                 size="icon-sm"
@@ -241,23 +244,23 @@ const InboxToolbar = ({
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className={styles['menu']}>
-              <DropdownMenuLabel>Sources</DropdownMenuLabel>
+              <DropdownMenuLabel>{t('Sources')}</DropdownMenuLabel>
               <DropdownMenuRadioGroup
                 value={source}
                 onValueChange={sourceChangeHandler}
               >
                 <DropdownMenuRadioItem value="all">
-                  All messages
+                  {t('All messages')}
                 </DropdownMenuRadioItem>
                 <DropdownMenuRadioItem value="email">
-                  All email
+                  {t('All email')}
                 </DropdownMenuRadioItem>
                 <DropdownMenuRadioItem
                   value="system"
                   disabled
-                  title="Not available yet"
+                  title={t('Not available yet')}
                 >
-                  System notifications
+                  {t('System notifications')}
                 </DropdownMenuRadioItem>
                 {accountList.map((account) => (
                   <DropdownMenuRadioItem key={account.id} value={account.id}>
@@ -267,7 +270,8 @@ const InboxToolbar = ({
               </DropdownMenuRadioGroup>
               <DropdownMenuSeparator />
               <DropdownMenuLabel>
-                {unreadCount} unread messages
+                {unreadCount}
+                {t('unread messages')}
               </DropdownMenuLabel>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -277,16 +281,16 @@ const InboxToolbar = ({
         <div className={styles['search-bar']}>
           <Search aria-hidden="true" />
           <Input
-            aria-label="Search messages"
+            aria-label={t('Search messages')}
             autoFocus
             className={styles['search-input']}
             onChange={searchChangeHandler}
             onKeyDown={searchKeyDownHandler}
-            placeholder="Search inbox…"
+            placeholder={t('Search inbox…')}
             value={query}
           />
           <Button
-            aria-label="Close search"
+            aria-label={t('Close search')}
             onClick={closeSearchHandler}
             size="icon-sm"
             variant="ghost"

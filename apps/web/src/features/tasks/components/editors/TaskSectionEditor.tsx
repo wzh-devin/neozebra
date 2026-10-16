@@ -1,3 +1,4 @@
+import { useI18n } from '@/lib/i18n'
 import { Pencil, Plus } from 'lucide-react'
 import { useState, type ChangeEvent, type FormEvent } from 'react'
 import { Button } from '@/components/ui/button'
@@ -24,6 +25,8 @@ export const TaskSectionEditor = ({
   projectId: string
   section?: TaskSection
 }) => {
+  const { t } = useI18n()
+
   const { saveSectionHandler, isSaving } = useTaskPlannerContext()
   const [open, setOpen] = useState(false)
   const [title, setTitle] = useState(section?.title ?? '')
@@ -60,14 +63,16 @@ export const TaskSectionEditor = ({
         <Button
           variant="ghost"
           size={section ? 'icon-sm' : 'sm'}
-          aria-label={section ? `重命名阶段：${section.title}` : '添加阶段'}
+          aria-label={
+            section ? t('重命名阶段：{0}', section.title) : t('添加阶段')
+          }
         >
           {section ? (
             <Pencil aria-hidden="true" />
           ) : (
             <>
               <Plus aria-hidden="true" />
-              添加阶段
+              {t('添加阶段')}
             </>
           )}
         </Button>
@@ -75,20 +80,20 @@ export const TaskSectionEditor = ({
       <PopoverContent align="end" className={surfaceStyles.surface}>
         <form onSubmit={submitHandler} className="flex flex-col gap-3">
           <p className="text-sm font-medium">
-            {section ? '重命名阶段' : '添加项目阶段'}
+            {section ? t('重命名阶段') : t('添加项目阶段')}
           </p>
           <Input
-            aria-label="阶段名称"
+            aria-label={t('阶段名称')}
             disabled={isSaving}
             autoFocus
             value={title}
             maxLength={80}
             onChange={titleChangeHandler}
-            placeholder="例如：需求梳理"
+            placeholder={t('例如：需求梳理')}
             required
           />
           <Button type="submit" size="sm" disabled={isSaving}>
-            保存阶段
+            {t('保存阶段')}
           </Button>
         </form>
       </PopoverContent>

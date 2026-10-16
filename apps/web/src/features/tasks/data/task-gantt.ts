@@ -1,3 +1,4 @@
+import { t } from '@/lib/i18n'
 import {
   addDays,
   getLocalDate,
@@ -58,14 +59,14 @@ export const getTaskGanttGroupList = (
   [
     ...projectList.map((project) => ({
       id: project.id,
-      name: project.name + (project.archived ? ' · 已归档' : ''),
+      name: project.name + (project.archived ? ' ' + t('· 已归档') : ''),
       entryList: entryList.filter(
         (entry) => entry.task.projectId === project.id,
       ),
     })),
     {
       id: 'personal',
-      name: '个人任务',
+      name: t('个人任务'),
       entryList: entryList.filter((entry) => !entry.task.projectId),
     },
   ].filter((group) => group.entryList.length > 0)

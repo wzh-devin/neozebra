@@ -1,3 +1,4 @@
+import { useI18n } from '@/lib/i18n'
 import { ArrowDown, ArrowLeft, ArrowUp, Settings2 } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
@@ -27,6 +28,8 @@ export const TaskProjectView = ({
   project: TaskProject
   onEdit: (project: TaskProject | null) => void
 }) => {
+  const { t } = useI18n()
+
   const { data, today, moveSectionHandler } = useTaskPlannerContext()
   const taskList = data.taskList.filter((task) => task.projectId === project.id)
   const sectionList = data.sectionList.filter(
@@ -70,7 +73,7 @@ export const TaskProjectView = ({
             <Button
               variant="ghost"
               size="icon-sm"
-              aria-label={`上移阶段：${section.title}`}
+              aria-label={t('上移阶段：{0}', section.title)}
               onClick={upHandler}
               disabled={index === 0}
             >
@@ -79,7 +82,7 @@ export const TaskProjectView = ({
             <Button
               variant="ghost"
               size="icon-sm"
-              aria-label={`下移阶段：${section.title}`}
+              aria-label={t('下移阶段：{0}', section.title)}
               onClick={downHandler}
               disabled={index === sectionList.length - 1}
             >
@@ -100,7 +103,7 @@ export const TaskProjectView = ({
       <Button asChild variant="ghost" size="sm" className={styles.back}>
         <Link to="/task/projects">
           <ArrowLeft aria-hidden="true" />
-          我的项目
+          {t('我的项目')}
         </Link>
       </Button>
       <header className={styles.projectHeading}>
@@ -108,42 +111,48 @@ export const TaskProjectView = ({
         <div>
           <h1>{project.name}</h1>
           {project.archived ? (
-            <Badge variant="outline">已归档</Badge>
+            <Badge variant="outline">{t('已归档')}</Badge>
           ) : (
-            <span>项目规划</span>
+            <span>{t('项目规划')}</span>
           )}
         </div>
         <Button variant="outline" size="sm" onClick={editHandler}>
           <Settings2 aria-hidden="true" />
-          项目设置
+          {t('项目设置')}
         </Button>
       </header>
       <p className={styles.goal}>
-        {project.description || '为这个项目写下目标，让每一步都有方向。'}
+        {project.description || t('为这个项目写下目标，让每一步都有方向。')}
       </p>
       <div className={styles.summary}>
         <span>
-          {done}/{taskList.length} 已完成
+          {done}/{taskList.length}
+          {t('已完成')}
         </span>
-        <span>剩余已估时 {formatMinutes(estimate)}</span>
+        <span>
+          {t('剩余已估时')} {formatMinutes(estimate)}
+        </span>
         {project.deadlineDate ? (
-          <span>{formatTaskDate(project.deadlineDate, today)}截止</span>
+          <span>
+            {formatTaskDate(project.deadlineDate, today)}
+            {t('截止')}
+          </span>
         ) : null}
       </div>
       <Progress
         className={styles.projectProgress}
         value={taskList.length ? (done / taskList.length) * 100 : 0}
-        aria-label="项目完成进度"
+        aria-label={t('项目完成进度')}
       />
       <div className={styles.stageHeading}>
-        <h2>拆解计划</h2>
+        <h2>{t('拆解计划')}</h2>
         <TaskSectionEditor projectId={project.id} />
       </div>
       {sectionList.map(renderSection)}
       {taskList.some((task) => task.sectionId === null) ||
       !sectionList.length ? (
         <TaskGroup
-          title={sectionList.length ? '未分阶段' : '任务清单'}
+          title={sectionList.length ? t('未分阶段') : t('任务清单')}
           taskList={taskList.filter((task) => task.sectionId === null)}
           projectId={project.id}
           quickAdd

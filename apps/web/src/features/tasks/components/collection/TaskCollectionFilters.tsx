@@ -1,3 +1,4 @@
+import { useI18n } from '@/lib/i18n'
 import { Search, SlidersHorizontal, X } from 'lucide-react'
 import { useRef, type ChangeEvent } from 'react'
 import { Badge } from '@/components/ui/badge'
@@ -50,6 +51,8 @@ export const TaskCollectionFilters = ({
   onChange,
   onReset,
 }: Props) => {
+  const { t } = useI18n()
+
   const queryInputRef = useRef<HTMLInputElement>(null)
   const projectTriggerRef = useRef<HTMLButtonElement>(null)
   const filterCount =
@@ -106,8 +109,10 @@ export const TaskCollectionFilters = ({
           <Button
             variant="ghost"
             size="icon-sm"
-            aria-label="搜索任务"
-            title={filters.query ? `搜索任务：${filters.query}` : '搜索任务'}
+            aria-label={t('搜索任务')}
+            title={
+              filters.query ? t('搜索任务：{0}', filters.query) : t('搜索任务')
+            }
             data-active={!!filters.query}
           >
             <Search aria-hidden="true" />
@@ -116,15 +121,15 @@ export const TaskCollectionFilters = ({
         <PopoverContent
           align="end"
           className={`${surfaceStyles.surface} ${styles.searchPopover}`}
-          aria-label="搜索任务面板"
+          aria-label={t('搜索任务面板')}
         >
           <div className={styles.search}>
             <Search aria-hidden="true" />
             <Input
               ref={queryInputRef}
               type="search"
-              placeholder="搜索任务…"
-              aria-label="搜索任务"
+              placeholder={t('搜索任务…')}
+              aria-label={t('搜索任务')}
               value={filters.query}
               onChange={queryChangeHandler}
             />
@@ -133,7 +138,7 @@ export const TaskCollectionFilters = ({
                 variant="ghost"
                 size="icon-sm"
                 onClick={clearQueryHandler}
-                aria-label="清除搜索"
+                aria-label={t('清除搜索')}
               >
                 <X aria-hidden="true" />
               </Button>
@@ -146,11 +151,11 @@ export const TaskCollectionFilters = ({
           <Button
             variant="ghost"
             size="sm"
-            aria-label="筛选任务"
+            aria-label={t('筛选任务')}
             data-active={filterCount > 0}
           >
             <SlidersHorizontal aria-hidden="true" />
-            筛选
+            {t('筛选')}
             {filterCount ? (
               <Badge variant="secondary">{filterCount}</Badge>
             ) : null}
@@ -159,10 +164,10 @@ export const TaskCollectionFilters = ({
         <PopoverContent
           align="end"
           className={`${surfaceStyles.surface} ${styles.popover}`}
-          aria-label="任务筛选"
+          aria-label={t('任务筛选')}
         >
           <div className={styles.field}>
-            <Label htmlFor="task-project-filter">项目</Label>
+            <Label htmlFor="task-project-filter">{t('项目')}</Label>
             <Select
               value={filters.project}
               onValueChange={projectChangeHandler}
@@ -170,7 +175,7 @@ export const TaskCollectionFilters = ({
               <SelectTrigger
                 ref={projectTriggerRef}
                 id="task-project-filter"
-                aria-label="筛选项目"
+                aria-label={t('筛选项目')}
               >
                 <SelectValue />
               </SelectTrigger>
@@ -180,7 +185,7 @@ export const TaskCollectionFilters = ({
                 align="start"
                 sideOffset={6}
               >
-                <SelectItem value="all">全部项目</SelectItem>
+                <SelectItem value="all">{t('全部项目')}</SelectItem>
                 {projectList.map((project) => (
                   <SelectItem key={project.id} value={project.id}>
                     {project.name}
@@ -191,12 +196,15 @@ export const TaskCollectionFilters = ({
           </div>
           {!completed ? (
             <div className={styles.field}>
-              <Label htmlFor="task-status-filter">状态</Label>
+              <Label htmlFor="task-status-filter">{t('状态')}</Label>
               <Select
                 value={filters.status}
                 onValueChange={statusChangeHandler}
               >
-                <SelectTrigger id="task-status-filter" aria-label="筛选状态">
+                <SelectTrigger
+                  id="task-status-filter"
+                  aria-label={t('筛选状态')}
+                >
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent
@@ -205,10 +213,10 @@ export const TaskCollectionFilters = ({
                   align="start"
                   sideOffset={6}
                 >
-                  <SelectItem value="all">全部状态</SelectItem>
+                  <SelectItem value="all">{t('全部状态')}</SelectItem>
                   {Object.entries(statusLabelRecord).map(([value, label]) => (
                     <SelectItem key={value} value={value}>
-                      {label}
+                      {t(label)}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -216,7 +224,7 @@ export const TaskCollectionFilters = ({
             </div>
           ) : null}
           <div className={styles.field}>
-            <Label htmlFor="task-priority-filter">优先级</Label>
+            <Label htmlFor="task-priority-filter">{t('优先级')}</Label>
             <Select
               value={filters.priority}
               onValueChange={priorityChangeHandler}
@@ -230,17 +238,17 @@ export const TaskCollectionFilters = ({
                 align="start"
                 sideOffset={6}
               >
-                <SelectItem value="all">全部优先级</SelectItem>
+                <SelectItem value="all">{t('全部优先级')}</SelectItem>
                 {Object.entries(priorityLabelRecord).map(([value, label]) => (
                   <SelectItem key={value} value={value}>
-                    {label}
+                    {t(label)}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
           <div className={styles.field}>
-            <Label htmlFor="task-label-filter">标签</Label>
+            <Label htmlFor="task-label-filter">{t('标签')}</Label>
             <Select
               value={filters.label === null ? 'all' : `label:${filters.label}`}
               onValueChange={labelChangeHandler}
@@ -254,7 +262,7 @@ export const TaskCollectionFilters = ({
                 align="start"
                 sideOffset={6}
               >
-                <SelectItem value="all">全部标签</SelectItem>
+                <SelectItem value="all">{t('全部标签')}</SelectItem>
                 {labelList.map((label) => (
                   <SelectItem key={label} value={`label:${label}`}>
                     {label}
@@ -266,7 +274,7 @@ export const TaskCollectionFilters = ({
           {!completed ? (
             <>
               <div className={styles.field}>
-                <Label htmlFor="task-schedule-filter">安排</Label>
+                <Label htmlFor="task-schedule-filter">{t('安排')}</Label>
                 <Select
                   value={filters.schedule}
                   onValueChange={scheduleChangeHandler}
@@ -280,13 +288,13 @@ export const TaskCollectionFilters = ({
                     align="start"
                     sideOffset={6}
                   >
-                    <SelectItem value="all">全部安排</SelectItem>
-                    <SelectItem value="unscheduled">尚未安排</SelectItem>
+                    <SelectItem value="all">{t('全部安排')}</SelectItem>
+                    <SelectItem value="unscheduled">{t('尚未安排')}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               <div className={styles.field}>
-                <Label htmlFor="task-sort-filter">排序</Label>
+                <Label htmlFor="task-sort-filter">{t('排序')}</Label>
                 <Select value={filters.sort} onValueChange={sortChangeHandler}>
                   <SelectTrigger id="task-sort-filter">
                     <SelectValue />
@@ -297,9 +305,9 @@ export const TaskCollectionFilters = ({
                     align="start"
                     sideOffset={6}
                   >
-                    <SelectItem value="manual">手动顺序</SelectItem>
-                    <SelectItem value="priority">优先级</SelectItem>
-                    <SelectItem value="deadline">截止日期</SelectItem>
+                    <SelectItem value="manual">{t('手动顺序')}</SelectItem>
+                    <SelectItem value="priority">{t('优先级')}</SelectItem>
+                    <SelectItem value="deadline">{t('截止日期')}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -311,10 +319,10 @@ export const TaskCollectionFilters = ({
               size="sm"
               className={styles.reset}
               onClick={resetFiltersHandler}
-              aria-label="清除全部筛选"
+              aria-label={t('清除全部筛选')}
             >
               <X aria-hidden="true" />
-              清除全部筛选
+              {t('清除全部筛选')}
             </Button>
           ) : null}
         </PopoverContent>

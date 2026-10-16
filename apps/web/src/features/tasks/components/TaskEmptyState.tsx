@@ -1,3 +1,4 @@
+import { useI18n } from '@/lib/i18n'
 import { ListTodo } from 'lucide-react'
 import {
   Empty,
@@ -20,14 +21,16 @@ export const TaskEmptyState = ({
   title?: string
   description?: string
 }) => {
+  const { t } = useI18n()
+
   return (
     <Empty className="min-h-48">
       <EmptyHeader>
         <EmptyMedia variant="icon">
           <ListTodo aria-hidden="true" />
         </EmptyMedia>
-        <EmptyTitle>{title}</EmptyTitle>
-        <EmptyDescription>{description}</EmptyDescription>
+        <EmptyTitle>{t(title)}</EmptyTitle>
+        <EmptyDescription>{t(description)}</EmptyDescription>
       </EmptyHeader>
     </Empty>
   )

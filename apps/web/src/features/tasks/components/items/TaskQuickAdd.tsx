@@ -1,3 +1,4 @@
+import { useI18n } from '@/lib/i18n'
 import { Plus } from 'lucide-react'
 import {
   useState,
@@ -26,6 +27,8 @@ export const TaskQuickAdd = ({
   projectId?: string | null
   sectionId?: string | null
 }) => {
+  const { t } = useI18n()
+
   const { saveTaskHandler, isReadError, isSaving } = useTaskPlannerContext()
   const [title, setTitle] = useState('')
 
@@ -60,8 +63,8 @@ export const TaskQuickAdd = ({
     <form className={styles.quickAdd} onSubmit={submitHandler}>
       <Plus aria-hidden="true" />
       <Input
-        aria-label="快速添加任务"
-        placeholder="添加任务，按 Enter 保存…"
+        aria-label={t('快速添加任务')}
+        placeholder={t('添加任务，按 Enter 保存…')}
         maxLength={200}
         value={title}
         onChange={titleChangeHandler}
@@ -74,7 +77,7 @@ export const TaskQuickAdd = ({
         variant="ghost"
         disabled={!title.trim() || isReadError || isSaving}
       >
-        添加
+        {t('添加')}
       </Button>
     </form>
   )

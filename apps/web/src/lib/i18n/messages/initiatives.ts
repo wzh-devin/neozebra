@@ -1,0 +1,23 @@
+const initiativesMessages = {
+  活跃项目数量: 'Active project counts',
+  进展正常: 'On track',
+  存在风险: 'At risk',
+  偏离计划: 'Off track',
+  活跃度上升: 'Improving activity',
+  目标: 'Target',
+  健康度: 'Health',
+  活跃项目: 'Active projects',
+  活跃度: 'Activity',
+  当前视图没有计划: 'No initiatives in this view',
+  新建计划功能即将开放: 'Create initiative is ready for the next step',
+  战略计划: 'Initiatives',
+  命令菜单: 'Command menu',
+  添加计划: 'Add initiative',
+  活跃: 'Active',
+  已规划: 'Planned',
+  全部计划: 'All initiatives',
+  当前显示本地模拟数据: 'Showing synthetic workspace data',
+  按: 'Press',
+  可收起侧栏: 'to collapse sidebar',
+} satisfies Record<string, string>
+export { initiativesMessages }

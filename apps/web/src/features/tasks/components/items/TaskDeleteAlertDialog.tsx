@@ -1,3 +1,4 @@
+import { useI18n } from '@/lib/i18n'
 import { Trash2 } from 'lucide-react'
 import { useState, type MouseEvent } from 'react'
 
@@ -32,6 +33,8 @@ const TaskDeleteAlertDialog = ({
   task,
   deleteTaskHandler,
 }: TaskDeleteAlertDialogProps) => {
+  const { t } = useI18n()
+
   const [open, setOpen] = useState(false)
   const { isSaving } = useTaskPlannerContext()
 
@@ -57,7 +60,7 @@ const TaskDeleteAlertDialog = ({
     <AlertDialog open={open} onOpenChange={openChangeHandler}>
       <AlertDialogTrigger asChild>
         <Button
-          aria-label={`删除任务：${task.title}`}
+          aria-label={t('删除任务：{0}', task.title)}
           size="icon-sm"
           variant="ghost"
         >
@@ -66,19 +69,22 @@ const TaskDeleteAlertDialog = ({
       </AlertDialogTrigger>
       <AlertDialogContent className={surfaceStyles.surface}>
         <AlertDialogHeader>
-          <AlertDialogTitle>删除这个任务？</AlertDialogTitle>
+          <AlertDialogTitle>{t('删除这个任务？')}</AlertDialogTitle>
           <AlertDialogDescription>
-            将删除“{task.title}”及其步骤。你可以通过操作提示撤销最近一次删除。
+            {t(
+              '将删除“{0}”及其步骤。你可以通过操作提示撤销最近一次删除。',
+              task.title,
+            )}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel disabled={isSaving}>取消</AlertDialogCancel>
+          <AlertDialogCancel disabled={isSaving}>{t('取消')}</AlertDialogCancel>
           <AlertDialogAction
             onClick={confirmDeleteHandler}
             disabled={isSaving}
             variant="destructive"
           >
-            删除任务
+            {t('删除任务')}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

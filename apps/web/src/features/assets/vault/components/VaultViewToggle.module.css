@@ -1,0 +1,24 @@
+.toggle {
+  display: flex;
+  flex-shrink: 0;
+  gap: 2px;
+  padding: 2px;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+}
+.button {
+  width: 26px;
+  height: 24px;
+  border-radius: 4px;
+  color: var(--muted-foreground);
+}
+.button[aria-pressed='true'] {
+  color: var(--foreground);
+  background: var(--accent);
+}
+@media (max-width: 767px) {
+  .button {
+    width: 40px;
+    height: 40px;
+  }
+}

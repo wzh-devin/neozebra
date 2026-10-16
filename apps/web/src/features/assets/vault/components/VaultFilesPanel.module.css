@@ -1,0 +1,237 @@
+.files {
+  position: relative;
+  display: flex;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 0;
+  padding: 0;
+  container: vault-files / inline-size;
+}
+.filesToolbar {
+  display: flex;
+  width: 100%;
+  min-height: 44px;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 6px 20px;
+  border-bottom: 1px solid var(--border);
+}
+.directory {
+  min-width: 0;
+  flex: 1;
+}
+.path {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+.path nav {
+  min-width: 0;
+  overflow: auto;
+}
+.path ol {
+  flex-wrap: nowrap;
+  gap: 8px;
+  font-size: 12px;
+  white-space: nowrap;
+}
+.path li {
+  min-width: 0;
+  flex-shrink: 0;
+}
+.path li:last-child {
+  flex-shrink: 1;
+}
+.path nav button,
+.path [aria-current] {
+  display: block;
+  max-width: 280px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.path [aria-current] {
+  font-size: 14px;
+  font-weight: 500;
+}
+.path button:focus-visible {
+  outline: 1px solid var(--ring);
+  outline-offset: 2px;
+}
+.fileActions {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 8px;
+}
+.createButton,
+.uploadButton {
+  height: 30px;
+  gap: 6px;
+  padding-inline: 10px;
+  font-size: 12px;
+  font-weight: 450;
+}
+.createButton {
+  color: var(--muted-foreground);
+}
+.list {
+  min-height: 0;
+  flex: 1;
+  overflow: auto;
+  padding: 0 0 16px;
+}
+.state {
+  display: flex;
+  min-height: 300px;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 12px;
+  padding: 40px 24px;
+  color: var(--muted-foreground);
+  text-align: center;
+  font-size: 12px;
+}
+.state h2 {
+  color: var(--foreground);
+  font-size: 14px;
+  font-weight: 500;
+}
+.state p {
+  max-width: 34ch;
+  line-height: 1.7;
+}
+.emptyIcon {
+  display: grid;
+  width: 44px;
+  height: 44px;
+  margin-bottom: 4px;
+  place-items: center;
+  border-radius: 8px;
+  background: var(--secondary);
+}
+.notice {
+  width: calc(100% - 40px);
+  margin: 0 auto 16px;
+  padding: 10px 12px;
+  background: var(--accent);
+  border-radius: 6px;
+  color: var(--muted-foreground);
+  font-size: 12px;
+}
+.loadMore {
+  display: flex;
+  justify-content: center;
+  padding: 20px;
+}
+.mobileTree {
+  display: none;
+}
+.dropOverlay {
+  position: absolute;
+  inset: 12px;
+  display: grid;
+  place-items: center;
+  border: 2px dashed var(--ring);
+  border-radius: 8px;
+  color: var(--foreground);
+  background: var(--background);
+  opacity: 0.95;
+  pointer-events: none;
+}
+.loading {
+  width: 100%;
+}
+.loading[data-view='list'] {
+  min-width: 640px;
+  padding-top: 36px;
+}
+.loadingRow {
+  display: grid;
+  height: 40px;
+  grid-template-columns: 16px minmax(0, 1fr) 18% 12% 26% 28px;
+  align-items: center;
+  column-gap: 10px;
+  padding-inline: 8px;
+}
+.loadingIcon {
+  width: 16px;
+  height: 18px;
+  flex-shrink: 0;
+}
+.loadingName {
+  width: min(80%, 240px);
+  height: 14px;
+}
+.loadingMeta,
+.loadingSize,
+.loadingDate {
+  width: 70%;
+  height: 10px;
+}
+.loading[data-view='thumbnail'] {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(144px, 1fr));
+  gap: 12px;
+  padding-block: 12px;
+}
+.loading[data-view='thumbnail'] .loadingRow {
+  display: flex;
+  height: auto;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+}
+.loading[data-view='thumbnail'] .loadingIcon {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 4 / 3;
+}
+.loading[data-view='thumbnail'] .loadingName {
+  width: 80%;
+}
+.loading[data-view='thumbnail'] .loadingMeta {
+  width: 50%;
+  margin-left: 0;
+}
+@container vault-files (max-width: 560px) {
+  .filesToolbar {
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 16px;
+  }
+  .directory {
+    flex-basis: 100%;
+  }
+  .fileActions {
+    width: 100%;
+  }
+  .createButton {
+    margin-left: auto;
+  }
+  .notice {
+    width: calc(100% - 32px);
+  }
+}
+@media (max-width: 767px) {
+  .loadingRow {
+    height: 48px;
+  }
+  .createButton,
+  .uploadButton,
+  .mobileTree {
+    min-height: 40px;
+  }
+  .mobileTree {
+    display: inline-flex;
+    width: 40px;
+    flex-shrink: 0;
+    margin-left: -8px;
+  }
+}

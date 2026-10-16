@@ -1,3 +1,4 @@
+import { useI18n, t } from '@/lib/i18n'
 import type { DashboardSummaryItem } from '@/features/dashboard/types'
 import styles from '@/features/dashboard/components/DashboardSummary.module.css'
 
@@ -13,10 +14,10 @@ const renderSummaryItem = (item: DashboardSummaryItem) => {
     <div key={item.label} className={styles.item}>
       <dt className={styles.label}>
         <Icon aria-hidden="true" style={{ color: item.color }} />
-        {item.label}
+        {t(item.label)}
       </dt>
       <dd className={styles.value}>{item.value}</dd>
-      <dd className={styles.detail}>{item.detail}</dd>
+      <dd className={styles.detail}>{t(item.detail)}</dd>
     </div>
   )
 }
@@ -31,10 +32,13 @@ const DashboardSummary = ({
   summaryList,
 }: {
   summaryList: DashboardSummaryItem[]
-}) => (
-  <dl className={styles.summary} aria-label="Workspace summary">
-    {summaryList.map(renderSummaryItem)}
-  </dl>
-)
+}) => {
+  const { t } = useI18n()
+  return (
+    <dl className={styles.summary} aria-label={t('Workspace summary')}>
+      {summaryList.map(renderSummaryItem)}
+    </dl>
+  )
+}
 
 export { DashboardSummary }

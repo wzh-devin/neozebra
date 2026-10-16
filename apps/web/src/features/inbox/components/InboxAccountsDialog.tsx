@@ -1,3 +1,4 @@
+import { useI18n } from '@/lib/i18n'
 import { useState, type FormEvent } from 'react'
 import {
   EditorDialogContent,
@@ -35,6 +36,8 @@ type InboxAccountsDialogProps = Pick<
  * @returns 具有错误反馈和重复提交保护的邮箱管理弹窗 JSX
  */
 const InboxAccountsDialog = (props: InboxAccountsDialogProps) => {
+  const { t } = useI18n()
+
   const [provider, setProvider] = useState<'gmail' | 'qq'>('gmail')
   const [isBusy, setIsBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -64,7 +67,9 @@ const InboxAccountsDialog = (props: InboxAccountsDialogProps) => {
       form.reset()
     } catch (cause) {
       setError(
-        cause instanceof Error ? cause.message : 'Unable to connect mailbox.',
+        cause instanceof Error
+          ? cause.message
+          : t('Unable to connect mailbox.'),
       )
     } finally {
       setIsBusy(false)
@@ -73,8 +78,10 @@ const InboxAccountsDialog = (props: InboxAccountsDialogProps) => {
   return (
     <Dialog open={props.isAccountsOpen} onOpenChange={openChangeHandler}>
       <EditorDialogContent
-        title="Manage mailboxes"
-        description="Connect Gmail or QQ. Mail is read only; read and archive actions stay in Neozebra."
+        title={t('Manage mailboxes')}
+        description={t(
+          'Connect Gmail or QQ. Mail is read only; read and archive actions stay in Neozebra.',
+        )}
       >
         <div className={styles.accounts}>
           {props.accountList.length ? (
@@ -86,14 +93,14 @@ const InboxAccountsDialog = (props: InboxAccountsDialogProps) => {
               />
             ))
           ) : (
-            <p className={styles.hint}>No mailboxes connected yet.</p>
+            <p className={styles.hint}>{t('No mailboxes connected yet.')}</p>
           )}
         </div>
         <form className={formStyles.form} onSubmit={submitHandler}>
           <div className={formStyles.fields}>
             <EditorField
               id="mail-provider"
-              label="Connect or reconnect mailbox"
+              label={t('Connect or reconnect mailbox')}
             >
               <Select
                 value={provider}
@@ -118,8 +125,8 @@ const InboxAccountsDialog = (props: InboxAccountsDialogProps) => {
               id="mail-email"
               label={
                 provider === 'gmail'
-                  ? 'Gmail email address'
-                  : 'QQ email address'
+                  ? t('Gmail email address')
+                  : t('QQ email address')
               }
             >
               <Input
@@ -140,8 +147,8 @@ const InboxAccountsDialog = (props: InboxAccountsDialogProps) => {
               id="mail-password"
               label={
                 provider === 'gmail'
-                  ? 'Google app password'
-                  : 'IMAP authorization code'
+                  ? t('Google app password')
+                  : t('IMAP authorization code')
               }
             >
               <Input
@@ -159,37 +166,42 @@ const InboxAccountsDialog = (props: InboxAccountsDialogProps) => {
             <p className={styles.hint}>
               {provider === 'gmail' ? (
                 <>
-                  Enable two-step verification and generate a 16-character{' '}
+                  {t(
+                    'Enable two-step verification and generate a 16-character',
+                  )}{' '}
                   <a
                     href="https://myaccount.google.com/apppasswords"
                     target="_blank"
                     rel="noopener noreferrer"
                   >
-                    Google app password
+                    {t('Google app password')}
                   </a>
-                  . Your Google account must allow app passwords. Use it here
-                  instead of your Google sign-in password.
+                  {t(
+                    '. Your Google account must allow app passwords. Use it here instead of your Google sign-in password.',
+                  )}
                 </>
               ) : (
-                'Enable IMAP in QQ Mail settings and generate an authorization code.'
+                t(
+                  'Enable IMAP in QQ Mail settings and generate an authorization code.',
+                )
               )}
             </p>
           </div>
           {error ? (
             <p role="alert" className={styles.error}>
-              {error}
+              {t(error)}
             </p>
           ) : null}
           <DialogFooter className={formStyles.footer}>
             <Button type="button" variant="outline" onClick={closeHandler}>
-              Done
+              {t('Done')}
             </Button>
             <Button type="submit" disabled={isBusy}>
               {isBusy
-                ? 'Connecting…'
+                ? t('Connecting…')
                 : provider === 'gmail'
-                  ? 'Connect Gmail'
-                  : 'Connect QQ'}
+                  ? t('Connect Gmail')
+                  : t('Connect QQ')}
             </Button>
           </DialogFooter>
         </form>

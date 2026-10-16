@@ -1,3 +1,4 @@
+import { useI18n } from '@/lib/i18n'
 import { Command, LayoutGrid, PanelLeft, Plus } from 'lucide-react'
 import { toast } from 'sonner'
 
@@ -39,11 +40,13 @@ const InitiativesPageContent = ({
   setActiveTab,
   setExpanded,
 }: InitiativesPageContentProps) => {
+  const { t } = useI18n()
+
   const { state, isMobile } = useSidebar()
 
   // 显示创建 initiative 的本地反馈。
   const createInitiativeHandler = (): void => {
-    toast('Create initiative is ready for the next step')
+    toast(t('Create initiative is ready for the next step'))
   }
 
   // 更新当前 initiative 标签。
@@ -58,20 +61,20 @@ const InitiativesPageContent = ({
           <div className={styles['content-title-cluster']}>
             {isMobile || state === 'collapsed' ? (
               <SidebarTrigger
-                aria-label="Expand sidebar"
+                aria-label={t('Expand sidebar')}
                 className={styles['sidebar-expand-trigger']}
               />
             ) : null}
             <div>
-              <p className={styles['content-kicker']}>Workspace</p>
-              <h1>Initiatives</h1>
+              <p className={styles['content-kicker']}>{t('Workspace')}</p>
+              <h1>{t('Initiatives')}</h1>
             </div>
           </div>
           <div className={styles['header-actions']}>
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
-                  aria-label="Command menu"
+                  aria-label={t('Command menu')}
                   className={styles['header-icon-button']}
                   size="icon-sm"
                   variant="ghost"
@@ -79,12 +82,12 @@ const InitiativesPageContent = ({
                   <Command aria-hidden="true" />
                 </Button>
               </TooltipTrigger>
-              <TooltipContent>Command menu</TooltipContent>
+              <TooltipContent>{t('Command menu')}</TooltipContent>
             </Tooltip>
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
-                  aria-label="Add initiative"
+                  aria-label={t('Add initiative')}
                   className={styles['header-add-button']}
                   size="icon-sm"
                   variant="ghost"
@@ -93,7 +96,7 @@ const InitiativesPageContent = ({
                   <Plus aria-hidden="true" />
                 </Button>
               </TooltipTrigger>
-              <TooltipContent>Add initiative</TooltipContent>
+              <TooltipContent>{t('Add initiative')}</TooltipContent>
             </Tooltip>
           </div>
         </div>
@@ -103,9 +106,9 @@ const InitiativesPageContent = ({
           className={styles['initiative-tabs']}
         >
           <TabsList>
-            <TabsTrigger value="active">Active</TabsTrigger>
-            <TabsTrigger value="planned">Planned</TabsTrigger>
-            <TabsTrigger value="all">All initiatives</TabsTrigger>
+            <TabsTrigger value="active">{t('Active')}</TabsTrigger>
+            <TabsTrigger value="planned">{t('Planned')}</TabsTrigger>
+            <TabsTrigger value="all">{t('All initiatives')}</TabsTrigger>
           </TabsList>
         </Tabs>
       </header>
@@ -118,11 +121,13 @@ const InitiativesPageContent = ({
 
       <footer className={styles['content-footer']}>
         <span>
-          <LayoutGrid aria-hidden="true" /> Showing synthetic workspace data
+          <LayoutGrid aria-hidden="true" />
+          {t('Showing synthetic workspace data')}
         </span>
         <span>
-          <PanelLeft aria-hidden="true" /> Press <kbd>⌘</kbd>
-          <kbd>B</kbd> to collapse sidebar
+          <PanelLeft aria-hidden="true" /> {t('Press')} <kbd>⌘</kbd>
+          <kbd>B</kbd>
+          {t('to collapse sidebar')}
         </span>
       </footer>
     </main>

@@ -1,3 +1,4 @@
+import { useI18n } from '@/lib/i18n'
 import { useRef, type MouseEvent, type PointerEvent } from 'react'
 
 import { SidebarRail, useSidebar } from '@/components/ui/sidebar'
@@ -17,6 +18,8 @@ const SidebarResizeRail = ({
   width,
   onWidthChange,
 }: SidebarResizeRailProps) => {
+  const { t } = useI18n()
+
   const { open } = useSidebar()
   const sidebarResizeRef = useRef<{
     startWidth: number
@@ -108,7 +111,9 @@ const SidebarResizeRail = ({
       onPointerMove={sidebarRailPointerMoveHandler}
       onPointerUp={sidebarRailPointerUpHandler}
       onPointerCancel={sidebarRailPointerUpHandler}
-      title={open ? 'Drag to resize · Click to collapse' : 'Click to expand'}
+      title={
+        open ? t('Drag to resize · Click to collapse') : t('Click to expand')
+      }
     />
   )
 }

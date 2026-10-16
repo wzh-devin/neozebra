@@ -1,3 +1,4 @@
+import { useI18n, getLocale } from '@/lib/i18n'
 import { Inbox, Mail, MailOpen } from 'lucide-react'
 import { Link, useLocation } from 'react-router-dom'
 
@@ -33,6 +34,8 @@ const InboxMessageRow = ({
   isSelected,
   markReadHandler,
 }: InboxMessageRowProps) => {
+  const { t } = useI18n()
+
   const location = useLocation()
   const ItemIcon = item.read ? MailOpen : Mail
 
@@ -56,7 +59,7 @@ const InboxMessageRow = ({
         <span className={styles['message-title-line']}>
           <strong>{item.title}</strong>
           <time dateTime={item.receivedAt}>
-            {new Date(item.receivedAt).toLocaleDateString(undefined, {
+            {new Date(item.receivedAt).toLocaleDateString(getLocale(), {
               month: 'short',
               day: 'numeric',
             })}
@@ -65,7 +68,7 @@ const InboxMessageRow = ({
         <span className={styles['message-summary']}>{item.summary}</span>
         <span className={styles['message-sender']}>
           {!item.read ? (
-            <span aria-label="Unread" className={styles['unread-dot']} />
+            <span aria-label={t('Unread')} className={styles['unread-dot']} />
           ) : null}
           {item.sender}
         </span>
@@ -83,6 +86,8 @@ type InboxMessageListProps = InboxView
  * @returns 邮件列表面板 JSX
  */
 const InboxMessageList = (props: InboxMessageListProps) => {
+  const { t } = useI18n()
+
   const {
     visibleItemList,
     selectedItem,
@@ -103,16 +108,18 @@ const InboxMessageList = (props: InboxMessageListProps) => {
     <>
       {error ? (
         <div className={styles.status} role="alert">
-          <span>{error}</span>
+          <span>{t(error)}</span>
           <Button onClick={retryHandler} size="sm" variant="ghost">
-            Retry
+            {t('Retry')}
           </Button>
         </div>
       ) : failedCount ? (
         <div className={styles.status} role="alert">
-          <span>{failedCount} mailbox needs attention</span>
+          <span>
+            {failedCount} {t('mailbox needs attention')}
+          </span>
           <Button onClick={openAccountsHandler} size="sm" variant="ghost">
-            Manage
+            {t('Manage')}
           </Button>
         </div>
       ) : null}
@@ -133,7 +140,7 @@ const InboxMessageList = (props: InboxMessageListProps) => {
                 onClick={loadMoreHandler}
                 variant="ghost"
               >
-                {isLoading ? 'Loading…' : 'Load more messages'}
+                {isLoading ? t('Loading…') : t('Load more messages')}
               </Button>
             ) : null}
           </div>
@@ -145,21 +152,23 @@ const InboxMessageList = (props: InboxMessageListProps) => {
               </EmptyMedia>
               <EmptyTitle>
                 {isLoading
-                  ? 'Loading inbox…'
+                  ? t('Loading inbox…')
                   : error
-                    ? 'Inbox unavailable'
+                    ? t('Inbox unavailable')
                     : !accountList.length
-                      ? 'Connect your email'
-                      : 'No messages here'}
+                      ? t('Connect your email')
+                      : t('No messages here')}
               </EmptyTitle>
               <EmptyDescription>
                 {isLoading
-                  ? 'Getting your mailboxes and messages.'
+                  ? t('Getting your mailboxes and messages.')
                   : error
-                    ? 'Retry when the API and storage are available.'
+                    ? t('Retry when the API and storage are available.')
                     : !accountList.length
-                      ? 'Bring Gmail and QQ mail together in one inbox.'
-                      : 'New mail will appear after sync. You can also try another filter.'}
+                      ? t('Bring Gmail and QQ mail together in one inbox.')
+                      : t(
+                          'New mail will appear after sync. You can also try another filter.',
+                        )}
               </EmptyDescription>
             </EmptyHeader>
             {!isLoading && !error ? (
@@ -173,7 +182,9 @@ const InboxMessageList = (props: InboxMessageListProps) => {
                   size="sm"
                   variant="outline"
                 >
-                  {!accountList.length ? 'Connect mailbox' : 'Reset filters'}
+                  {!accountList.length
+                    ? t('Connect mailbox')
+                    : t('Reset filters')}
                 </Button>
               </EmptyContent>
             ) : null}

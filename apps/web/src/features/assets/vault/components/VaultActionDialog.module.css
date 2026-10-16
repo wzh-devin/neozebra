@@ -1,0 +1,23 @@
+.dialog {
+  max-width: 520px;
+}
+.field {
+  display: grid;
+  gap: 8px;
+  margin-block: 24px;
+}
+.picker {
+  height: min(400px, 45svh);
+  overflow: auto;
+  margin-block: 20px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+.error {
+  margin-block: 12px;
+  color: var(--destructive);
+  font-size: 12px;
+}
+.footer {
+  margin-top: 24px;
+}

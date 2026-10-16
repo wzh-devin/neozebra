@@ -1,3 +1,4 @@
+import { useI18n } from '@/lib/i18n'
 import { useState, type ChangeEvent, type FormEvent } from 'react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
@@ -51,6 +52,8 @@ export const TaskEditor = ({
   plannedDate = null,
   onClose,
 }: Props) => {
+  const { t } = useI18n()
+
   const { data, saveTaskHandler, isSaving } = useTaskPlannerContext()
   const [originalTask] = useState(task)
   const [draft, setDraft] = useState<TaskItem>(
@@ -176,7 +179,7 @@ export const TaskEditor = ({
       ),
     ]
     if (labels.length > 20 || labels.some((label) => label.length > 32)) {
-      setSaveError('标签最多 20 个，每个最多 32 字。')
+      setSaveError(t('标签最多 20 个，每个最多 32 字。'))
       return
     }
     const currentTask = data.taskList.find((entry) => entry.id === draft.id)
@@ -184,23 +187,25 @@ export const TaskEditor = ({
       originalTask &&
       JSON.stringify(originalTask) !== JSON.stringify(currentTask)
     ) {
-      setSaveError('任务已被其他操作更新。请保留输入，关闭并重新打开后核对。')
+      setSaveError(
+        t('任务已被其他操作更新。请保留输入，关闭并重新打开后核对。'),
+      )
       return
     }
     if (await saveTaskHandler({ ...draft, title: draft.title.trim(), labels }))
       onClose()
     else {
-      setSaveError('保存未成功，草稿已保留，请检查后重试。')
-      toast.error('任务草稿仍在此处')
+      setSaveError(t('保存未成功，草稿已保留，请检查后重试。'))
+      toast.error(t('任务草稿仍在此处'))
     }
   }
   return (
     <TaskEditorFrame
-      title={task ? '任务详情' : '记录一件要做的事'}
+      title={task ? t('任务详情') : t('记录一件要做的事')}
       description={
         task
-          ? `来源：${task.source} · 安排日期与截止日期分别保存`
-          : '先记下来，再决定在哪天、哪个项目里完成。'
+          ? t('来源：{0} · 安排日期与截止日期分别保存', t(task.source))
+          : t('先记下来，再决定在哪天、哪个项目里完成。')
       }
       onClose={onClose}
     >
@@ -211,32 +216,32 @@ export const TaskEditor = ({
             onSubmit={submitHandler}
             className={formStyles.fields}
           >
-            <EditorField id="task-editor-title" label="任务标题">
+            <EditorField id="task-editor-title" label={t('任务标题')}>
               <Input
                 id="task-editor-title"
                 name="title"
                 autoFocus
                 value={draft.title}
                 onChange={textChangeHandler}
-                placeholder="你准备完成什么？"
+                placeholder={t('你准备完成什么？')}
                 required
                 maxLength={200}
               />
             </EditorField>
-            <EditorField id="task-editor-description" label="说明">
+            <EditorField id="task-editor-description" label={t('说明')}>
               <Textarea
                 id="task-editor-description"
                 name="description"
                 value={draft.description}
                 onChange={textChangeHandler}
-                placeholder="目标、想法或需要注意的事…"
+                placeholder={t('目标、想法或需要注意的事…')}
                 maxLength={10000}
                 rows={4}
               />
             </EditorField>
             <div className={styles.twoColumns}>
               <div className={formStyles.field}>
-                <Label htmlFor="task-editor-project">所属项目</Label>
+                <Label htmlFor="task-editor-project">{t('所属项目')}</Label>
                 <Select
                   value={draft.projectId ?? 'none'}
                   onValueChange={projectChangeHandler}
@@ -250,18 +255,18 @@ export const TaskEditor = ({
                     align="start"
                     sideOffset={6}
                   >
-                    <SelectItem value="none">个人事项</SelectItem>
+                    <SelectItem value="none">{t('个人事项')}</SelectItem>
                     {data.projectList.map((project) => (
                       <SelectItem key={project.id} value={project.id}>
                         {project.name}
-                        {project.archived ? '（已归档）' : ''}
+                        {project.archived ? t('（已归档）') : ''}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
               <div className={formStyles.field}>
-                <Label htmlFor="task-editor-section">项目阶段</Label>
+                <Label htmlFor="task-editor-section">{t('项目阶段')}</Label>
                 <Select
                   value={draft.sectionId ?? 'none'}
                   onValueChange={sectionChangeHandler}
@@ -276,7 +281,7 @@ export const TaskEditor = ({
                     align="start"
                     sideOffset={6}
                   >
-                    <SelectItem value="none">未分阶段</SelectItem>
+                    <SelectItem value="none">{t('未分阶段')}</SelectItem>
                     {data.sectionList
                       .filter(
                         (section) => section.projectId === draft.projectId,
@@ -292,17 +297,17 @@ export const TaskEditor = ({
             </div>
             <div className={styles.twoColumns}>
               <div className={formStyles.field}>
-                <Label>准备在哪天做</Label>
+                <Label>{t('准备在哪天做')}</Label>
                 <TaskDatePicker
-                  label="计划日期"
+                  label={t('计划日期')}
                   value={draft.plannedDate}
                   onChange={plannedDateHandler}
                 />
               </div>
               <div className={formStyles.field}>
-                <Label>最晚在哪天完成</Label>
+                <Label>{t('最晚在哪天完成')}</Label>
                 <TaskDatePicker
-                  label="截止日期"
+                  label={t('截止日期')}
                   value={draft.deadlineDate}
                   onChange={deadlineDateHandler}
                 />
@@ -310,7 +315,7 @@ export const TaskEditor = ({
             </div>
             <div className={styles.twoColumns}>
               <div className={formStyles.field}>
-                <Label htmlFor="task-editor-priority">优先级</Label>
+                <Label htmlFor="task-editor-priority">{t('优先级')}</Label>
                 <Select
                   value={draft.priority}
                   onValueChange={priorityChangeHandler}
@@ -327,7 +332,7 @@ export const TaskEditor = ({
                     {Object.entries(priorityLabelRecord).map(
                       ([value, label]) => (
                         <SelectItem key={value} value={value}>
-                          {label}
+                          {t(label)}
                         </SelectItem>
                       ),
                     )}
@@ -335,7 +340,7 @@ export const TaskEditor = ({
                 </Select>
               </div>
               <div className={formStyles.field}>
-                <Label htmlFor="task-editor-status">状态</Label>
+                <Label htmlFor="task-editor-status">{t('状态')}</Label>
                 <Select
                   value={draft.status}
                   onValueChange={statusChangeHandler}
@@ -355,7 +360,7 @@ export const TaskEditor = ({
                         value={value}
                         disabled={value === 'completed'}
                       >
-                        {label}
+                        {t(label)}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -364,7 +369,9 @@ export const TaskEditor = ({
             </div>
             <div className={styles.twoColumns}>
               <div className={formStyles.field}>
-                <Label htmlFor="task-editor-estimate">预计用时（分钟）</Label>
+                <Label htmlFor="task-editor-estimate">
+                  {t('预计用时（分钟）')}
+                </Label>
                 <Input
                   id="task-editor-estimate"
                   type="number"
@@ -373,23 +380,23 @@ export const TaskEditor = ({
                   step={1}
                   value={draft.estimateMinutes ?? ''}
                   onChange={estimateChangeHandler}
-                  placeholder="例如 30"
+                  placeholder={t('例如 30')}
                 />
               </div>
               <div className={formStyles.field}>
-                <Label htmlFor="task-editor-labels">标签</Label>
+                <Label htmlFor="task-editor-labels">{t('标签')}</Label>
                 <Input
                   id="task-editor-labels"
                   value={labelsText}
                   onChange={labelsChangeHandler}
-                  placeholder="设计, 学习"
+                  placeholder={t('设计, 学习')}
                 />
               </div>
             </div>
           </form>
           <section className={styles.steps}>
             <h3>
-              拆成几个小步骤{' '}
+              {t('拆成几个小步骤')}{' '}
               <span>
                 {draft.subtasks.filter((step) => step.completed).length}/
                 {draft.subtasks.length}
@@ -402,15 +409,15 @@ export const TaskEditor = ({
           </section>
           {saveError ? (
             <p role="alert" className={styles.error}>
-              {saveError}
+              {t(saveError)}
             </p>
           ) : null}
           <DialogFooter className={formStyles.footer}>
             <Button type="button" variant="outline" onClick={onClose}>
-              取消
+              {t('取消')}
             </Button>
             <Button type="submit" form="task-editor-form">
-              {isSaving ? '保存中…' : task ? '保存任务' : '添加任务'}
+              {isSaving ? t('保存中…') : task ? t('保存任务') : t('添加任务')}
             </Button>
           </DialogFooter>
         </fieldset>

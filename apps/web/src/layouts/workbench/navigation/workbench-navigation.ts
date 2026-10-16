@@ -19,7 +19,7 @@ const primaryNavigationList: NavigationItem[] = [
     icon: LayoutDashboard,
   },
   { id: 'inbox', label: 'Inbox', path: '/inbox', icon: Inbox },
-  { id: 'task', label: 'Task', path: '/task', icon: ListChecks },
+  { id: 'task', label: 'Tasks', path: '/task', icon: ListChecks },
 ]
 
 const navigationGroupList: NavigationGroup[] = [
@@ -28,7 +28,12 @@ const navigationGroupList: NavigationGroup[] = [
     label: 'Assets',
     icon: Boxes,
     children: [
-      { id: 'drive', label: 'Drive', path: '/assets/drive', icon: HardDrive },
+      {
+        id: 'vault',
+        label: '文件库',
+        path: '/assets/vault',
+        icon: HardDrive,
+      },
     ],
   },
 ]

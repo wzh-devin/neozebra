@@ -1,0 +1,28 @@
+--- a/server/src/main/java/cn/keking/service/OfficePluginManager.java
++++ b/server/src/main/java/cn/keking/service/OfficePluginManager.java
+@@ -54,11 +54,13 @@
+      */
+     @PostConstruct
+     public void startOfficeManager() throws OfficeException {
+-        File officeHome = LocalOfficeUtils.getDefaultOfficeHome();
++        String configuredOfficeHome = System.getenv("KK_OFFICE_HOME");
++        File officeHome = configuredOfficeHome == null || configuredOfficeHome.isBlank() || "default".equals(configuredOfficeHome)
++                ? LocalOfficeUtils.getDefaultOfficeHome() : new File(configuredOfficeHome);
+         if (officeHome == null) {
+             throw new RuntimeException("找不到office组件，请确认'office.home'配置是否有误");
+         }
+-        boolean killOffice = killProcess();
++        boolean killOffice = false;
+         if (killOffice) {
+             logger.warn("检测到有正在运行的office进程，已自动结束该进程");
+         }
+--- a/server/src/main/java/cn/keking/service/OfficeToPdfService.java
++++ b/server/src/main/java/cn/keking/service/OfficeToPdfService.java
+@@ -69,6 +69,7 @@
+             builder = LocalConverter.builder().storeProperties(customProperties);
+         }
+ 
++        builder.loadProperty("MacroExecutionMode", com.sun.star.document.MacroExecMode.NEVER_EXECUTE);
+         try {
+             builder.build().convert(inputFile).to(outputFile).execute();
+ 

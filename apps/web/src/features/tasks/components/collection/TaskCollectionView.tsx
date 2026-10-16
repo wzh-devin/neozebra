@@ -1,3 +1,4 @@
+import { useI18n } from '@/lib/i18n'
 import { CalendarX } from 'lucide-react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
@@ -33,6 +34,8 @@ export const TaskCollectionView = ({
   completed?: boolean
   pending?: boolean
 }) => {
+  const { t } = useI18n()
+
   const { data, today } = useTaskPlannerContext()
   const [params, setParams] = useSearchParams()
   const navigate = useNavigate()
@@ -179,7 +182,7 @@ export const TaskCollectionView = ({
   const renderCompletedDay = (day: string) => (
     <TaskGroup
       key={day}
-      title={formatTaskCalendarDate(day, today) + '完成'}
+      title={formatTaskCalendarDate(day, today) + t('完成')}
       taskList={visibleTaskList.filter(
         (task) =>
           task.completedAt && getLocalDate(new Date(task.completedAt)) === day,
@@ -193,17 +196,17 @@ export const TaskCollectionView = ({
       <Card
         className={`${panelStyles.panel} ${styles.mainColumn}`}
         role="region"
-        aria-label="任务清单"
+        aria-label={t('任务清单')}
       >
         <header className={styles.heading}>
           <h1>
             {completed
-              ? '已完成'
+              ? t('已完成')
               : date
-                ? formatTaskCalendarDate(date, today) + '的任务'
+                ? t('{0} 的任务', formatTaskCalendarDate(date, today))
                 : pending
-                  ? '待完成'
-                  : '全部任务'}
+                  ? t('待完成')
+                  : t('全部任务')}
             <span>{visibleTaskList.length}</span>
           </h1>
           <div className={styles.actions}>
@@ -213,8 +216,8 @@ export const TaskCollectionView = ({
                 size="icon-sm"
                 onClick={clearDateHandler}
                 className={styles.clearDate}
-                aria-label="清除日期筛选"
-                title="清除日期筛选"
+                aria-label={t('清除日期筛选')}
+                title={t('清除日期筛选')}
               >
                 <CalendarX aria-hidden="true" />
               </Button>
@@ -234,7 +237,7 @@ export const TaskCollectionView = ({
           className={styles.taskList}
           data-task-list-scroll
           role="region"
-          aria-label="可滚动任务列表"
+          aria-label={t('可滚动任务列表')}
           tabIndex={0}
         >
           {visibleTaskList.length ? (
@@ -254,15 +257,15 @@ export const TaskCollectionView = ({
               <TaskEmptyState
                 title={
                   !data.taskList.length
-                    ? '从一件小事开始'
+                    ? t('从一件小事开始')
                     : date
-                      ? '这一天没有符合条件的任务'
-                      : '没有符合条件的任务'
+                      ? t('这一天没有符合条件的任务')
+                      : t('没有符合条件的任务')
                 }
                 description={
                   !data.taskList.length
-                    ? '记录第一件事，为计划留出空间。'
-                    : '试试其他日期，或者清除筛选。'
+                    ? t('记录第一件事，为计划留出空间。')
+                    : t('试试其他日期，或者清除筛选。')
                 }
               />
               {canQuickAdd ? (
@@ -272,7 +275,7 @@ export const TaskCollectionView = ({
           )}
         </div>
       </Card>
-      <aside className={styles.calendar} aria-label="日期任务">
+      <aside className={styles.calendar} aria-label={t('日期任务')}>
         <TaskCalendarCard
           taskList={calendarTaskList}
           selectedDate={date ?? today}

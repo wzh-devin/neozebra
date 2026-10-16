@@ -1,0 +1,37 @@
+name: neozebra-preview
+services:
+  preview:
+    build:
+      context: .
+    image: neozebra-preview:kkfileview-5.0.3
+    ports:
+      - '127.0.0.1:8012:8012'
+    extra_hosts:
+      - 'host.docker.internal:host-gateway'
+    environment:
+      KK_TRUST_HOST: '${STORAGE_PREVIEW_TRUST_HOST:-host.docker.internal}'
+    volumes:
+      - preview-cache:/app/cache
+    mem_limit: 1536m
+    cpus: 2
+    pids_limit: 256
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test:
+        [
+          'CMD',
+          'curl',
+          '--fail',
+          '--silent',
+          'http://127.0.0.1:8012/actuator/health',
+        ]
+      interval: 15s
+      timeout: 5s
+      retries: 8
+      start_period: 90s
+    restart: unless-stopped
+volumes:
+  preview-cache:

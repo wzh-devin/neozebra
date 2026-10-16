@@ -1,5 +1,5 @@
+import { useI18n, getDateFnsLocale } from '@/lib/i18n'
 import { CalendarDays, X } from 'lucide-react'
-import { zhCN } from 'date-fns/locale'
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Calendar } from '@/components/ui/calendar'
@@ -28,6 +28,8 @@ type Props = {
  * @returns 日期选择器 JSX
  */
 export const TaskDatePicker = ({ label, value, onChange }: Props) => {
+  const { t } = useI18n()
+
   const [open, setOpen] = useState(false)
 
   // 接受日期后收起日历。
@@ -54,7 +56,7 @@ export const TaskDatePicker = ({ label, value, onChange }: Props) => {
         <Button
           type="button"
           variant="outline"
-          aria-label={`${label}：${value ?? '未设置'}`}
+          aria-label={t('{0}：{1}', label, value ?? t('未设置'))}
         >
           <CalendarDays aria-hidden="true" />
           {value ? formatTaskCalendarDate(value) : label}
@@ -66,7 +68,7 @@ export const TaskDatePicker = ({ label, value, onChange }: Props) => {
       >
         <p className="px-2 py-1 text-sm font-medium">{label}</p>
         <Calendar
-          locale={zhCN}
+          locale={getDateFnsLocale()}
           mode="single"
           autoFocus
           selected={value ? new Date(`${value}T12:00:00`) : undefined}
@@ -82,7 +84,7 @@ export const TaskDatePicker = ({ label, value, onChange }: Props) => {
           </Button>
           <Button size="sm" variant="ghost" onClick={clearHandler}>
             <X aria-hidden="true" />
-            清除
+            {t('清除')}
           </Button>
         </div>
       </PopoverContent>

@@ -1,3 +1,4 @@
+import { t } from '@/lib/i18n'
 import { Component, type ReactNode } from 'react'
 import { Button } from '@/components/ui/button'
 import {
@@ -45,13 +46,13 @@ export class TaskGanttBoundary extends Component<
     this.state.failed ? (
       <Empty role="alert">
         <EmptyHeader>
-          <EmptyTitle>甘特图暂时无法打开</EmptyTitle>
+          <EmptyTitle>{t('甘特图暂时无法打开')}</EmptyTitle>
           <EmptyDescription>
-            已保存的计划仍然保留，请重新加载后重试。
+            {t('已保存的计划仍然保留，请重新加载后重试。')}
           </EmptyDescription>
         </EmptyHeader>
         <Button variant="outline" onClick={this.retryHandler}>
-          重新加载
+          {t('重新加载')}
         </Button>
       </Empty>
     ) : (

@@ -1,3 +1,4 @@
+import { t, getLocale } from '@/lib/i18n'
 import type {
   TaskItem,
   TaskPlannerData,
@@ -73,7 +74,7 @@ export const formatTaskCalendarDate = (
   date: string,
   today = getLocalDate(),
 ): string =>
-  new Intl.DateTimeFormat('zh-CN', {
+  new Intl.DateTimeFormat(getLocale(), {
     year: date.slice(0, 4) !== today.slice(0, 4) ? 'numeric' : undefined,
     month: 'short',
     day: 'numeric',
@@ -90,9 +91,9 @@ export const formatTaskDate = (
   date: string,
   today = getLocalDate(),
 ): string => {
-  if (date === today) return '今天'
-  if (date === addDays(today, 1)) return '明天'
-  if (date === addDays(today, -1)) return '昨天'
+  if (date === today) return t('今天')
+  if (date === addDays(today, 1)) return t('明天')
+  if (date === addDays(today, -1)) return t('昨天')
   return formatTaskCalendarDate(date, today)
 }
 

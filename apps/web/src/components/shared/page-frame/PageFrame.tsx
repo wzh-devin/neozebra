@@ -1,3 +1,4 @@
+import { useI18n } from '@/lib/i18n'
 import type { ReactNode } from 'react'
 
 import { CommandMenu } from '@/components/shared/command-menu'
@@ -28,6 +29,8 @@ const PageFrame = ({
   children,
   footer,
 }: PageFrameProps) => {
+  const { t } = useI18n()
+
   const { isMobile, state } = useSidebar()
 
   return (
@@ -36,12 +39,12 @@ const PageFrame = ({
         <div className={styles['page-title-cluster']}>
           {isMobile || state === 'collapsed' ? (
             <SidebarTrigger
-              aria-label="Expand sidebar"
+              aria-label={t('Expand sidebar')}
               className={styles['sidebar-trigger']}
             />
           ) : null}
           <div>
-            <p className={styles['page-kicker']}>{kicker}</p>
+            <p className={styles['page-kicker']}>{t(kicker)}</p>
             <h1>{title}</h1>
             {description ? (
               <p className={styles['page-description']}>{description}</p>

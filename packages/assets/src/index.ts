@@ -1,8 +1,0 @@
-export { createAssetsRouter } from './routes.ts'
-export type { AssetsDependencies } from './infrastructure/drive/types.ts'
-export { closeDriveQueues } from './infrastructure/drive/drive-queue.ts'
-export { startDriveSyncWorker } from './infrastructure/drive/drive-sync-worker.ts'
-export { startDriveUploadWorker } from './infrastructure/drive/drive-upload-worker.ts'
-export { closeDriveUploadQueues } from './infrastructure/drive/drive-upload-queue.ts'
-export { startDrivePreviewWorker } from './infrastructure/drive/drive-preview-worker.ts'
-export { closeDrivePreviewQueues } from './infrastructure/drive/drive-preview-queue.ts'

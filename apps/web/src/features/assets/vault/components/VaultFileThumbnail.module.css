@@ -1,0 +1,33 @@
+.thumbnail {
+  position: relative;
+  display: grid;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  flex-shrink: 0;
+  overflow: hidden;
+  place-items: center;
+  border-radius: 6px;
+  background: var(--secondary);
+  color: var(--muted-foreground);
+}
+.thumbnail[data-kind='folder'] {
+  background: transparent;
+}
+.icon {
+  width: 40px;
+  height: 40px;
+}
+.placeholder,
+.image {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.image {
+  object-fit: contain;
+  opacity: 0;
+}
+.image[data-ready] {
+  opacity: 1;
+}

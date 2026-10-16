@@ -32,7 +32,7 @@ const summaryList: DashboardSummaryItem[] = [
 const activityList: DashboardActivity[] = [
   {
     title: 'Design review moved to tomorrow',
-    source: 'Task',
+    source: 'Tasks',
     time: '12 min ago',
     icon: ListChecks,
     color: 'var(--project-purple)',
@@ -46,7 +46,7 @@ const activityList: DashboardActivity[] = [
   },
   {
     title: 'MinIO workspace connected',
-    source: 'Drive',
+    source: 'Vault',
     time: 'Yesterday',
     icon: HardDrive,
     color: 'var(--project-blue)',

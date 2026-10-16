@@ -1,3 +1,4 @@
+import { useI18n } from '@/lib/i18n'
 import {
   Activity,
   TrendingDown,
@@ -38,6 +39,8 @@ type HealthBadgeProps = {
  * @returns 健康状态 Badge JSX
  */
 const HealthBadge = ({ status }: HealthBadgeProps) => {
+  const { t } = useI18n()
+
   const health = healthDetailsRecord[status]
   const Icon = health.icon
 
@@ -47,7 +50,7 @@ const HealthBadge = ({ status }: HealthBadgeProps) => {
       variant="outline"
     >
       <Icon aria-hidden="true" />
-      {health.label}
+      {t(health.label)}
     </Badge>
   )
 }
