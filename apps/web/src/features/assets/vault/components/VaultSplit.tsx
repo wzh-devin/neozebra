@@ -27,7 +27,7 @@ const VaultSplit = ({
     <div className={styles.body}>{children}</div>
   ) : (
     <ResizablePanelGroup orientation="horizontal" className={styles.body}>
-      <ResizablePanel defaultSize="360px" minSize="280px" maxSize="480px">
+      <ResizablePanel defaultSize="300px" minSize="280px" maxSize="480px">
         <aside className={styles.treePanel}>{tree}</aside>
       </ResizablePanel>
       <ResizableHandle
