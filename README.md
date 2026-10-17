@@ -28,3 +28,5 @@ pnpm test:vault:integration  # Docker 隔离真实 PG / Redis / MinIO
 新服务配置与部署步骤见 [文件库说明](packages/assets/vault/README.md)。旧网盘数据不迁移；旧表清理是单独增量迁移，尚未在现有业务数据库执行。执行 `pnpm db:migrate` 将删除旧 `nm_drive_*` 表，先审查对应迁移；不会删除旧 MinIO 或其他网盘中的对象。
 
 Inbox 配置与 API 见 [Node 后端](apps/server/README.md)。文件库使用统一多格式预览：Markdown/GFM、PDF.js、图片/媒体原生阅读；Word、旧/新 PPT、Excel 等由私有 kkFileView 提供，转换任务和缓存由 Go 管理。部署和默认地址见 [私有预览服务](deploy/preview/README.md)。无需独立文件库密码或签名密钥。
+
+生产应用使用单一镜像 `ghcr.io/wzh-devin/neozebra:vX.Y.Z`，包含 Web、Node 网关和 Go Vault，支持 ARM64 / AMD64。只有推送指向 `main` 历史提交的 `vX.Y.Z` 标签才会构建发布；普通代码推送不触发。配置与命令见 [Docker 部署说明](deploy/production/README.md) 和 [发布工作流](.github/workflows/publish-image.yaml)。

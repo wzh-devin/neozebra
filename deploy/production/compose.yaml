@@ -1,0 +1,54 @@
+name: neozebra
+services:
+  app:
+    image: ${APP_IMAGE:-ghcr.io/wzh-devin/neozebra}:${IMAGE_TAG:?Set a released vX.Y.Z tag}
+    build:
+      context: ../..
+      dockerfile: Dockerfile
+    ports:
+      - '127.0.0.1:${WEB_PORT:-8080}:8080'
+    environment:
+      APP_ORIGIN: ${APP_ORIGIN:?Set the public HTTPS origin}
+      DATABASE_URL: ${DATABASE_URL:?Set the existing PostgreSQL URL}
+      REDIS_URL: ${REDIS_URL:?Set the existing Redis URL}
+      MAIL_ENCRYPTION_KEY: ${MAIL_ENCRYPTION_KEY:?Set a persistent 64-character hex key}
+      STORAGE_DATABASE_URL: ${STORAGE_DATABASE_URL:-${DATABASE_URL}}
+      STORAGE_SCHEMA: ${STORAGE_SCHEMA:-neozebra_storage}
+      STORAGE_REDIS_URL: ${STORAGE_REDIS_URL:-${REDIS_URL}}
+      STORAGE_MINIO_ENDPOINT: ${STORAGE_MINIO_ENDPOINT:?Set the internal MinIO origin}
+      STORAGE_MINIO_PUBLIC_ENDPOINT: ${STORAGE_MINIO_PUBLIC_ENDPOINT:?Set the browser-accessible MinIO origin}
+      STORAGE_MINIO_ACCESS_KEY: ${STORAGE_MINIO_ACCESS_KEY:?Set the MinIO access key}
+      STORAGE_MINIO_SECRET_KEY: ${STORAGE_MINIO_SECRET_KEY:?Set the MinIO secret key}
+      STORAGE_MINIO_BUCKET: ${STORAGE_MINIO_BUCKET:-neozebra-private}
+      STORAGE_MINIO_REGION: ${STORAGE_MINIO_REGION:-us-east-1}
+      STORAGE_PREVIEW_URL: http://preview:8012
+      STORAGE_PREVIEW_SOURCE_ORIGIN: http://app:3001
+    stop_grace_period: 30s
+    restart: unless-stopped
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+
+  preview:
+    image: neozebra-preview:kkfileview-5.0.3
+    build:
+      context: ../preview
+    environment:
+      KK_TRUST_HOST: app
+    volumes:
+      - preview-cache:/app/cache
+    mem_limit: 1536m
+    cpus: 2
+    pids_limit: 256
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    healthcheck:
+      test:
+        [CMD, curl, --fail, --silent, 'http://127.0.0.1:8012/actuator/health']
+      interval: 15s
+      timeout: 5s
+      retries: 8
+      start_period: 90s
+    restart: unless-stopped
+
+volumes:
+  preview-cache:
